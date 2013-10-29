@@ -1,0 +1,65 @@
+<?php
+
+require_once('config.php');
+
+function bitstamp_ticker(){
+        static $ch = null;
+        if (is_null($ch)) {
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; BitStamp PHP client; '.php_uname('s').'; PHP/'.phpversion().')');
+        }
+        curl_setopt($ch, CURLOPT_URL, 'https://www.bitstamp.net/api/ticker/');
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+
+	$res = curl_exec($ch);
+        if ($res === false) throw new Exception('Could not get reply: '.curl_error($ch));
+        $dec = json_decode($res, true);
+        if (!$dec) throw new Exception('Invalid data received, please make sure connection is working and requested API exists');
+        return $dec;
+}
+
+function bitstamp_query($method, array $req = array()) {
+    
+    global $bitstamp_custid;
+    global $bitstamp_key;
+    global $bitstamp_secret;
+    
+	// API settings
+    $custid = $bitstamp_custid;
+	$key = $bitstamp_key; // your API-key
+	$secret = $bitstamp_secret; // your Secret-key
+
+    //generate nonce
+    static $noncetime = null;
+    static $nonce = null;
+    if(is_null($noncetime)){ 
+        $mt = explode(' ', microtime());
+        $noncetime = $mt[1];
+    }
+    $nonce++;
+    $req['nonce'] = $noncetime + $nonce;
+                                      
+	// generate the POST data string
+	$req['key'] = $key;
+	$req['signature'] = strtoupper(hash_hmac("sha256", $req['nonce'] . $custid . $key, $secret));
+	$post_data = http_build_query($req, '', '&');
+
+	// our curl handle (initialize if required)
+	static $ch = null;
+	if (is_null($ch)) {
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; Bitstamp PHP client; '.php_uname('s').'; PHP/'.phpversion().')');
+	}
+	curl_setopt($ch, CURLOPT_URL, 'https://www.bitstamp.net/api/' . $method . '/');
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+
+	// run the query
+	$res = curl_exec($ch);
+	if ($res === false) throw new Exception('Could not get reply: '.curl_error($ch));
+	$dec = json_decode($res, true);
+	if (!$dec) throw new Exception('Invalid data received, please make sure connection is working and requested API exists');
+	return $dec;
+}
