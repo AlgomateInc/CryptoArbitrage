@@ -8,17 +8,19 @@ class MongoReporter implements IReporter
     private $mdb;
     
     public function __construct(){
-        $this->mongo = new MongoClient();
+        global $mongodb_uri;
+        
+        $this->mongo = new MongoClient($mongodb_uri);
         $this->mdb = $this->mongo->coindata;
     }
     
     public function balance($exchange_name, $currency, $balance){
         $balances = $this->mdb->balance;
         $balance_entry = array(
-            'exchange'=>"$exchange_name",
-            'currency'=>"$currency",
-            'balance'=>"$balance",
-            'ts'=>new MongoDate());
+            'Exchange'=>"$exchange_name",
+            'Currency'=>"$currency",
+            'Balance'=>"$balance",
+            'Timestamp'=>new MongoDate());
         
         $balance_id = $balances->insert($balance_entry);
     }
@@ -26,12 +28,12 @@ class MongoReporter implements IReporter
     public function market($exchange_name, $currencyPair, $bid, $ask, $last){
         $markets = $this->mdb->market;
         $market_entry = array(
-            'exchange'=>"$exchange_name",
-            'currency'=>"$currencyPair",
-            'bid'=>"$bid",
-            'ask'=>"$ask",
-            'last'=>"$last",
-            'ts'=>new MongoDate());
+            'Exchange'=>"$exchange_name",
+            'CurrencyPair'=>"$currencyPair",
+            'Bid'=>"$bid",
+            'Ask'=>"$ask",
+            'Last'=>"$last",
+            'Timestamp'=>new MongoDate());
         
         $me_id = $markets->insert($market_entry);
     }

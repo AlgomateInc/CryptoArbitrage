@@ -7,4 +7,6 @@ $bitstamp_custid = 'STAMPCUSTID';
 $bitstamp_key = 'STAMPKEY'; // your API-key
 $bitstamp_secret = 'STAMPSECRET'; // your Secret-key
 
+$mongodb_uri = 'mongodb://localhost';
+
 ?>

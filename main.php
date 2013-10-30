@@ -25,16 +25,20 @@ class CurrencyPair{
 //////////////////////////////////////////////////////////
 
 $reporter = new ConsoleReporter();
+$monitor = false;
 
 $shortopts = "";
 $longopts = array(
-  "mongodb"
+  "mongodb",
+  "monitor"
 );
 
 $options = getopt($shortopts, $longopts);
 
 if(array_key_exists("mongodb", $options))
     $reporter = new MongoReporter();
+if(array_key_exists("monitor", $options))
+    $monitor = true;
 
 //////////////////////////////////////////////////////////
 
@@ -80,10 +84,9 @@ function fetchMarketData()
     }
 };
 
-//while(true){
-    fetchBalances();
+do {
     fetchMarketData();
-//    sleep(15);
-//}
+    sleep(15);
+}while(monitor);
 
 ?>
