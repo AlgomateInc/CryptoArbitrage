@@ -90,7 +90,7 @@ if($monitor){
     if($pid == -1){
         die('Could not fork process for monitoring!');
     }else if ($pid){
-        pcntl_wait($status);
+        //pcntl_wait($status);
     }else{
         do {
             fetchMarketData();
