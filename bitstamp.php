@@ -1,22 +1,14 @@
 <?php
 
 require_once('config.php');
+require_once('curl_helper.php');
 
 function bitstamp_ticker(){
-        static $ch = null;
-        if (is_null($ch)) {
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; BitStamp PHP client; '.php_uname('s').'; PHP/'.phpversion().')');
-        }
-        curl_setopt($ch, CURLOPT_URL, 'https://www.bitstamp.net/api/ticker/');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+    return curl_query('https://www.bitstamp.net/api/ticker/');
+}
 
-	$res = curl_exec($ch);
-        if ($res === false) throw new Exception('Could not get reply: '.curl_error($ch));
-        $dec = json_decode($res, true);
-        if (!$dec) throw new Exception('Invalid data received, please make sure connection is working and requested API exists');
-        return $dec;
+function bitstamp_depth(){
+    return curl_query('https://www.bitstamp.net/api/order_book/');
 }
 
 function bitstamp_query($method, array $req = array()) {

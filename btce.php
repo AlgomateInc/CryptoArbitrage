@@ -1,24 +1,20 @@
 <?php
 
 require_once('config.php');
+require_once('curl_helper.php');
 
 function btce_ticker(){
-        static $ch = null;
-        if (is_null($ch)) {
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; BTCE PHP client; '.php_uname('s').'; PHP/'.phpversion().')');
-        }
-        curl_setopt($ch, CURLOPT_URL, 'https://btc-e.com/api/2/btc_usd/ticker');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-
-	$res = curl_exec($ch);
-        if ($res === false) throw new Exception('Could not get reply: '.curl_error($ch));
-        $dec = json_decode($res, true);
-        if (!$dec) throw new Exception('Invalid data received, please make sure connection is working and requested API exists');
-        return $dec;
+    return curl_query('https://btc-e.com/api/2/btc_usd/ticker');
 }
 
+function btce_depth(){
+    return curl_query('https://btc-e.com/api/2/btc_usd/depth');
+}
+
+function btce_trades(){
+    return curl_query('https://btc-e.com/api/2/btc_usd/trades');
+}
+    
 function btce_query($method, array $req = array()) {
     
     global $btce_key;

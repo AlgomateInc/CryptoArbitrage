@@ -38,10 +38,17 @@ class MongoReporter implements IReporter
         $me_id = $markets->insert($market_entry);
     }
 
-    public function spread($buy_market_name, $sell_market_name, $difference){
-        print "Buy $buy_market_name, Sell $sell_market_name: $difference\n";
+    public function depth($exchange_name, $currencyPair, $depth){
+        $orderbooks = $this->mdb->orderbook;
+        $book_entry = array(
+            'Exchange'=>"$exchange_name",
+            'CurrencyPair'=>"$currencyPair",
+            'Depth'=>$depth,
+            'Timestamp'=>new MongoDate());
+        
+        $be_id = $orderbooks->insert($book_entry);
+        
     }
-
 }
 
 ?>

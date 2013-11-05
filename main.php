@@ -68,17 +68,23 @@ function fetchMarketData()
     global $reporter;
     
     try{
-        $btce = btce_ticker();    
-        
+        $btce = btce_ticker();        
         $reporter->market(Exchange::Btce, CurrencyPair::BTCUSD, $btce['ticker']['sell'], $btce['ticker']['buy'], $btce['ticker']['last']);
+        
+        $btce_depth = btce_depth();
+        $reporter->depth(Exchange::Btce, CurrencyPair::BTCUSD, $btce_depth);
+        
     }catch(Exception $e){
         
     }
     
     try{
-        $bstamp = bitstamp_ticker();
-        
+        $bstamp = bitstamp_ticker();        
         $reporter->market(Exchange::Bitstamp, CurrencyPair::BTCUSD, $bstamp['bid'], $bstamp['ask'], $bstamp['last']);
+        
+        $bstamp_depth = bitstamp_depth();
+        $reporter->depth(Exchange::Bitstamp, CurrencyPair::BTCUSD, $bstamp_depth);
+        
     }catch(Exception $e){
         
     }
