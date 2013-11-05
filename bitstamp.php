@@ -11,6 +11,10 @@ function bitstamp_depth(){
     return curl_query('https://www.bitstamp.net/api/order_book/');
 }
 
+function bitstamp_trades(){
+    return curl_query('https://www.bitstamp.net/api/transactions/');
+}
+
 function bitstamp_query($method, array $req = array()) {
     
     global $bitstamp_custid;

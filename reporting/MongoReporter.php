@@ -47,7 +47,17 @@ class MongoReporter implements IReporter
             'Timestamp'=>new MongoDate());
         
         $be_id = $orderbooks->insert($book_entry);
+    }
+    
+    public function trades($exchange_name, $currencyPair, $trades){
+        $trades = $this->mdb->trades;
+        $trades_entry = array(
+            'Exchange'=>"$exchange_name",
+            'CurrencyPair'=>"$currencyPair",
+            'Trades'=>$trades,
+            'Timestamp'=>new MongoDate());
         
+        $te_id = $trades->insert($trades_entry);
     }
 }
 

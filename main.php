@@ -74,6 +74,9 @@ function fetchMarketData()
         $btce_depth = btce_depth();
         $reporter->depth(Exchange::Btce, CurrencyPair::BTCUSD, $btce_depth);
         
+        $btce_trades = btce_trades();
+        $reporter->trades(Exchange::Btce, CurrencyPair::BTCUSD, $btce_trades);
+
     }catch(Exception $e){
         
     }
@@ -84,6 +87,9 @@ function fetchMarketData()
         
         $bstamp_depth = bitstamp_depth();
         $reporter->depth(Exchange::Bitstamp, CurrencyPair::BTCUSD, $bstamp_depth);
+        
+        $bstamp_trades = bitstamp_trades();
+        $reporter->trades(Exchange::Bitstamp, CurrencyPair::BTCUSD, $bstamp_trades);
         
     }catch(Exception $e){
         

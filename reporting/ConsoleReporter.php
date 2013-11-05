@@ -16,6 +16,11 @@ class ConsoleReporter implements IReporter
         print "$exchange_name - $currencyPair\n";
         var_dump($depth);
     }
+    
+    public function trades($exchange_name, $currencyPair, $trades){
+        print "$exchange_name - $currencyPair\n";
+        var_dump($trades);
+    }
 }
 
 ?>
