@@ -87,6 +87,6 @@ function fetchMarketData()
 do {
     fetchMarketData();
     sleep(15);
-}while(monitor);
+}while($monitor);
 
 ?>
