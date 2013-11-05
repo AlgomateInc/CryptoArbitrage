@@ -84,9 +84,21 @@ function fetchMarketData()
     }
 };
 
-do {
+////////////////////////////////////////////////////////
+if($monitor){
+    $pid = pcntl_fork();
+    if($pid == -1){
+        die('Could not fork process for monitoring!');
+    }else if ($pid){
+        pcntl_wait($status);
+    }else{
+        do {
+            fetchMarketData();
+            sleep(15);
+        }while($monitor);
+    }
+}else{
     fetchMarketData();
-    sleep(15);
-}while($monitor);
+}
 
 ?>
