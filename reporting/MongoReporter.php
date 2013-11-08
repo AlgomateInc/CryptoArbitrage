@@ -59,6 +59,20 @@ class MongoReporter implements IReporter
         
         $te_id = $trades->insert($trades_entry);
     }
+
+    public function arborder($quantity, $buyExchange, $buyLimit, $sellExchange, $sellLimit)
+    {
+        $arborders = $this->mdb->arborder;
+        $arborder_entry = array(
+            'Quantity'=>$quantity,
+            'BuyExchange'=>"$buyExchange",
+            'BuyLimit'=>$buyLimit,
+            'SellExchange'=>"$sellExchange",
+            'SellLimit'=>$sellLimit,
+            'Timestamp'=>new MongoDate());
+
+        $aoe_id = $arborders->insert($arborder_entry);
+    }
 }
 
 ?>

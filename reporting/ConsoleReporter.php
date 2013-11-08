@@ -41,6 +41,11 @@ class ConsoleReporter implements IReporter
         print "$exchange_name - $currencyPair\n";
         var_dump($trades);
     }
+
+    public function arborder($quantity, $buyExchange, $buyLimit, $sellExchange, $sellLimit)
+    {
+        print "Order: BUY $buyExchange @ $buyLimit, SELL $sellExchange @ $sellLimit, SIZE $quantity\n";
+    }
 }
 
 ?>
