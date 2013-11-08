@@ -23,6 +23,7 @@ class MongoReporter implements IReporter
             'Timestamp'=>new MongoDate());
         
         $balance_id = $balances->insert($balance_entry);
+        return $balance_id;
     }
 
     public function market($exchange_name, $currencyPair, $bid, $ask, $last){
@@ -36,6 +37,7 @@ class MongoReporter implements IReporter
             'Timestamp'=>new MongoDate());
         
         $me_id = $markets->insert($market_entry);
+        return $me_id;
     }
 
     public function depth($exchange_name, $currencyPair, $depth){
@@ -47,6 +49,7 @@ class MongoReporter implements IReporter
             'Timestamp'=>new MongoDate());
         
         $be_id = $orderbooks->insert($book_entry);
+        return $be_id;
     }
     
     public function trades($exchange_name, $currencyPair, $trades){
@@ -58,6 +61,7 @@ class MongoReporter implements IReporter
             'Timestamp'=>new MongoDate());
         
         $te_id = $trades->insert($trades_entry);
+        return $te_id;
     }
 
     public function arborder($quantity, $buyExchange, $buyLimit, $sellExchange, $sellLimit)
@@ -72,6 +76,7 @@ class MongoReporter implements IReporter
             'Timestamp'=>new MongoDate());
 
         $aoe_id = $arborders->insert($arborder_entry);
+        return $aoe_id;
     }
 }
 
