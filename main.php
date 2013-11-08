@@ -32,11 +32,13 @@ class ArbitrageOrder{
 
 $reporter = new ConsoleReporter();
 $monitor = false;
+$liveTrade = false;
 
 $shortopts = "";
 $longopts = array(
     "mongodb",
-    "monitor"
+    "monitor",
+    "live"
 );
 
 $options = getopt($shortopts, $longopts);
@@ -45,6 +47,8 @@ if(array_key_exists("mongodb", $options))
     $reporter = new MongoReporter();
 if(array_key_exists("monitor", $options))
     $monitor = true;
+if(array_key_exists("live", $options))
+    $liveTrade = true;
 
 //////////////////////////////////////////////////////////
 
@@ -142,20 +146,38 @@ function getOptimalOrder($btce_depth, $bitstamp_depth, $target_spread)
     return $order;
 }
 
+function execute_trades(ArbitrageOrder $order)
+{
+    //abort if this is test only
+    global $liveTrade;
+    if($liveTrade != true)
+        return;
+
+    $btce_result = btce_buy($order->quantity, $order->buyLimit);
+    $bstamp_result = bitstamp_sell($order->quantity, $order->sellLimit);
+    var_dump($btce_result);
+    var_dump($bstamp_result);
+
+    if($btce_result['success'] == 1){
+    }
+}
+
 function fetchMarketData()
 {
     global $reporter;
+    global $max_order_usd_size;
     
     try{
+
+        //////////////////////////////////////////
+        // Get the current market data
+        //////////////////////////////////////////
         $btce = btce_ticker();        
         $reporter->market(Exchange::Btce, CurrencyPair::BTCUSD, $btce['ticker']['sell'], $btce['ticker']['buy'], $btce['ticker']['last']);
         
         $btce_depth = btce_depth();
         $reporter->depth(Exchange::Btce, CurrencyPair::BTCUSD, $btce_depth);
         
-        //$btce_trades = btce_trades();
-        //$reporter->trades(Exchange::Btce, CurrencyPair::BTCUSD, $btce_trades);
-
         $bstamp = bitstamp_ticker();
         $reporter->market(Exchange::Bitstamp, CurrencyPair::BTCUSD, $bstamp['bid'], $bstamp['ask'], $bstamp['last']);
         
@@ -163,15 +185,22 @@ function fetchMarketData()
         $bstamp_depth['bids'] = array_slice($bstamp_depth['bids'],0,150);
         $bstamp_depth['asks'] = array_slice($bstamp_depth['asks'],0,150);
         $reporter->depth(Exchange::Bitstamp, CurrencyPair::BTCUSD, $bstamp_depth);
-        
-        //$bstamp_trades = bitstamp_trades();
-        //$reporter->trades(Exchange::Bitstamp, CurrencyPair::BTCUSD, $bstamp_trades);
 
+        //////////////////////////////////////////
+        // Calculate an optimal order and execute
+        //////////////////////////////////////////
         $ior = getOptimalOrder($btce_depth, $bstamp_depth, 6.2);
         $reporter->arborder($ior->quantity,Exchange::Btce,$ior->buyLimit,Exchange::Bitstamp, $ior->sellLimit);
-        
+
+        //adjust order size based on current limits
+        if($ior->quantity * $ior->buyLimit > $max_order_usd_size)
+            $ior->quantity = round($max_order_usd_size/$ior->buyLimit, 8, PHP_ROUND_HALF_DOWN);
+
+        //execute the order on the market
+        execute_trades($ior);
+
     }catch(Exception $e){
-        
+        syslog(LOG_ERR, $e->getMessage());
     }
 };
 

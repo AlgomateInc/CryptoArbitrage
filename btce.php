@@ -3,6 +3,12 @@
 require_once('config.php');
 require_once('curl_helper.php');
 
+function btce_buy($quantity, $price){
+    $btce_result = btce_query("Trade", array("pair" => "btc_usd", "type" => "buy",
+        "amount" => $quantity, "rate" => $price ));
+    return $btce_result;
+}
+
 function btce_ticker(){
     return curl_query('https://btc-e.com/api/2/btc_usd/ticker');
 }
