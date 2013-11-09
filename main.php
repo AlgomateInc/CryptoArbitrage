@@ -159,6 +159,11 @@ function execute_trades(ArbitrageOrder $order)
     var_dump($bstamp_result);
 
     if($btce_result['success'] == 1){
+
+    }
+
+    if(!isset($bstamp_info['error'])){
+
     }
 }
 
@@ -190,14 +195,16 @@ function fetchMarketData()
         // Calculate an optimal order and execute
         //////////////////////////////////////////
         $ior = getOptimalOrder($btce_depth, $bstamp_depth, 6.2);
-        $reporter->arborder($ior->quantity,Exchange::Btce,$ior->buyLimit,Exchange::Bitstamp, $ior->sellLimit);
+        if($ior->quantity > 0){
+            $reporter->arborder($ior->quantity,Exchange::Btce,$ior->buyLimit,Exchange::Bitstamp, $ior->sellLimit);
 
-        //adjust order size based on current limits
-        if($ior->quantity * $ior->buyLimit > $max_order_usd_size)
-            $ior->quantity = round($max_order_usd_size/$ior->buyLimit, 8, PHP_ROUND_HALF_DOWN);
+            //adjust order size based on current limits
+            if($ior->quantity * $ior->buyLimit > $max_order_usd_size)
+                $ior->quantity = round($max_order_usd_size/$ior->buyLimit, 8, PHP_ROUND_HALF_DOWN);
 
-        //execute the order on the market
-        execute_trades($ior);
+            //execute the order on the market
+            execute_trades($ior);
+        }
 
     }catch(Exception $e){
         syslog(LOG_ERR, $e->getMessage());
