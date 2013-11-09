@@ -15,6 +15,10 @@ function bitstamp_trades(){
     return curl_query('https://www.bitstamp.net/api/transactions/');
 }
 
+function bitstamp_buy($quantity, $price){
+    return bitstamp_query('buy', array("amount" => $quantity, "price" => $price));
+}
+
 function bitstamp_sell($quantity, $price){
     return bitstamp_query('sell', array("amount" => $quantity, "price" => $price));
 }

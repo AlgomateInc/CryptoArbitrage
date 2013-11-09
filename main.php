@@ -23,7 +23,9 @@ class CurrencyPair{
 }
 
 class ArbitrageOrder{
+    public $buyExchange;
     public $buyLimit = 0;
+    public $sellExchange;
     public $sellLimit = INF;
     public $quantity = 0;
 }
@@ -95,29 +97,29 @@ function computeDepthStats($depth){
     return $depth;
 }
 
-function getOptimalOrder($btce_depth, $bitstamp_depth, $target_spread)
+function getOptimalOrder($buy_depth, $sell_depth, $target_spread)
 {
-    $btce_asks = computeDepthStats($btce_depth['asks']);
-    $bstamp_bids = computeDepthStats($bitstamp_depth['bids']);
+    $asks = computeDepthStats($buy_depth);
+    $bids = computeDepthStats($sell_depth);
 
     //calculate order size and limits
     $order = new ArbitrageOrder();
 
-    for($i = 0; $i < count($btce_asks); $i++){
-        $buyPx = $btce_asks[$i][0];
-        $buyQty = $btce_asks[$i][1];
+    for($i = 0; $i < count($asks); $i++){
+        $buyPx = $asks[$i][0];
+        $buyQty = $asks[$i][1];
 
         //check our wavg stat for exit condition
-        $buyDiffSum = $btce_asks[$i][3];
+        $buyDiffSum = $asks[$i][3];
         if($buyDiffSum > 1)
             return $order;
 
-        for ($j = 0; $j < count($bstamp_bids);$j++){
-            $sellPx = $bstamp_bids[$j][0];
-            $sellQty = $bstamp_bids[$j][1];
+        for ($j = 0; $j < count($bids);$j++){
+            $sellPx = $bids[$j][0];
+            $sellQty = $bids[$j][1];
 
             //check our wavg stat for exit condition
-            $sellDiffSum = $bstamp_bids[$j][3];
+            $sellDiffSum = $bids[$j][3];
             if($sellDiffSum > 1)
                 return $order;
 
@@ -126,10 +128,10 @@ function getOptimalOrder($btce_depth, $bitstamp_depth, $target_spread)
                 $execSize = min($buyQty, $sellQty);
 
                 //update leftover order sizes
-                $btce_asks[$i][1] -= $execSize;
-                $buyQty = $btce_asks[$i][1];
-                $bstamp_bids[$j][1] -= $execSize;
-                $sellQty = $bstamp_bids[$j][1];
+                $asks[$i][1] -= $execSize;
+                $buyQty = $asks[$i][1];
+                $bids[$j][1] -= $execSize;
+                $sellQty = $bids[$j][1];
 
                 //update order limits and size
                 $order->buyLimit = $buyPx;
@@ -153,17 +155,38 @@ function execute_trades(ArbitrageOrder $order)
     if($liveTrade != true)
         return;
 
-    $btce_result = btce_buy($order->quantity, $order->buyLimit);
-    $bstamp_result = bitstamp_sell($order->quantity, $order->sellLimit);
-    var_dump($btce_result);
-    var_dump($bstamp_result);
+    if($order->buyExchange == Exchange::Btce){
+        $btce_result = btce_buy($order->quantity, $order->buyLimit);
+        var_dump($btce_result);
+        if($btce_result['success'] == 1){
 
-    if($btce_result['success'] == 1){
-
+        }
     }
 
-    if(!isset($bstamp_info['error'])){
+    if($order->sellExchange == Exchange::Btce){
+        $btce_result = btce_sell($order->quantity, $order->sellLimit);
+        var_dump($btce_result);
+        if($btce_result['success'] == 1){
 
+        }
+    }
+
+    if($order->buyExchange == Exchange::Bitstamp){
+        $bstamp_result = bitstamp_buy($order->quantity, $order->buyLimit);
+        var_dump($bstamp_result);
+
+        if(!isset($bstamp_info['error'])){
+
+        }
+    }
+
+    if($order->sellExchange == Exchange::Bitstamp){
+        $bstamp_result = bitstamp_sell($order->quantity, $order->sellLimit);
+        var_dump($bstamp_result);
+
+        if(!isset($bstamp_info['error'])){
+
+        }
     }
 }
 
@@ -194,9 +217,17 @@ function fetchMarketData()
         //////////////////////////////////////////
         // Calculate an optimal order and execute
         //////////////////////////////////////////
-        $ior = getOptimalOrder($btce_depth, $bstamp_depth, 6.2);
+        $btce_buy_stamp_sell = getOptimalOrder($btce_depth['asks'], $bstamp_depth['bids'], 6.2);
+        $btce_buy_stamp_sell->buyExchange = Exchange::Btce;
+        $btce_buy_stamp_sell->sellExchange = Exchange::Bitstamp;
+
+        $stamp_buy_btce_sell = getOptimalOrder($bstamp_depth['asks'], $btce_depth['bids'], 1.5);
+        $stamp_buy_btce_sell->buyExchange = Exchange::Bitstamp;
+        $stamp_buy_btce_sell->sellExchange = Exchange::Btce;
+
+        $ior = ($btce_buy_stamp_sell->quantity > $stamp_buy_btce_sell->quantity)? $btce_buy_stamp_sell : $stamp_buy_btce_sell;
         if($ior->quantity > 0){
-            $reporter->arborder($ior->quantity,Exchange::Btce,$ior->buyLimit,Exchange::Bitstamp, $ior->sellLimit);
+            $reporter->arborder($ior->quantity,$ior->buyExchange,$ior->buyLimit,$ior->sellExchange, $ior->sellLimit);
 
             //adjust order size based on current limits
             if($ior->quantity * $ior->buyLimit > $max_order_usd_size)
