@@ -54,23 +54,6 @@ if(array_key_exists("live", $options))
 
 //////////////////////////////////////////////////////////
 
-function fetchBalances() 
-{
-    global $reporter;
-
-    $btce_info = btce_query("getInfo");
-    if($btce_info['success'] == 1){
-        $reporter->balance(Exchange::Btce, Currency::USD, $btce_info['return']['funds']['usd']);
-        $reporter->balance(Exchange::Btce, Currency::BTC, $btce_info['return']['funds']['btc']);
-    }
-
-    $bstamp_info = bitstamp_query('balance');
-    if(!isset($bstamp_info['error'])){
-        $reporter->balance(Exchange::Bitstamp, Currency::USD, $bstamp_info['usd_balance']);
-        $reporter->balance(Exchange::Bitstamp, Currency::BTC, $bstamp_info['btc_balance']);
-    }                                                                    
-};
-
 function computeDepthStats($depth){
 
     $qtySum = 0; //running depth quantity
@@ -193,9 +176,32 @@ function execute_trades(ArbitrageOrder $order)
 function fetchMarketData()
 {
     global $reporter;
-    global $max_order_usd_size;
-    
+
     try{
+        //////////////////////////////////////////
+        // Fetch the account balances
+        //////////////////////////////////////////
+        $balances = array();
+
+        $btce_info = btce_query("getInfo");
+        if($btce_info['success'] == 1){
+            $reporter->balance(Exchange::Btce, Currency::USD, $btce_info['return']['funds']['usd']);
+            $reporter->balance(Exchange::Btce, Currency::BTC, $btce_info['return']['funds']['btc']);
+
+            $balances[Exchange::Btce] = array();
+            $balances[Exchange::Btce][Currency::USD] = $btce_info['return']['funds']['usd'];
+            $balances[Exchange::Btce][Currency::BTC] = $btce_info['return']['funds']['btc'];
+        }
+
+        $bstamp_info = bitstamp_query('balance');
+        if(!isset($bstamp_info['error'])){
+            $reporter->balance(Exchange::Bitstamp, Currency::USD, $bstamp_info['usd_balance']);
+            $reporter->balance(Exchange::Bitstamp, Currency::BTC, $bstamp_info['btc_balance']);
+
+            $balances[Exchange::Bitstamp] = array();
+            $balances[Exchange::Bitstamp][Currency::USD] = $bstamp_info['usd_balance'];
+            $balances[Exchange::Bitstamp][Currency::BTC] = $bstamp_info['btc_balance'];
+        }
 
         //////////////////////////////////////////
         // Get the current market data
@@ -230,11 +236,20 @@ function fetchMarketData()
             $reporter->arborder($ior->quantity,$ior->buyExchange,$ior->buyLimit,$ior->sellExchange, $ior->sellLimit);
 
             //adjust order size based on current limits
+            global $max_order_usd_size;
             if($ior->quantity * $ior->buyLimit > $max_order_usd_size)
                 $ior->quantity = round($max_order_usd_size/$ior->buyLimit, 8, PHP_ROUND_HALF_DOWN);
 
-            //execute the order on the market
-            execute_trades($ior);
+            //adjust order size based on available balance
+            if($balances[$ior->sellExchange][Currency::BTC] < $ior->quantity)
+                $ior->quantity = $balances[$ior->sellExchange][Currency::BTC];
+            if($balances[$ior->buyExchange][Currency::USD] < $ior->quantity * $ior->buyLimit)
+                $ior->quantity = round($balances[$ior->buyExchange][Currency::USD]/$ior->buyLimit,8,PHP_ROUND_HALF_DOWN);
+
+            //execute the order on the market if it meets minimum size
+            //TODO: remove hardcoding of minimum size
+            if($ior->quantity > 0.01)
+                execute_trades($ior);
         }
 
     }catch(Exception $e){
