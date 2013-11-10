@@ -2,6 +2,28 @@
 
 require_once('config.php');
 require_once('curl_helper.php');
+require_once('IExchange.php');
+
+class BtceExchange implements IExchange
+{
+    public function buy($quantity, $price)
+    {
+        return btce_buy($quantity,$price);
+    }
+
+    public function sell($quantity, $price)
+    {
+        return btce_sell($quantity,$price);
+    }
+
+    public function processTradeResponse($response)
+    {
+        var_dump($response);
+        if($response['success'] == 1){
+
+        }
+    }
+}
 
 function btce_buy($quantity, $price){
     $btce_result = btce_query("Trade", array("pair" => "btc_usd", "type" => "buy",

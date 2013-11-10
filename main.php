@@ -57,7 +57,12 @@ if(array_key_exists("live", $options))
     $liveTrade = true;
 
 //////////////////////////////////////////////////////////
+// Initialize active exchange interfaces
+$exchanges = array();
+$exchanges[Exchange::Btce] = new BtceExchange();
+$exchanges[Exchange::Bitstamp] = new BitstampExchange();
 
+//////////////////////////////////////////////////////////
 function computeDepthStats($depth){
 
     $qtySum = 0; //running depth quantity
@@ -142,39 +147,22 @@ function execute_trades(ArbitrageOrder $order)
     if($liveTrade != true)
         return;
 
-    if($order->buyExchange == Exchange::Btce){
-        $btce_result = btce_buy($order->quantity, $order->buyLimit);
-        var_dump($btce_result);
-        if($btce_result['success'] == 1){
+    //submit orders to the exchanges
+    global $exchanges;
+    $buyMarket = $exchanges[$order->buyExchange];
+    $sellMarket = $exchanges[$order->sellExchange];
 
-        }
-    }
+    $buy_res = $buyMarket->buy($order->quantity, $order->buyLimit);
+    $sell_res = $sellMarket->sell($order->quantity, $order->sellLimit);
 
-    if($order->sellExchange == Exchange::Btce){
-        $btce_result = btce_sell($order->quantity, $order->sellLimit);
-        var_dump($btce_result);
-        if($btce_result['success'] == 1){
+    //TODO:verify that both orders were accepted
+    //if not, cancel the active one and assess the damage
 
-        }
-    }
+    //TODO: verify that accepted orders were fully executed
+    //wait for execution if needed
 
-    if($order->buyExchange == Exchange::Bitstamp){
-        $bstamp_result = bitstamp_buy($order->quantity, $order->buyLimit);
-        var_dump($bstamp_result);
-
-        if(!isset($bstamp_info['error'])){
-
-        }
-    }
-
-    if($order->sellExchange == Exchange::Bitstamp){
-        $bstamp_result = bitstamp_sell($order->quantity, $order->sellLimit);
-        var_dump($bstamp_result);
-
-        if(!isset($bstamp_info['error'])){
-
-        }
-    }
+    $buyMarket->processTradeResponse($buy_res);
+    $sellMarket->processTradeResponse($sell_res);
 }
 
 function fetchMarketData()

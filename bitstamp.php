@@ -2,6 +2,28 @@
 
 require_once('config.php');
 require_once('curl_helper.php');
+require_once('IExchange.php');
+
+class BitstampExchange implements IExchange
+{
+    public function buy($quantity, $price)
+    {
+        return bitstamp_buy($quantity,$price);
+    }
+
+    public function sell($quantity, $price)
+    {
+        return bitstamp_sell($quantity,$price);
+    }
+
+    public function processTradeResponse($response)
+    {
+        var_dump($response);
+        if(!isset($response['error'])){
+
+        }
+    }
+}
 
 function bitstamp_ticker(){
     return curl_query('https://www.bitstamp.net/api/ticker/');
