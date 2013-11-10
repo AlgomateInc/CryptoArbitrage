@@ -35,11 +35,13 @@ class ArbitrageOrder{
 $reporter = new ConsoleReporter();
 $monitor = false;
 $liveTrade = false;
+$fork = false;
 
 $shortopts = "";
 $longopts = array(
     "mongodb",
     "monitor",
+    "fork",
     "live"
 );
 
@@ -49,6 +51,8 @@ if(array_key_exists("mongodb", $options))
     $reporter = new MongoReporter();
 if(array_key_exists("monitor", $options))
     $monitor = true;
+if(array_key_exists("fork", $options))
+    $fork = true;
 if(array_key_exists("live", $options))
     $liveTrade = true;
 
@@ -258,20 +262,30 @@ function fetchMarketData()
 };
 
 ////////////////////////////////////////////////////////
-if($monitor){
+// Execute process according to setup
+// if not monitoring, run once and exit
+if($monitor == false){
+    fetchMarketData();
+    exit;
+}
+
+//if we are here, we are monitoring
+//fork the process depending on setup and loop
+if($fork){
     $pid = pcntl_fork();
+
     if($pid == -1){
         die('Could not fork process for monitoring!');
     }else if ($pid){
-        //pcntl_wait($status);
-    }else{
-        do {
-            fetchMarketData();
-            sleep(15);
-        }while($monitor);
+        //parent process can now exit
+        exit;
     }
-}else{
-    fetchMarketData();
 }
+
+//perform the monitoring loop
+do {
+    fetchMarketData();
+    sleep(15);
+}while($monitor);
 
 ?>
