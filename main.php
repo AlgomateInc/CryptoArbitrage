@@ -173,24 +173,36 @@ function fetchMarketData()
         //////////////////////////////////////////
         // Fetch the account balances
         //////////////////////////////////////////
-        $balances = array();
+        static $balances = array();
+        if(count($balances) == 0){
+            $balances[Exchange::Btce] = array();
+            $balances[Exchange::Bitstamp] = array();
+        }
 
         $btce_info = btce_query("getInfo");
         if($btce_info['success'] == 1){
-            $reporter->balance(Exchange::Btce, Currency::USD, $btce_info['return']['funds']['usd']);
-            $reporter->balance(Exchange::Btce, Currency::BTC, $btce_info['return']['funds']['btc']);
+            if(!isset($balances[Exchange::Btce][Currency::USD]) ||
+                $balances[Exchange::Btce][Currency::USD] != $btce_info['return']['funds']['usd'])
+                $reporter->balance(Exchange::Btce, Currency::USD, $btce_info['return']['funds']['usd']);
 
-            $balances[Exchange::Btce] = array();
+            if(!isset($balances[Exchange::Btce][Currency::BTC]) ||
+                $balances[Exchange::Btce][Currency::BTC] != $btce_info['return']['funds']['btc'])
+                $reporter->balance(Exchange::Btce, Currency::BTC, $btce_info['return']['funds']['btc']);
+
             $balances[Exchange::Btce][Currency::USD] = $btce_info['return']['funds']['usd'];
             $balances[Exchange::Btce][Currency::BTC] = $btce_info['return']['funds']['btc'];
         }
 
         $bstamp_info = bitstamp_query('balance');
         if(!isset($bstamp_info['error'])){
-            $reporter->balance(Exchange::Bitstamp, Currency::USD, $bstamp_info['usd_balance']);
-            $reporter->balance(Exchange::Bitstamp, Currency::BTC, $bstamp_info['btc_balance']);
+            if(!isset($balances[Exchange::Bitstamp][Currency::USD]) ||
+                $balances[Exchange::Bitstamp][Currency::USD] != $bstamp_info['usd_balance'])
+                $reporter->balance(Exchange::Bitstamp, Currency::USD, $bstamp_info['usd_balance']);
 
-            $balances[Exchange::Bitstamp] = array();
+            if(!isset($balances[Exchange::Bitstamp][Currency::BTC]) ||
+                $balances[Exchange::Bitstamp][Currency::BTC] != $bstamp_info['btc_balance'])
+                $reporter->balance(Exchange::Bitstamp, Currency::BTC, $bstamp_info['btc_balance']);
+
             $balances[Exchange::Bitstamp][Currency::USD] = $bstamp_info['usd_balance'];
             $balances[Exchange::Bitstamp][Currency::BTC] = $bstamp_info['btc_balance'];
         }
