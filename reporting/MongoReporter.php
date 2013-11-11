@@ -81,9 +81,7 @@ class MongoReporter implements IReporter
 
     public function order($exchange, $type, $quantity, $price, $orderResponse, $arbid)
     {
-        $orders = $this->mdb->order;
         $order_entry = array(
-            'ArbitrageId'=>$arbid,
             'Exchange'=>"$exchange",
             'Type'=>"$type",
             'Quantity'=>$quantity,
@@ -91,8 +89,11 @@ class MongoReporter implements IReporter
             'ExchangeResponse'=>$orderResponse,
             'Timestamp'=>new MongoDate());
 
-        $orders->insert($order_entry);
-        return $order_entry['_id'];
+        $arborders = $this->mdb->arborder;
+        $arborders->update(
+            array('_id'=>$arbid),
+            array('$push' => array("Orders" => $order_entry))
+        );
     }
 }
 
