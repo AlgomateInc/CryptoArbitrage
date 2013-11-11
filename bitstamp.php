@@ -16,6 +16,11 @@ class BitstampExchange implements IExchange
         return bitstamp_sell($quantity,$price);
     }
 
+    public function activeOrders()
+    {
+        return bitstamp_query('open_orders');
+    }
+
     public function processTradeResponse($response)
     {
         var_dump($response);
@@ -86,6 +91,6 @@ function bitstamp_query($method, array $req = array()) {
 	$res = curl_exec($ch);
 	if ($res === false) throw new Exception('Could not get reply: '.curl_error($ch));
 	$dec = json_decode($res, true);
-	if (!$dec) throw new Exception('Invalid data received, please make sure connection is working and requested API exists');
+	if ($dec === null) throw new Exception('Invalid data received, please make sure connection is working and requested API exists');
 	return $dec;
 }
