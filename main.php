@@ -22,6 +22,11 @@ class CurrencyPair{
     const BTCUSD = "BTCUSD";
 }
 
+class OrderType{
+    const BUY = 'BUY';
+    const SELL = 'SELL';
+}
+
 class ArbitrageOrder{
     public $buyExchange;
     public $buyLimit = 0;
@@ -63,6 +68,12 @@ $exchanges[Exchange::Btce] = new BtceExchange();
 $exchanges[Exchange::Bitstamp] = new BitstampExchange();
 
 //////////////////////////////////////////////////////////
+function floorp($val, $precision)
+{
+    $mult = pow(10, $precision);
+    return floor($val * $mult) / $mult;
+}
+
 function computeDepthStats($depth){
 
     $qtySum = 0; //running depth quantity
@@ -129,6 +140,7 @@ function getOptimalOrder($buy_depth, $sell_depth, $target_spread)
                 $order->buyLimit = $buyPx;
                 $order->sellLimit = $sellPx;
                 $order->quantity += $execSize;
+                $order->quantity = floorp($order->quantity, 8);
             }
 
             //if we ran out of buy quantity, exit the sell-side loop
@@ -140,7 +152,7 @@ function getOptimalOrder($buy_depth, $sell_depth, $target_spread)
     return $order;
 }
 
-function execute_trades(ArbitrageOrder $order)
+function execute_trades(ArbitrageOrder $arb, $arbid)
 {
     //abort if this is test only
     global $liveTrade;
@@ -148,12 +160,17 @@ function execute_trades(ArbitrageOrder $order)
         return;
 
     //submit orders to the exchanges
+    //and report them as we go
     global $exchanges;
-    $buyMarket = $exchanges[$order->buyExchange];
-    $sellMarket = $exchanges[$order->sellExchange];
+    global $reporter;
+    $buyMarket = $exchanges[$arb->buyExchange];
+    $sellMarket = $exchanges[$arb->sellExchange];
 
-    $buy_res = $buyMarket->buy($order->quantity, $order->buyLimit);
-    $sell_res = $sellMarket->sell($order->quantity, $order->sellLimit);
+    $buy_res = $buyMarket->buy($arb->quantity, $arb->buyLimit);
+    $reporter->order($arb->buyExchange, OrderType::BUY, $arb->quantity, $arb->buyLimit, $buy_res, $arbid);
+
+    $sell_res = $sellMarket->sell($arb->quantity, $arb->sellLimit);
+    $reporter->order($arb->sellExchange, OrderType::SELL, $arb->quantity, $arb->sellLimit, $sell_res, $arbid);
 
     //TODO:verify that both orders were accepted
     //if not, cancel the active one and assess the damage
@@ -241,18 +258,18 @@ function fetchMarketData()
 
         $ior = ($btce_buy_stamp_sell->quantity > $stamp_buy_btce_sell->quantity)? $btce_buy_stamp_sell : $stamp_buy_btce_sell;
         if($ior->quantity > 0){
-            $reporter->arborder($ior->quantity,$ior->buyExchange,$ior->buyLimit,$ior->sellExchange, $ior->sellLimit);
+            $arbid = $reporter->arbitrage($ior->quantity,$ior->buyExchange,$ior->buyLimit,$ior->sellExchange, $ior->sellLimit);
 
             //adjust order size based on current limits
             global $max_order_usd_size;
             if($ior->quantity * $ior->buyLimit > $max_order_usd_size)
-                $ior->quantity = round($max_order_usd_size/$ior->buyLimit, 8, PHP_ROUND_HALF_DOWN);
+                $ior->quantity = floorp($max_order_usd_size/$ior->buyLimit, 8);
 
             //adjust order size based on available balance
             if($balances[$ior->sellExchange][Currency::BTC] < $ior->quantity)
                 $ior->quantity = $balances[$ior->sellExchange][Currency::BTC];
             if($balances[$ior->buyExchange][Currency::USD] < $ior->quantity * $ior->buyLimit)
-                $ior->quantity = round($balances[$ior->buyExchange][Currency::USD]/$ior->buyLimit,8,PHP_ROUND_HALF_DOWN);
+                $ior->quantity = floorp($balances[$ior->buyExchange][Currency::USD]/$ior->buyLimit,8);
 
             //check for active orders with the exchanges
             //if any, we need to abort
@@ -267,7 +284,7 @@ function fetchMarketData()
             //execute the order on the market if it meets minimum size
             //TODO: remove hardcoding of minimum size
             if($ior->quantity > 0.01)
-                execute_trades($ior);
+                execute_trades($ior, $arbid);
         }
 
     }catch(Exception $e){

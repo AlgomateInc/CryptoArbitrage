@@ -22,8 +22,8 @@ class MongoReporter implements IReporter
             'Balance'=>"$balance",
             'Timestamp'=>new MongoDate());
         
-        $balance_id = $balances->insert($balance_entry);
-        return $balance_id;
+        $balances->insert($balance_entry);
+        return $balance_entry['_id'];
     }
 
     public function market($exchange_name, $currencyPair, $bid, $ask, $last){
@@ -36,8 +36,8 @@ class MongoReporter implements IReporter
             'Last'=>"$last",
             'Timestamp'=>new MongoDate());
         
-        $me_id = $markets->insert($market_entry);
-        return $me_id;
+        $markets->insert($market_entry);
+        return $market_entry['_id'];
     }
 
     public function depth($exchange_name, $currencyPair, $depth){
@@ -48,8 +48,8 @@ class MongoReporter implements IReporter
             'Depth'=>$depth,
             'Timestamp'=>new MongoDate());
         
-        $be_id = $orderbooks->insert($book_entry);
-        return $be_id;
+        $orderbooks->insert($book_entry);
+        return $book_entry['_id'];
     }
     
     public function trades($exchange_name, $currencyPair, $trades){
@@ -60,11 +60,11 @@ class MongoReporter implements IReporter
             'Trades'=>$trades,
             'Timestamp'=>new MongoDate());
         
-        $te_id = $trades->insert($trades_entry);
-        return $te_id;
+        $trades->insert($trades_entry);
+        return $trades_entry['_id'];
     }
 
-    public function arborder($quantity, $buyExchange, $buyLimit, $sellExchange, $sellLimit)
+    public function arbitrage($quantity, $buyExchange, $buyLimit, $sellExchange, $sellLimit)
     {
         $arborders = $this->mdb->arborder;
         $arborder_entry = array(
@@ -75,8 +75,24 @@ class MongoReporter implements IReporter
             'SellLimit'=>$sellLimit,
             'Timestamp'=>new MongoDate());
 
-        $aoe_id = $arborders->insert($arborder_entry);
-        return $aoe_id;
+        $arborders->insert($arborder_entry);
+        return $arborder_entry['_id'];
+    }
+
+    public function order($exchange, $type, $quantity, $price, $orderResponse, $arbid)
+    {
+        $orders = $this->mdb->order;
+        $order_entry = array(
+            'ArbitrageId'=>$arbid,
+            'Exchange'=>"$exchange",
+            'Type'=>"$type",
+            'Quantity'=>$quantity,
+            'Price'=>$price,
+            'ExchangeResponse'=>$orderResponse,
+            'Timestamp'=>new MongoDate());
+
+        $orders->insert($order_entry);
+        return $order_entry['_id'];
     }
 }
 
