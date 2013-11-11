@@ -16,6 +16,27 @@ class BtceExchange implements IExchange
         return btce_sell($quantity,$price);
     }
 
+    public function activeOrders()
+    {
+        return btce_query("ActiveOrders", array("pair" => "btc_usd"));
+    }
+
+    public function hasActiveOrders()
+    {
+        $ao = $this->activeOrders();
+
+        if($ao['success'] == 0 && $ao['error'] == "no orders")
+            return false;
+
+        return true;
+    }
+
+    function assertSuccessResponse($response)
+    {
+        if($response['success'] != 1)
+            throw new Exception($response['error']);
+    }
+
     public function processTradeResponse($response)
     {
         var_dump($response);

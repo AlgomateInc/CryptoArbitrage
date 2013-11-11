@@ -191,6 +191,8 @@ function fetchMarketData()
 
             $balances[Exchange::Btce][Currency::USD] = $btce_info['return']['funds']['usd'];
             $balances[Exchange::Btce][Currency::BTC] = $btce_info['return']['funds']['btc'];
+        } else {
+            syslog(LOG_ERR, $btce_info['error']);
         }
 
         $bstamp_info = bitstamp_query('balance');
@@ -205,6 +207,8 @@ function fetchMarketData()
 
             $balances[Exchange::Bitstamp][Currency::USD] = $bstamp_info['usd_balance'];
             $balances[Exchange::Bitstamp][Currency::BTC] = $bstamp_info['btc_balance'];
+        } else {
+            syslog(LOG_ERR, $bstamp_info['error']);
         }
 
         //////////////////////////////////////////
@@ -250,6 +254,16 @@ function fetchMarketData()
             if($balances[$ior->buyExchange][Currency::USD] < $ior->quantity * $ior->buyLimit)
                 $ior->quantity = round($balances[$ior->buyExchange][Currency::USD]/$ior->buyLimit,8,PHP_ROUND_HALF_DOWN);
 
+            //check for active orders with the exchanges
+            //if any, we need to abort
+            global $exchanges;
+            if($exchanges[$ior->buyExchange]->hasActiveOrders() ||
+                $exchanges[$ior->sellExchange]->hasActiveOrders())
+            {
+                print "abort";
+                return;
+            };
+
             //execute the order on the market if it meets minimum size
             //TODO: remove hardcoding of minimum size
             if($ior->quantity > 0.01)
@@ -257,7 +271,7 @@ function fetchMarketData()
         }
 
     }catch(Exception $e){
-        syslog(LOG_ERR, $e->getMessage());
+        syslog(LOG_ERR, $e);
     }
 };
 

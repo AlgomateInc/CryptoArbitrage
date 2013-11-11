@@ -21,6 +21,13 @@ class BitstampExchange implements IExchange
         return bitstamp_query('open_orders');
     }
 
+    public function hasActiveOrders()
+    {
+        $ao = $this->activeOrders();
+
+        return count($ao) > 0;
+    }
+
     public function processTradeResponse($response)
     {
         var_dump($response);
