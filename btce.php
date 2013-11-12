@@ -31,6 +31,17 @@ class BtceExchange implements IExchange
         return true;
     }
 
+    public function isOrderAccepted($orderResponse)
+    {
+        if($orderResponse['success'] == 1){
+            return isset($orderResponse['return']) &&
+                isset($orderResponse['return']['received']) &&
+                isset($orderResponse['return']['order_id']);
+        }
+
+        return false;
+    }
+
     function assertSuccessResponse($response)
     {
         if($response['success'] != 1)

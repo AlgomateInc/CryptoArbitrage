@@ -7,6 +7,7 @@ interface IExchange
     public function activeOrders();
     public function hasActiveOrders();
 
+    public function isOrderAccepted($orderResponse);
     public function processTradeResponse($response);
 }
 

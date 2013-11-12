@@ -28,6 +28,15 @@ class BitstampExchange implements IExchange
         return count($ao) > 0;
     }
 
+    public function isOrderAccepted($orderResponse)
+    {
+        if(!isset($orderResponse['error'])){
+            return isset($orderResponse['id']) && isset($orderResponse['amount']);
+        }
+
+        return false;
+    }
+
     public function processTradeResponse($response)
     {
         var_dump($response);
