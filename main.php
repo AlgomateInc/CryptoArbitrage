@@ -62,10 +62,12 @@ if(array_key_exists("live", $options))
     $liveTrade = true;
 
 //////////////////////////////////////////////////////////
-// Initialize active exchange interfaces
+// Initialize active exchange interfaces and active order list
 $exchanges = array();
 $exchanges[Exchange::Btce] = new BtceExchange();
 $exchanges[Exchange::Bitstamp] = new BitstampExchange();
+
+$activeOrders = array();
 
 //////////////////////////////////////////////////////////
 function floorp($val, $precision)
@@ -167,19 +169,19 @@ function execute_trades(ArbitrageOrder $arb, $arbid)
     $sellMarket = $exchanges[$arb->sellExchange];
 
     $buy_res = $buyMarket->buy($arb->quantity, $arb->buyLimit);
-    $reporter->order($arb->buyExchange, OrderType::BUY, $arb->quantity, $arb->buyLimit, $buy_res, $arbid);
-
     $sell_res = $sellMarket->sell($arb->quantity, $arb->sellLimit);
+
+    $reporter->order($arb->buyExchange, OrderType::BUY, $arb->quantity, $arb->buyLimit, $buy_res, $arbid);
     $reporter->order($arb->sellExchange, OrderType::SELL, $arb->quantity, $arb->sellLimit, $sell_res, $arbid);
 
-    //TODO:verify that both orders were accepted
-    //if not, cancel the active one and assess the damage
+    //TODO:verify that both orders were accepted. if not, do some damage control
 
-    //TODO: verify that accepted orders were fully executed
-    //wait for execution if needed
-
-    $buyMarket->processTradeResponse($buy_res);
-    $sellMarket->processTradeResponse($sell_res);
+    //add orders to active list so we can track their progress
+    global $activeOrders;
+    if($buyMarket->isOrderAccepted($buy_res))
+        $activeOrders[] = array('exchange'=>$buyMarket, 'response'=>$buy_res);
+    if($sellMarket->isOrderAccepted($sell_res))
+        $activeOrders[] = array('exchange'=>$sellMarket, 'response'=>$sell_res);
 }
 
 function fetchMarketData()
@@ -246,6 +248,31 @@ function fetchMarketData()
         $reporter->depth(Exchange::Bitstamp, CurrencyPair::BTCUSD, $bstamp_depth);
 
         //////////////////////////////////////////
+        // Check and process any active orders
+        //////////////////////////////////////////
+
+        global $activeOrders;
+        $aoCount = count($activeOrders);
+        for($i = 0;$i < $aoCount;$i++)
+        {
+            $market = $activeOrders[$i]['exchange'];
+            $marketResponse = $activeOrders[$i]['response'];
+
+            //check if the order is done
+            if(!$market->isOrderOpen($marketResponse))
+            {
+                //order complete. remove from list and do post-processing
+                unset($activeOrders[$i]);
+            }
+        }
+        //we may have removed some orders with unset(). fix indices
+        $activeOrders = array_values($activeOrders);
+
+        //abort further processing if any active orders
+        if(count($activeOrders) > 0)
+            return;
+
+        //////////////////////////////////////////
         // Calculate an optimal order and execute
         //////////////////////////////////////////
         $btce_buy_stamp_sell = getOptimalOrder($btce_depth['asks'], $bstamp_depth['bids'], 6.2);
@@ -270,16 +297,6 @@ function fetchMarketData()
                 $ior->quantity = $balances[$ior->sellExchange][Currency::BTC];
             if($balances[$ior->buyExchange][Currency::USD] < $ior->quantity * $ior->buyLimit)
                 $ior->quantity = floorp($balances[$ior->buyExchange][Currency::USD]/$ior->buyLimit,8);
-
-            //check for active orders with the exchanges
-            //if any, we need to abort
-            global $exchanges;
-            if($exchanges[$ior->buyExchange]->hasActiveOrders() ||
-                $exchanges[$ior->sellExchange]->hasActiveOrders())
-            {
-                print "abort";
-                return;
-            };
 
             //execute the order on the market if it meets minimum size
             //TODO: remove hardcoding of minimum size

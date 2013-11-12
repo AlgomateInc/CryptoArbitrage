@@ -37,12 +37,24 @@ class BitstampExchange implements IExchange
         return false;
     }
 
-    public function processTradeResponse($response)
+    public function isOrderOpen($orderResponse)
     {
-        var_dump($response);
-        if(!isset($response['error'])){
+        if(!$this->isOrderAccepted($orderResponse))
+            return false;
 
+        $ao = $this->activeOrders();
+
+        //search the active order list for our order
+        $orderId = $orderResponse['id'];
+        for($i = 0;$i < count($ao);$i++)
+        {
+            $order = $ao[$i];
+
+            if($order['id'] == $orderId)
+                return true;
         }
+
+        return false;
     }
 }
 

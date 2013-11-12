@@ -42,18 +42,24 @@ class BtceExchange implements IExchange
         return false;
     }
 
+    public function isOrderOpen($orderResponse)
+    {
+        if(!$this->isOrderAccepted($orderResponse))
+            return false;
+
+        if($orderResponse['return']['remains'] == 0 &&
+            $orderResponse['return']['order_id'] == 0)
+            return false;
+
+        $ao = $this->activeOrders();
+        $orderId = $orderResponse['return']['order_id'];
+        return isset($ao['return'][$orderId]);
+    }
+
     function assertSuccessResponse($response)
     {
         if($response['success'] != 1)
             throw new Exception($response['error']);
-    }
-
-    public function processTradeResponse($response)
-    {
-        var_dump($response);
-        if($response['success'] == 1){
-
-        }
     }
 }
 
