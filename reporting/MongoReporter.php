@@ -99,10 +99,10 @@ class MongoReporter implements IReporter
     public function execution($arbId, $market, $txid, $quantity, $price, $timestamp)
     {
         $exec_entry = array(
-            'TxId'=>$txid,
+            'TxId'=>"$txid",
             'Quantity'=>$quantity,
             'Price'=>$price,
-            'Timestamp'=>$timestamp
+            'Timestamp'=>"$timestamp"
         );
 
         $arborders = $this->mdb->arborder;

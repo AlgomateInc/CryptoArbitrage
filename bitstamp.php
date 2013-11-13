@@ -76,7 +76,7 @@ class BitstampExchange implements IExchange
                 $exec->txid = $usrTx[$i]['id'];
                 $exec->orderId = $usrTx[$i]['order_id'];
                 $exec->quantity = abs($usrTx[$i]['btc']);
-                $exec->price = abs($usrTx[$i]['btc_usd']);
+                $exec->price = abs((float)$usrTx[$i]['btc_usd']);
                 $exec->timestamp = $usrTx[$i]['datetime'];
 
                 $orderTx[] = $exec;
