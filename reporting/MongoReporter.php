@@ -95,6 +95,11 @@ class MongoReporter implements IReporter
             array('$push' => array("Orders" => $order_entry))
         );
     }
+
+    public function execution($txid, $orderId, $quantity, $price, $timestamp)
+    {
+
+    }
 }
 
 ?>

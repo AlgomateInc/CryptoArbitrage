@@ -198,6 +198,19 @@ function processActiveOrders()
         {
             //order complete. remove from list and do post-processing
             unset($activeOrders[$i]);
+
+            //get the executions on this order and report them
+            $execs = $market->getOrderExecutions($marketResponse);
+            foreach($execs as $execItem){
+                global $reporter;
+                $reporter->execution(
+                    $execItem->txid,
+                    $execItem->orderId,
+                    $execItem->quantity,
+                    $execItem->price,
+                    $execItem->timestamp
+                );
+            }
         }
     }
     //we may have removed some orders with unset(). fix indices

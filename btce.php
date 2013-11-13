@@ -3,6 +3,7 @@
 require_once('config.php');
 require_once('curl_helper.php');
 require_once('IExchange.php');
+require_once('OrderExecution.php');
 
 class BtceExchange implements IExchange
 {
@@ -31,6 +32,11 @@ class BtceExchange implements IExchange
         return true;
     }
 
+    public function tradeHistory()
+    {
+        return $this->assertSuccessResponse(btce_query("TradeHistory"));
+    }
+
     public function isOrderAccepted($orderResponse)
     {
         if($orderResponse['success'] == 1){
@@ -56,10 +62,40 @@ class BtceExchange implements IExchange
         return isset($ao['return'][$orderId]);
     }
 
+    public function getOrderExecutions($orderResponse)
+    {
+        $execList = array();
+
+        $orderId = $orderResponse['return']['order_id'];
+
+        //TODO: figure out how to identify executions when no order id was given by server
+        if($orderId == 0)
+            return $execList;
+
+        $history = $this->tradeHistory();
+        foreach($history['return'] as $key => $item){
+            if($item['order_id'] == $orderId)
+            {
+                $oe = new OrderExecution();
+                $oe->txid = $key;
+                $oe->orderId = $orderId;
+                $oe->quantity = $item['amount'];
+                $oe->price = $item['rate'];
+                $oe->timestamp = $item['timestamp'];
+
+                $execList[] = $oe;
+            }
+        }
+
+        return $execList;
+    }
+
     function assertSuccessResponse($response)
     {
         if($response['success'] != 1)
             throw new Exception($response['error']);
+
+        return $response;
     }
 }
 

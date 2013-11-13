@@ -3,6 +3,7 @@
 require_once('config.php');
 require_once('curl_helper.php');
 require_once('IExchange.php');
+require_once('OrderExecution.php');
 
 class BitstampExchange implements IExchange
 {
@@ -55,6 +56,30 @@ class BitstampExchange implements IExchange
         }
 
         return false;
+    }
+
+    public function getOrderExecutions($orderResponse)
+    {
+        $usrTx = bitstamp_query('user_transactions');
+
+        $orderTx = array();
+
+        for($i = 0; $i< count($usrTx); $i++)
+        {
+            if($usrTx[$i]['order_id'] == $orderResponse['id'])
+            {
+                $exec = new OrderExecution();
+                $exec->txid = $usrTx[$i]['id'];
+                $exec->orderId = $usrTx[$i]['order_id'];
+                $exec->quantity = abs($usrTx[$i]['btc']);
+                $exec->price = abs($usrTx[$i]['btc_usd']);
+                $exec->timestamp = $usrTx[$i]['datetime'];
+
+                $orderTx[] = $exec;
+            }
+        }
+
+        return $orderTx;
     }
 }
 

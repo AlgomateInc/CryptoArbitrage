@@ -52,6 +52,11 @@ class ConsoleReporter implements IReporter
         print "Order: $type $exchange $quantity @ $price\n";
         var_dump($orderResponse);
     }
+
+    public function execution($txid, $orderId, $quantity, $price, $timestamp)
+    {
+        print "Execution $txid: order $orderId, $quantity @ $price; $timestamp\n";
+    }
 }
 
 ?>
