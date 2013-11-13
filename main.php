@@ -308,6 +308,10 @@ function fetchMarketData()
         if($ior->quantity > 0){
             $arbid = $reporter->arbitrage($ior->quantity,$ior->buyExchange,$ior->buyLimit,$ior->sellExchange, $ior->sellLimit);
 
+            //reduce the order by the desired,configured, factor
+            global $order_factor;
+            $ior->quantity /= $order_factor;
+
             //adjust order size based on current limits
             global $max_order_usd_size;
             if($ior->quantity * $ior->buyLimit > $max_order_usd_size)

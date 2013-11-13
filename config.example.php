@@ -10,5 +10,5 @@ $bitstamp_secret = 'STAMPSECRET'; // your Secret-key
 $mongodb_uri = 'mongodb://localhost';
 
 $max_order_usd_size = 15; //maximum size for an order in USD
-
+$order_factor = 1; //reduces size of orders, dividing by this
 ?>
