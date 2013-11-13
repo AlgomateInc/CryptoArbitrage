@@ -7,6 +7,10 @@ require_once('OrderExecution.php');
 
 class BtceExchange implements IExchange
 {
+    public function Name(){
+        return "Btce";
+    }
+
     public function buy($quantity, $price)
     {
         return btce_buy($quantity,$price);

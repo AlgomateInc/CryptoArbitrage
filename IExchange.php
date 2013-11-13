@@ -2,6 +2,8 @@
 
 interface IExchange
 {
+    public function Name();
+
     public function buy($quantity, $price);
     public function sell($quantity, $price);
     public function activeOrders();

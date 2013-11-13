@@ -7,6 +7,10 @@ require_once('OrderExecution.php');
 
 class BitstampExchange implements IExchange
 {
+    public function Name(){
+        return 'Bitstamp';
+    }
+
     public function buy($quantity, $price)
     {
         return bitstamp_buy($quantity,$price);
