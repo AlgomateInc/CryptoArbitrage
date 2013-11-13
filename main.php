@@ -184,6 +184,26 @@ function execute_trades(ArbitrageOrder $arb, $arbid)
         $activeOrders[] = array('exchange'=>$sellMarket, 'response'=>$sell_res);
 }
 
+function processActiveOrders()
+{
+    global $activeOrders;
+    $aoCount = count($activeOrders);
+    for($i = 0;$i < $aoCount;$i++)
+    {
+        $market = $activeOrders[$i]['exchange'];
+        $marketResponse = $activeOrders[$i]['response'];
+
+        //check if the order is done
+        if(!$market->isOrderOpen($marketResponse))
+        {
+            //order complete. remove from list and do post-processing
+            unset($activeOrders[$i]);
+        }
+    }
+    //we may have removed some orders with unset(). fix indices
+    $activeOrders = array_values($activeOrders);
+}
+
 function fetchMarketData()
 {
     global $reporter;
@@ -251,24 +271,10 @@ function fetchMarketData()
         // Check and process any active orders
         //////////////////////////////////////////
 
+        processActiveOrders();
+
+        //abort further processing if any active orders exist
         global $activeOrders;
-        $aoCount = count($activeOrders);
-        for($i = 0;$i < $aoCount;$i++)
-        {
-            $market = $activeOrders[$i]['exchange'];
-            $marketResponse = $activeOrders[$i]['response'];
-
-            //check if the order is done
-            if(!$market->isOrderOpen($marketResponse))
-            {
-                //order complete. remove from list and do post-processing
-                unset($activeOrders[$i]);
-            }
-        }
-        //we may have removed some orders with unset(). fix indices
-        $activeOrders = array_values($activeOrders);
-
-        //abort further processing if any active orders
         if(count($activeOrders) > 0)
             return;
 
@@ -314,6 +320,14 @@ function fetchMarketData()
 // if not monitoring, run once and exit
 if($monitor == false){
     fetchMarketData();
+
+    //wait for completion of orders before exit
+    processActiveOrders();
+    while(count($activeOrders) > 0){
+        print "Waiting for active orders to complete...\n";
+        sleep(5);
+        processActiveOrders();
+    }
     exit;
 }
 
