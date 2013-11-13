@@ -102,7 +102,7 @@ function computeDepthStats($depth){
     return $depth;
 }
 
-function getOptimalOrder($buy_depth, $sell_depth, $target_spread)
+function getOptimalOrder($buy_depth, $sell_depth, $target_spread_pct)
 {
     $asks = computeDepthStats($buy_depth);
     $bids = computeDepthStats($sell_depth);
@@ -129,7 +129,7 @@ function getOptimalOrder($buy_depth, $sell_depth, $target_spread)
                 return $order;
 
             //execute if we are still within the spread target
-            if($buyPx + $target_spread < $sellPx){
+            if($buyPx * (1 + $target_spread_pct/100) < $sellPx){
                 $execSize = min($buyQty, $sellQty);
 
                 //update leftover order sizes
@@ -296,7 +296,7 @@ function fetchMarketData()
         //////////////////////////////////////////
         // Calculate an optimal order and execute
         //////////////////////////////////////////
-        $btce_buy_stamp_sell = getOptimalOrder($btce_depth['asks'], $bstamp_depth['bids'], 6.2);
+        $btce_buy_stamp_sell = getOptimalOrder($btce_depth['asks'], $bstamp_depth['bids'], 2.7);
         $btce_buy_stamp_sell->buyExchange = Exchange::Btce;
         $btce_buy_stamp_sell->sellExchange = Exchange::Bitstamp;
 
