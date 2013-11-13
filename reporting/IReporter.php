@@ -9,7 +9,7 @@ interface IReporter
 
     public function arbitrage($quantity, $buyExchange, $buyLimit, $sellExchange, $sellLimit);
     public function order($exchange, $type, $quantity, $price, $orderResponse, $arbid);
-    public function execution($txid, $orderId, $quantity, $price, $timestamp);
+    public function execution($arbId, $market, $txid, $quantity, $price, $timestamp);
 }
 
 ?>

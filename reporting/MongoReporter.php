@@ -96,9 +96,20 @@ class MongoReporter implements IReporter
         );
     }
 
-    public function execution($txid, $orderId, $quantity, $price, $timestamp)
+    public function execution($arbId, $market, $txid, $quantity, $price, $timestamp)
     {
+        $exec_entry = array(
+            'TxId'=>$txid,
+            'Quantity'=>$quantity,
+            'Price'=>$price,
+            'Timestamp'=>$timestamp
+        );
 
+        $arborders = $this->mdb->arborder;
+        $arborders->update(
+            array('_id' => $arbId, "Orders.Exchange" => $market),
+            array('$push' => array("Orders.$.Executions" => $exec_entry))
+        );
     }
 }
 

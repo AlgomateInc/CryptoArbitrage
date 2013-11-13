@@ -179,9 +179,9 @@ function execute_trades(ArbitrageOrder $arb, $arbid)
     //add orders to active list so we can track their progress
     global $activeOrders;
     if($buyMarket->isOrderAccepted($buy_res))
-        $activeOrders[] = array('exchange'=>$buyMarket, 'response'=>$buy_res);
+        $activeOrders[] = array('exchange'=>$buyMarket, 'arbid' => $arbid, 'response'=>$buy_res);
     if($sellMarket->isOrderAccepted($sell_res))
-        $activeOrders[] = array('exchange'=>$sellMarket, 'response'=>$sell_res);
+        $activeOrders[] = array('exchange'=>$sellMarket, 'arbid' => $arbid, 'response'=>$sell_res);
 }
 
 function processActiveOrders()
@@ -192,6 +192,7 @@ function processActiveOrders()
     {
         $market = $activeOrders[$i]['exchange'];
         $marketResponse = $activeOrders[$i]['response'];
+        $arbid = $activeOrders[$i]['arbid'];
 
         //check if the order is done
         if(!$market->isOrderOpen($marketResponse))
@@ -204,8 +205,9 @@ function processActiveOrders()
             foreach($execs as $execItem){
                 global $reporter;
                 $reporter->execution(
+                    $arbid,
+                    $market->Name(),
                     $execItem->txid,
-                    $execItem->orderId,
                     $execItem->quantity,
                     $execItem->price,
                     $execItem->timestamp
