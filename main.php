@@ -268,18 +268,18 @@ function fetchMarketData()
         //////////////////////////////////////////
         // Get the current market data
         //////////////////////////////////////////
-        $btce = btce_ticker();        
-        $reporter->market(Exchange::Btce, CurrencyPair::BTCUSD, $btce['ticker']['sell'], $btce['ticker']['buy'], $btce['ticker']['last']);
-        
-        $btce_depth = btce_depth();
-        $reporter->depth(Exchange::Btce, CurrencyPair::BTCUSD, $btce_depth);
-        
+        $btce = btce_ticker();
         $bstamp = bitstamp_ticker();
+
+        $reporter->market(Exchange::Btce, CurrencyPair::BTCUSD, $btce['ticker']['sell'], $btce['ticker']['buy'], $btce['ticker']['last']);
         $reporter->market(Exchange::Bitstamp, CurrencyPair::BTCUSD, $bstamp['bid'], $bstamp['ask'], $bstamp['last']);
-        
+
+        $btce_depth = btce_depth();
         $bstamp_depth = bitstamp_depth();
+
         $bstamp_depth['bids'] = array_slice($bstamp_depth['bids'],0,150);
         $bstamp_depth['asks'] = array_slice($bstamp_depth['asks'],0,150);
+        $reporter->depth(Exchange::Btce, CurrencyPair::BTCUSD, $btce_depth);
         $reporter->depth(Exchange::Bitstamp, CurrencyPair::BTCUSD, $bstamp_depth);
 
         //////////////////////////////////////////
