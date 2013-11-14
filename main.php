@@ -366,7 +366,7 @@ if($fork){
 //perform the monitoring loop
 do {
     fetchMarketData();
-    sleep(15);
+    sleep(20);
 }while($monitor);
 
 ?>
