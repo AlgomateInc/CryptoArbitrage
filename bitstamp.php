@@ -148,6 +148,6 @@ function bitstamp_query($method, array $req = array()) {
 	$res = curl_exec($ch);
 	if ($res === false) throw new Exception('Could not get reply: '.curl_error($ch));
 	$dec = json_decode($res, true);
-	if ($dec === null) throw new Exception('Invalid data received, please make sure connection is working and requested API exists');
+	if ($dec === null) throw new Exception("Invalid data received. Server returned:\n $res");
 	return $dec;
 }
