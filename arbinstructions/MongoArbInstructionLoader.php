@@ -6,6 +6,10 @@
  * Time: 1:58 PM
  */
 
-class MongoArbInstructionLoader {
+class MongoArbInstructionLoader implements IArbInstructionLoader {
 
-} 
+    public function load()
+    {
+        return array();
+    }
+}

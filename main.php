@@ -7,6 +7,7 @@ require('reporting/ConsoleReporter.php');
 require('reporting/MongoReporter.php');
 
 require('arbinstructions/ConfigArbInstructionLoader.php');
+require('arbinstructions/MongoArbInstructionLoader.php');
 
 //////////////////////////////////////////////////////////
 
