@@ -8,8 +8,41 @@
 
 class MongoArbInstructionLoader implements IArbInstructionLoader {
 
+    private $mongo;
+    private $mdb;
+
+    public function __construct(){
+        global $mongodb_uri;
+
+        $this->mongo = new MongoClient($mongodb_uri);
+        $this->mdb = $this->mongo->coindata;
+    }
+
     public function load()
     {
-        return array();
+        $retArray = array();
+
+        $arbCollection = $this->mdb->arbs;
+
+        $arbList = $arbCollection->find();
+        foreach($arbList as $arb){
+            $ai = new ArbInstructions();
+            $ai->buyExchange = $arb['BuyExchange'];
+            $ai->sellExchange = $arb['SellExchange'];
+
+            foreach($arb['Factors'] as $fctr){
+                $fi = new ArbExecutionFactor();
+
+                $fi->targetSpreadPct = $fctr['TargetSpreadPct'];
+                $fi->maxUsdOrderSize = $fctr['MaxUsdOrderSize'];
+                $fi->orderSizeScaling = $fctr['OrderSizeScaling'];
+
+                $ai->arbExecutionFactorList[] = $fi;
+            }
+
+            $retArray[] = $ai;
+        }
+
+        return $retArray;
     }
 }
