@@ -174,11 +174,11 @@ function execute_trades(ArbitrageOrder $arb, $arbid)
     $buyMarket = $exchanges[$arb->buyExchange];
     $sellMarket = $exchanges[$arb->sellExchange];
 
-    $buy_res = $buyMarket->buy($arb->quantity, $arb->buyLimit);
-    $sell_res = $sellMarket->sell($arb->quantity, $arb->sellLimit);
+    $buy_res = $buyMarket->buy($arb->executionQuantity, $arb->buyLimit);
+    $sell_res = $sellMarket->sell($arb->executionQuantity, $arb->sellLimit);
 
-    $reporter->order($arb->buyExchange, OrderType::BUY, $arb->quantity, $arb->buyLimit, $buy_res, $arbid);
-    $reporter->order($arb->sellExchange, OrderType::SELL, $arb->quantity, $arb->sellLimit, $sell_res, $arbid);
+    $reporter->order($arb->buyExchange, OrderType::BUY, $arb->executionQuantity, $arb->buyLimit, $buy_res, $arbid);
+    $reporter->order($arb->sellExchange, OrderType::SELL, $arb->executionQuantity, $arb->sellLimit, $sell_res, $arbid);
 
     //if orders failed, we need to take evasive action
     $buyFail = !$buyMarket->isOrderAccepted($buy_res);
@@ -353,7 +353,7 @@ function fetchMarketData()
 
             //execute the order on the market if it meets minimum size
             //TODO: remove hardcoding of minimum size
-            if($ior->quantity > 0.01)
+            if($ior->executionQuantity > 0.01)
                 execute_trades($ior, $arbid);
         }
 
