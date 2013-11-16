@@ -6,6 +6,8 @@ require('bitstamp.php');
 require('reporting/ConsoleReporter.php');
 require('reporting/MongoReporter.php');
 
+require('arbinstructions/ConfigArbInstructionLoader.php');
+
 //////////////////////////////////////////////////////////
 
 class Exchange{
@@ -33,11 +35,13 @@ class ArbitrageOrder{
     public $sellExchange;
     public $sellLimit = INF;
     public $quantity = 0;
+    public $executionQuantity = 0;
 }
 
 //////////////////////////////////////////////////////////
 
 $reporter = new ConsoleReporter();
+$arbInstructionLoader = new ConfigArbInstructionLoader($arbInstructions);
 $monitor = false;
 $liveTrade = false;
 $fork = false;
@@ -52,8 +56,10 @@ $longopts = array(
 
 $options = getopt($shortopts, $longopts);
 
-if(array_key_exists("mongodb", $options))
+if(array_key_exists("mongodb", $options)){
     $reporter = new MongoReporter();
+    $arbInstructionLoader = new MongoArbInstructionLoader();
+}
 if(array_key_exists("monitor", $options))
     $monitor = true;
 if(array_key_exists("fork", $options))
@@ -282,6 +288,10 @@ function fetchMarketData()
         $reporter->depth(Exchange::Btce, CurrencyPair::BTCUSD, $btce_depth);
         $reporter->depth(Exchange::Bitstamp, CurrencyPair::BTCUSD, $bstamp_depth);
 
+        $depth = array();
+        $depth[Exchange::Btce] = $btce_depth;
+        $depth[Exchange::Bitstamp] = $bstamp_depth;
+
         //////////////////////////////////////////
         // Check and process any active orders
         //////////////////////////////////////////
@@ -294,34 +304,59 @@ function fetchMarketData()
             return;
 
         //////////////////////////////////////////
-        // Calculate an optimal order and execute
+        // Calculate an optimal order from instructions
         //////////////////////////////////////////
-        $btce_buy_stamp_sell = getOptimalOrder($btce_depth['asks'], $bstamp_depth['bids'], 2.7);
-        $btce_buy_stamp_sell->buyExchange = Exchange::Btce;
-        $btce_buy_stamp_sell->sellExchange = Exchange::Bitstamp;
+        global $arbInstructionLoader;
+        $instructions = $arbInstructionLoader->load();
 
-        $stamp_buy_btce_sell = getOptimalOrder($bstamp_depth['asks'], $btce_depth['bids'], 1.5);
-        $stamp_buy_btce_sell->buyExchange = Exchange::Bitstamp;
-        $stamp_buy_btce_sell->sellExchange = Exchange::Btce;
+        $arbOrderList = array();
+        foreach($instructions as $inst)
+        {
+            foreach($inst->arbExecutionFactorList as $fctr)
+            {
+                $arbOrder = getOptimalOrder($depth[$inst->buyExchange]['asks'],
+                    $depth[$inst->sellExchange]['bids'], $fctr->targetSpreadPct);
 
-        $ior = ($btce_buy_stamp_sell->quantity > $stamp_buy_btce_sell->quantity)? $btce_buy_stamp_sell : $stamp_buy_btce_sell;
-        if($ior->quantity > 0){
+                //once we find an order that can be placed, we queue it up
+                //and stop looking at additional factors from this instruction set
+                if($arbOrder->quantity > 0){
+                    $arbOrder->buyExchange = $inst->buyExchange;
+                    $arbOrder->sellExchange = $inst->sellExchange;
+                    $arbOrder->executionQuantity = $arbOrder->quantity;
+
+                    //reduce the quantity to be executed by our factors
+                    $arbOrder->executionQuantity *= $fctr->orderSizeScaling;
+
+                    //adjust order size based on current dollar limits
+                    if($arbOrder->executionQuantity * $arbOrder->buyLimit > $fctr->maxUsdOrderSize)
+                        $arbOrder->executionQuantity = floorp($fctr->maxUsdOrderSize/$arbOrder->buyLimit, 8);
+
+                    $arbOrderList[] = $arbOrder;
+                    break;
+                }
+            }
+        }
+
+        //select the target order by picking the one with the largest executable quantity
+        $ior = null;
+        foreach($arbOrderList as $ao)
+        {
+            if($ior == null || $ao->executionQuantity > $ior->executionQuantity)
+                $ior = $ao;
+        }
+
+        //////////////////////////////////////////
+        // Execute the order
+        //////////////////////////////////////////
+        if($ior != null && $ior->executionQuantity > 0){
+            //report the arbitrage with the original, desired, quantity
             $arbid = $reporter->arbitrage($ior->quantity,$ior->buyExchange,$ior->buyLimit,$ior->sellExchange, $ior->sellLimit);
 
-            //reduce the order by the desired,configured, factor
-            global $order_factor;
-            $ior->quantity /= $order_factor;
-
-            //adjust order size based on current limits
-            global $max_order_usd_size;
-            if($ior->quantity * $ior->buyLimit > $max_order_usd_size)
-                $ior->quantity = floorp($max_order_usd_size/$ior->buyLimit, 8);
-
             //adjust order size based on available balance
-            if($balances[$ior->sellExchange][Currency::BTC] < $ior->quantity)
-                $ior->quantity = $balances[$ior->sellExchange][Currency::BTC];
-            if($balances[$ior->buyExchange][Currency::USD] < $ior->quantity * $ior->buyLimit)
-                $ior->quantity = floorp($balances[$ior->buyExchange][Currency::USD]/$ior->buyLimit,8);
+            if($balances[$ior->sellExchange][Currency::BTC] < $ior->executionQuantity)
+                $ior->executionQuantity = $balances[$ior->sellExchange][Currency::BTC];
+            if($balances[$ior->buyExchange][Currency::USD] < $ior->executionQuantity * $ior->buyLimit)
+                $ior->executionQuantity = floorp($balances[$ior->buyExchange][Currency::USD]/$ior->buyLimit,8);
 
             //execute the order on the market if it meets minimum size
             //TODO: remove hardcoding of minimum size
