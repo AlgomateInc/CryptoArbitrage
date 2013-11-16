@@ -11,6 +11,17 @@ class BtceExchange implements IExchange
         return "Btce";
     }
 
+    public function balances()
+    {
+        $btce_info = $this->assertSuccessResponse(btce_query("getInfo"));
+
+        $balances = array();
+        $balances[Currency::USD] = $btce_info['return']['funds']['usd'];
+        $balances[Currency::BTC] = $btce_info['return']['funds']['btc'];
+
+        return $balances;
+    }
+
     public function buy($quantity, $price)
     {
         return btce_buy($quantity,$price);

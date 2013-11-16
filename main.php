@@ -240,6 +240,7 @@ function processActiveOrders()
 function fetchMarketData()
 {
     global $reporter;
+    global $exchanges;
 
     try{
         //////////////////////////////////////////
@@ -251,36 +252,16 @@ function fetchMarketData()
             $balances[Exchange::Bitstamp] = array();
         }
 
-        $btce_info = btce_query("getInfo");
-        if($btce_info['success'] == 1){
-            if(!isset($balances[Exchange::Btce][Currency::USD]) ||
-                $balances[Exchange::Btce][Currency::USD] != $btce_info['return']['funds']['usd'])
-                $reporter->balance(Exchange::Btce, Currency::USD, $btce_info['return']['funds']['usd']);
+        foreach($exchanges as $mkt){
+            $balList = $mkt->balances();
 
-            if(!isset($balances[Exchange::Btce][Currency::BTC]) ||
-                $balances[Exchange::Btce][Currency::BTC] != $btce_info['return']['funds']['btc'])
-                $reporter->balance(Exchange::Btce, Currency::BTC, $btce_info['return']['funds']['btc']);
+            foreach($balList as $cur => $bal){
+                //report balance only on balance change (or first run)
+                if(!isset($balances[$mkt->Name()][$cur]) || $balances[$mkt->Name()][$cur] != $bal)
+                    $reporter->balance($mkt->Name(), $cur, $bal);
 
-            $balances[Exchange::Btce][Currency::USD] = $btce_info['return']['funds']['usd'];
-            $balances[Exchange::Btce][Currency::BTC] = $btce_info['return']['funds']['btc'];
-        } else {
-            syslog(LOG_ERR, $btce_info['error']);
-        }
-
-        $bstamp_info = bitstamp_query('balance');
-        if(!isset($bstamp_info['error'])){
-            if(!isset($balances[Exchange::Bitstamp][Currency::USD]) ||
-                $balances[Exchange::Bitstamp][Currency::USD] != $bstamp_info['usd_balance'])
-                $reporter->balance(Exchange::Bitstamp, Currency::USD, $bstamp_info['usd_balance']);
-
-            if(!isset($balances[Exchange::Bitstamp][Currency::BTC]) ||
-                $balances[Exchange::Bitstamp][Currency::BTC] != $bstamp_info['btc_balance'])
-                $reporter->balance(Exchange::Bitstamp, Currency::BTC, $bstamp_info['btc_balance']);
-
-            $balances[Exchange::Bitstamp][Currency::USD] = $bstamp_info['usd_balance'];
-            $balances[Exchange::Bitstamp][Currency::BTC] = $bstamp_info['btc_balance'];
-        } else {
-            syslog(LOG_ERR, $bstamp_info['error']);
+                $balances[$mkt->Name()][$cur] = $bal;
+            }
         }
 
         //////////////////////////////////////////

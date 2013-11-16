@@ -11,6 +11,17 @@ class BitstampExchange implements IExchange
         return 'Bitstamp';
     }
 
+    public function balances()
+    {
+        $bstamp_info = $this->assertSuccessResponse(bitstamp_query('balance'));
+
+        $balances = array();
+        $balances[Currency::USD] = $bstamp_info['usd_balance'];
+        $balances[Currency::BTC] = $bstamp_info['btc_balance'];
+
+        return $balances;
+    }
+
     public function buy($quantity, $price)
     {
         return bitstamp_buy($quantity,$price);
@@ -85,6 +96,15 @@ class BitstampExchange implements IExchange
 
         return $orderTx;
     }
+
+    function assertSuccessResponse($response)
+    {
+        if(isset($response['error']))
+            throw new Exception($response['error']);
+
+        return $response;
+    }
+
 }
 
 function bitstamp_ticker(){
