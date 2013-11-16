@@ -180,14 +180,26 @@ function execute_trades(ArbitrageOrder $arb, $arbid)
     $reporter->order($arb->buyExchange, OrderType::BUY, $arb->quantity, $arb->buyLimit, $buy_res, $arbid);
     $reporter->order($arb->sellExchange, OrderType::SELL, $arb->quantity, $arb->sellLimit, $sell_res, $arbid);
 
-    //TODO:verify that both orders were accepted. if not, do some damage control
+    //if orders failed, we need to take evasive action
+    $buyFail = !$buyMarket->isOrderAccepted($buy_res);
+    $sellFail = !$sellMarket->isOrderAccepted($sell_res);
+    if($buyFail || $sellFail)
+    {
+        //if both orders failed, simply throw an exception
+        //no damage was done as we are still position-neutral
+        if($buyFail && $sellFail)
+            throw new Exception("Order entry failed for arbid: $arbid");
 
+        //TODO:if just one of two orders failed, we need to correct our position, for now just exit with failcode
+        //TODO:supervisord knows to ignore error code 2 and let process die
+        exit(2);
+    }
+
+    //at this point, we are sure both orders were accepted
     //add orders to active list so we can track their progress
     global $activeOrders;
-    if($buyMarket->isOrderAccepted($buy_res))
-        $activeOrders[] = array('exchange'=>$buyMarket, 'arbid' => $arbid, 'response'=>$buy_res);
-    if($sellMarket->isOrderAccepted($sell_res))
-        $activeOrders[] = array('exchange'=>$sellMarket, 'arbid' => $arbid, 'response'=>$sell_res);
+    $activeOrders[] = array('exchange'=>$buyMarket, 'arbid' => $arbid, 'response'=>$buy_res);
+    $activeOrders[] = array('exchange'=>$sellMarket, 'arbid' => $arbid, 'response'=>$sell_res);
 }
 
 function processActiveOrders()
