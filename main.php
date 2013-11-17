@@ -319,7 +319,7 @@ function fetchMarketData()
                     $arbOrder->executionQuantity = $arbOrder->quantity;
 
                     //reduce the quantity to be executed by our factors
-                    $arbOrder->executionQuantity *= $fctr->orderSizeScaling;
+                    $arbOrder->executionQuantity = floorp($arbOrder->executionQuantity * $fctr->orderSizeScaling,8);
 
                     //adjust order size based on current dollar limits
                     if($arbOrder->executionQuantity * $arbOrder->buyLimit > $fctr->maxUsdOrderSize)
