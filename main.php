@@ -1,5 +1,6 @@
 <?php
 
+require('common.php');
 require('btce.php');
 require('bitstamp.php');
 
@@ -8,36 +9,6 @@ require('reporting/MongoReporter.php');
 
 require('arbinstructions/ConfigArbInstructionLoader.php');
 require('arbinstructions/MongoArbInstructionLoader.php');
-
-//////////////////////////////////////////////////////////
-
-class Exchange{
-    const Btce = "Btce";
-    const Bitstamp = "Bitstamp";
-}
-
-class Currency{
-    const USD = "USD";
-    const BTC = "BTC";
-}
-
-class CurrencyPair{
-    const BTCUSD = "BTCUSD";
-}
-
-class OrderType{
-    const BUY = 'BUY';
-    const SELL = 'SELL';
-}
-
-class ArbitrageOrder{
-    public $buyExchange;
-    public $buyLimit = 0;
-    public $sellExchange;
-    public $sellLimit = INF;
-    public $quantity = 0;
-    public $executionQuantity = 0;
-}
 
 //////////////////////////////////////////////////////////
 
@@ -81,6 +52,20 @@ function floorp($val, $precision)
 {
     $mult = pow(10, $precision);
     return floor($val * $mult) / $mult;
+}
+
+function getMarketDataDirect(){
+    $btce_depth = btce_depth();
+    $bstamp_depth = bitstamp_depth();
+
+    $bstamp_depth['bids'] = array_slice($bstamp_depth['bids'],0,150);
+    $bstamp_depth['asks'] = array_slice($bstamp_depth['asks'],0,150);
+
+    $depth = array();
+    $depth[Exchange::Btce] = $btce_depth;
+    $depth[Exchange::Bitstamp] = $bstamp_depth;
+
+    return $depth;
 }
 
 function computeDepthStats($depth){
@@ -268,23 +253,17 @@ function fetchMarketData()
         //////////////////////////////////////////
         // Get the current market data
         //////////////////////////////////////////
+
         $btce = btce_ticker();
         $bstamp = bitstamp_ticker();
 
         $reporter->market(Exchange::Btce, CurrencyPair::BTCUSD, $btce['ticker']['sell'], $btce['ticker']['buy'], $btce['ticker']['last']);
         $reporter->market(Exchange::Bitstamp, CurrencyPair::BTCUSD, $bstamp['bid'], $bstamp['ask'], $bstamp['last']);
 
-        $btce_depth = btce_depth();
-        $bstamp_depth = bitstamp_depth();
+        $depth = getMarketDataDirect();
 
-        $bstamp_depth['bids'] = array_slice($bstamp_depth['bids'],0,150);
-        $bstamp_depth['asks'] = array_slice($bstamp_depth['asks'],0,150);
-        $reporter->depth(Exchange::Btce, CurrencyPair::BTCUSD, $btce_depth);
-        $reporter->depth(Exchange::Bitstamp, CurrencyPair::BTCUSD, $bstamp_depth);
-
-        $depth = array();
-        $depth[Exchange::Btce] = $btce_depth;
-        $depth[Exchange::Bitstamp] = $bstamp_depth;
+        $reporter->depth(Exchange::Btce, CurrencyPair::BTCUSD, $depth[Exchange::Btce]);
+        $reporter->depth(Exchange::Bitstamp, CurrencyPair::BTCUSD, $depth[Exchange::Bitstamp]);
 
         //////////////////////////////////////////
         // Check and process any active orders
