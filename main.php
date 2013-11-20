@@ -181,6 +181,7 @@ function execute_trades(ArbitrageOrder $arb, $arbid)
 
         //TODO:if just one of two orders failed, we need to correct our position, for now just exit with failcode
         //TODO:supervisord knows to ignore error code 2 and let process die
+        syslog(LOG_CRIT, 'Position imbalance! Pair order entry failed.');
         exit(2);
     }
 
