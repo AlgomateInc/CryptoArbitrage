@@ -1,10 +1,10 @@
 <?php
 
-interface IExchange
-{
-    public function Name();
+require_once('IAccount.php');
 
-    public function balances();
+interface IExchange extends IAccount
+{
+    public function depth();
     public function buy($quantity, $price);
     public function sell($quantity, $price);
     public function activeOrders();

@@ -1,6 +1,6 @@
 <?php
 
-class JPMChase implements IExchange
+class JPMChase implements IAccount
 {
     private $mailbox;
     private $user;
@@ -45,41 +45,6 @@ class JPMChase implements IExchange
         }
 
         return $balances;
-    }
-
-    public function buy($quantity, $price)
-    {
-        throw new Exception('Method not implemented');
-    }
-
-    public function sell($quantity, $price)
-    {
-        throw new Exception('Method not implemented');
-    }
-
-    public function activeOrders()
-    {
-        throw new Exception('Method not implemented');
-    }
-
-    public function hasActiveOrders()
-    {
-        throw new Exception('Method not implemented');
-    }
-
-    public function isOrderAccepted($orderResponse)
-    {
-        throw new Exception('Method not implemented');
-    }
-
-    public function isOrderOpen($orderResponse)
-    {
-        throw new Exception('Method not implemented');
-    }
-
-    public function getOrderExecutions($orderResponse)
-    {
-        throw new Exception('Method not implemented');
     }
 }
 

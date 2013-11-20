@@ -22,6 +22,15 @@ class BitstampExchange implements IExchange
         return $balances;
     }
 
+    public function depth(){
+        $bstamp_depth = curl_query('https://www.bitstamp.net/api/order_book/');
+
+        $bstamp_depth['bids'] = array_slice($bstamp_depth['bids'],0,150);
+        $bstamp_depth['asks'] = array_slice($bstamp_depth['asks'],0,150);
+
+        return $bstamp_depth;
+    }
+
     public function buy($quantity, $price)
     {
         return bitstamp_buy($quantity,$price);
@@ -109,10 +118,6 @@ class BitstampExchange implements IExchange
 
 function bitstamp_ticker(){
     return curl_query('https://www.bitstamp.net/api/ticker/');
-}
-
-function bitstamp_depth(){
-    return curl_query('https://www.bitstamp.net/api/order_book/');
 }
 
 function bitstamp_trades(){

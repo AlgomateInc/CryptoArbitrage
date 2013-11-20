@@ -58,15 +58,16 @@ function floorp($val, $precision)
 }
 
 function getMarketDepthDirect(){
-    $btce_depth = btce_depth();
-    $bstamp_depth = bitstamp_depth();
-
-    $bstamp_depth['bids'] = array_slice($bstamp_depth['bids'],0,150);
-    $bstamp_depth['asks'] = array_slice($bstamp_depth['asks'],0,150);
 
     $depth = array();
-    $depth[Exchange::Btce] = $btce_depth;
-    $depth[Exchange::Bitstamp] = $bstamp_depth;
+
+    global $exchanges;
+    foreach($exchanges as $mkt)
+    {
+        if($mkt instanceof IExchange){
+            $depth[$mkt->Name()] = $mkt->depth();
+        }
+    }
 
     return $depth;
 }
