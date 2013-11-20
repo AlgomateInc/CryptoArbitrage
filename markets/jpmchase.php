@@ -1,7 +1,5 @@
 <?php
 
-require_once('config.php');
-
 class JPMChase implements IExchange
 {
     private $mailbox;
