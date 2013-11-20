@@ -180,10 +180,10 @@ function execute_trades(ArbitrageOrder $arb)
         if($buyFail && $sellFail)
             throw new Exception("Order entry failed for arbid: $arbid");
 
-        //TODO:if just one of two orders failed, we need to correct our position, for now just exit with failcode
-        //TODO:supervisord knows to ignore error code 2 and let process die
+        //TODO:if just one of two orders failed, we need to correct our position
+        //TODO:right now, stop trading
         syslog(LOG_CRIT, 'Position imbalance! Pair order entry failed.');
-        exit(2);
+        $liveTrade = false;
     }
 
     //at this point, we are sure both orders were accepted
