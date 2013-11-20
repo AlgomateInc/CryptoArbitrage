@@ -1,8 +1,8 @@
 <?php
 
 require('common.php');
-require('btce.php');
-require('bitstamp.php');
+require('markets/btce.php');
+require('markets/bitstamp.php');
 
 require('reporting/ConsoleReporter.php');
 require('reporting/MongoReporter.php');
