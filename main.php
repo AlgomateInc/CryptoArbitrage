@@ -57,7 +57,7 @@ function floorp($val, $precision)
     return floor($val * $mult) / $mult;
 }
 
-function getMarketDataDirect(){
+function getMarketDepthDirect(){
     $btce_depth = btce_depth();
     $bstamp_depth = bitstamp_depth();
 
@@ -149,7 +149,7 @@ function getOptimalOrder($buy_depth, $sell_depth, $target_spread_pct)
     return $order;
 }
 
-function execute_trades(ArbitrageOrder $arb, $arbid)
+function execute_trades(ArbitrageOrder $arb)
 {
     //abort if this is test only
     global $liveTrade;
@@ -166,6 +166,7 @@ function execute_trades(ArbitrageOrder $arb, $arbid)
     $buy_res = $buyMarket->buy($arb->executionQuantity, $arb->buyLimit);
     $sell_res = $sellMarket->sell($arb->executionQuantity, $arb->sellLimit);
 
+    $arbid = $reporter->arbitrage($arb->quantity,$arb->buyExchange,$arb->buyLimit,$arb->sellExchange, $arb->sellLimit);
     $reporter->order($arb->buyExchange, OrderType::BUY, $arb->executionQuantity, $arb->buyLimit, $buy_res, $arbid);
     $reporter->order($arb->sellExchange, OrderType::SELL, $arb->executionQuantity, $arb->sellLimit, $sell_res, $arbid);
 
@@ -264,11 +265,6 @@ function fetchMarketData()
         $reporter->market(Exchange::Btce, CurrencyPair::BTCUSD, $btce['ticker']['sell'], $btce['ticker']['buy'], $btce['ticker']['last']);
         $reporter->market(Exchange::Bitstamp, CurrencyPair::BTCUSD, $bstamp['bid'], $bstamp['ask'], $bstamp['last']);
 
-        $depth = getMarketDataDirect();
-
-        $reporter->depth(Exchange::Btce, CurrencyPair::BTCUSD, $depth[Exchange::Btce]);
-        $reporter->depth(Exchange::Bitstamp, CurrencyPair::BTCUSD, $depth[Exchange::Bitstamp]);
-
         //////////////////////////////////////////
         // Check and process any active orders
         //////////////////////////////////////////
@@ -281,10 +277,12 @@ function fetchMarketData()
             return;
 
         //////////////////////////////////////////
-        // Calculate an optimal order from instructions
+        // Calculate an optimal order from instructions and the current depth
         //////////////////////////////////////////
         global $arbInstructionLoader;
         $instructions = $arbInstructionLoader->load();
+
+        $depth = getMarketDepthDirect();
 
         $arbOrderList = array();
         foreach($instructions as $inst)
@@ -324,9 +322,6 @@ function fetchMarketData()
         // Execute the order
         //////////////////////////////////////////
         if($ior != null && $ior->executionQuantity > 0){
-            //report the arbitrage with the original, desired, quantity
-            $arbid = $reporter->arbitrage($ior->quantity,$ior->buyExchange,$ior->buyLimit,$ior->sellExchange, $ior->sellLimit);
-
             //adjust order size based on available balance
             if($balances[$ior->sellExchange][Currency::BTC] < $ior->executionQuantity)
                 $ior->executionQuantity = $balances[$ior->sellExchange][Currency::BTC];
@@ -336,8 +331,16 @@ function fetchMarketData()
             //execute the order on the market if it meets minimum size
             //TODO: remove hardcoding of minimum size
             if($ior->executionQuantity > 0.01)
-                execute_trades($ior, $arbid);
+                execute_trades($ior);
+            else{
+                //no execution, but report the arbitrage with the original, desired, quantity for records
+                $reporter->arbitrage($ior->quantity,$ior->buyExchange,$ior->buyLimit,$ior->sellExchange, $ior->sellLimit);
+            }
         }
+
+        //report the market depth
+        $reporter->depth(Exchange::Btce, CurrencyPair::BTCUSD, $depth[Exchange::Btce]);
+        $reporter->depth(Exchange::Bitstamp, CurrencyPair::BTCUSD, $depth[Exchange::Bitstamp]);
 
     }catch(Exception $e){
         syslog(LOG_ERR, $e);
