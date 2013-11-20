@@ -3,6 +3,7 @@
 class Exchange{
     const Btce = "Btce";
     const Bitstamp = "Bitstamp";
+    const JPMChase = 'JPMChase';
 }
 
 class Currency{

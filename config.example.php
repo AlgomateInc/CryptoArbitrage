@@ -9,6 +9,10 @@ $bitstamp_secret = 'STAMPSECRET'; // your Secret-key
 
 $mongodb_uri = 'mongodb://localhost';
 
+$mailbox_name = 'imapmailbox';
+$mailbox_username = 'username';
+$mailbox_password = 'password';
+
 $arbInstructions = array(
     array(
         'from'=>'fromexchangename',

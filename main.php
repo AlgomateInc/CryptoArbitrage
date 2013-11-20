@@ -3,6 +3,7 @@
 require('common.php');
 require('markets/btce.php');
 require('markets/bitstamp.php');
+require('markets/jpmchase.php');
 
 require('reporting/ConsoleReporter.php');
 require('reporting/MongoReporter.php');
@@ -44,6 +45,8 @@ if(array_key_exists("live", $options))
 $exchanges = array();
 $exchanges[Exchange::Btce] = new BtceExchange();
 $exchanges[Exchange::Bitstamp] = new BitstampExchange();
+$exchanges[Exchange::JPMChase] = new JPMChase($mailbox_name, $mailbox_username, $mailbox_password);
+
 
 $activeOrders = array();
 
@@ -234,8 +237,8 @@ function fetchMarketData()
         //////////////////////////////////////////
         static $balances = array();
         if(count($balances) == 0){
-            $balances[Exchange::Btce] = array();
-            $balances[Exchange::Bitstamp] = array();
+            foreach($exchanges as $mkt)
+                $balances[$mkt->Name()] = array();
         }
 
         foreach($exchanges as $mkt){
