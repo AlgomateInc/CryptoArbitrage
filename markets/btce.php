@@ -1,9 +1,9 @@
 <?php
 
-require_once('config.php');
-require_once('curl_helper.php');
+require_once(__DIR__.'/../config.php');
+require_once(__DIR__.'/../curl_helper.php');
 require_once('IExchange.php');
-require_once('OrderExecution.php');
+require_once(__DIR__.'/../OrderExecution.php');
 
 class BtceExchange implements IExchange
 {
