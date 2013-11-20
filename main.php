@@ -294,7 +294,6 @@ function fetchMarketData()
                     $depth[$inst->sellExchange]['bids'], $fctr->targetSpreadPct);
 
                 //once we find an order that can be placed, we queue it up
-                //and stop looking at additional factors from this instruction set
                 if($arbOrder->quantity > 0){
                     $arbOrder->buyExchange = $inst->buyExchange;
                     $arbOrder->sellExchange = $inst->sellExchange;
@@ -308,7 +307,6 @@ function fetchMarketData()
                         $arbOrder->executionQuantity = floorp($fctr->maxUsdOrderSize/$arbOrder->buyLimit, 8);
 
                     $arbOrderList[] = $arbOrder;
-                    break;
                 }
             }
         }
