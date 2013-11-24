@@ -114,6 +114,11 @@ class BitstampExchange implements IExchange
         return $response;
     }
 
+    public function transactions($sinceDate)
+    {
+        return bitstamp_query('user_transactions', array('limit'=>10000));
+    }
+
 }
 
 function bitstamp_ticker(){

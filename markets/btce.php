@@ -57,6 +57,11 @@ class BtceExchange implements IExchange
         return $this->assertSuccessResponse(btce_query("TradeHistory"));
     }
 
+    public function transactions($sinceDate)
+    {
+        return btce_query("TransHistory", array('since'=>$sinceDate, 'count'=>INF));
+    }
+
     public function isOrderAccepted($orderResponse)
     {
         if($orderResponse['success'] == 1){
