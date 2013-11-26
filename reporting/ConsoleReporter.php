@@ -57,6 +57,11 @@ class ConsoleReporter implements IReporter
     {
         print "Execution $txid: $market, $quantity @ $price; $timestamp\n";
     }
+
+    public function transaction($exchange_name, $id, $type, $currency, $amount, $timestamp)
+    {
+        print "Transaction $exchange_name: $id, $type, $currency, $amount, $timestamp\n";
+    }
 }
 
 ?>

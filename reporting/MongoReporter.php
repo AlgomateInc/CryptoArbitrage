@@ -111,6 +111,25 @@ class MongoReporter implements IReporter
             array('$push' => array("Orders.$.Executions" => $exec_entry))
         );
     }
+
+    public function transaction($exchange_name, $id, $type, $currency, $amount, $timestamp)
+    {
+        $tx_entry = array(
+            'Exchange'=>"$exchange_name",
+            'TxId'=>$id,
+            'Type'=>$type,
+            'Currency'=>$currency,
+            'Amount'=>$amount,
+            'Timestamp'=>"$timestamp"
+        );
+
+        $txdb = $this->mdb->transactions;
+        $txdb->update(
+            array('TxId' => $id, 'Exchange' => $exchange_name),
+            $tx_entry,
+            array('upsert'=>true)
+        );
+    }
 }
 
 ?>

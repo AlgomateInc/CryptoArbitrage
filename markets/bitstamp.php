@@ -114,9 +114,30 @@ class BitstampExchange implements IExchange
         return $response;
     }
 
-    public function transactions($sinceDate)
+    public function transactions()
     {
-        return bitstamp_query('user_transactions', array('limit'=>10000));
+        $response =  bitstamp_query('user_transactions', array('limit'=>1000));
+        $this->assertSuccessResponse($response);
+
+        $ret = array();
+        foreach($response as $btx)
+        {
+            //skip over trades
+            if($btx['type'] == 2)
+                continue;
+
+            $tx = new Transaction();
+            $tx->exchange = Exchange::Bitstamp;
+            $tx->id = $btx['id'];
+            $tx->type = ($btx['type'] == 0)? TransactionType::Credit : TransactionType::Debit;
+            $tx->currency = ($btx['usd'] != 0)? Currency::USD : Currency::BTC;
+            $tx->amount = ($btx['usd'] != 0)? $btx['usd'] : $btx['btc'];
+            $tx->timestamp = $btx['datetime'];
+
+            $ret[] = $tx;
+        }
+
+        return $ret;
     }
 
 }

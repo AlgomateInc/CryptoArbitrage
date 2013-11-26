@@ -57,9 +57,31 @@ class BtceExchange implements IExchange
         return $this->assertSuccessResponse(btce_query("TradeHistory"));
     }
 
-    public function transactions($sinceDate)
+    public function transactions()
     {
-        return btce_query("TransHistory", array('since'=>$sinceDate, 'count'=>INF));
+        $response = btce_query("TransHistory", array('count'=>1000));
+        $this->assertSuccessResponse($response);
+
+        $transactionList = $response['return'];
+
+        $ret = array();
+        foreach($transactionList as $btxid => $btx)
+        {
+            if($btx['type'] != 1 && $btx['type'] != 2)
+                continue;
+
+            $tx = new Transaction();
+            $tx->exchange = Exchange::Btce;
+            $tx->id = $btxid;
+            $tx->type = ($btx['type'] == 1)? TransactionType::Credit: TransactionType::Debit;
+            $tx->currency = $btx['currency'];
+            $tx->amount = $btx['amount'];
+            $tx->timestamp = $btx['timestamp'];
+
+            $ret[] = $tx;
+        }
+
+        return $ret;
     }
 
     public function isOrderAccepted($orderResponse)

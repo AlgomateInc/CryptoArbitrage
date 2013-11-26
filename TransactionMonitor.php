@@ -1,5 +1,11 @@
 <?php
 
+require_once('ActionProcess.php');
+
+require('markets/btce.php');
+require('markets/bitstamp.php');
+require('markets/jpmchase.php');
+
 class TransactionMonitor extends ActionProcess{
 
     public function getProgramOptions()
@@ -22,18 +28,30 @@ class TransactionMonitor extends ActionProcess{
         $exchanges = array();
         $exchanges[Exchange::Btce] = new BtceExchange();
         $exchanges[Exchange::Bitstamp] = new BitstampExchange();
-        $exchanges[Exchange::JPMChase] = new JPMChase($mailbox_name, $mailbox_username, $mailbox_password);
+        //$exchanges[Exchange::JPMChase] = new JPMChase($mailbox_name, $mailbox_username, $mailbox_password);
 
         foreach($exchanges as $mkt)
         {
-            $tx = $mkt->transactions(time());
+            $txList = $mkt->transactions();
 
-            
+            foreach($txList as $tx)
+                if($tx instanceof Transaction)
+                    $this->reporter->transaction(
+                        $tx->exchange,
+                        $tx->id,
+                        $tx->type,
+                        $tx->currency,
+                        $tx->amount,
+                        $tx->timestamp
+                    );
         }
     }
 
     public function shutdown()
     {
-        // TODO: Implement shutdown() method.
+
     }
 }
+
+$txMon = new TransactionMonitor();
+$txMon->start();

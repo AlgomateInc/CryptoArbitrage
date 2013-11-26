@@ -1,8 +1,9 @@
 <?php
 
-require('config.php');
-require('reporting/ConsoleReporter.php');
-require('reporting/MongoReporter.php');
+require_once('config.php');
+require_once('common.php');
+require_once('reporting/ConsoleReporter.php');
+require_once('reporting/MongoReporter.php');
 
 abstract class ActionProcess {
 
@@ -28,21 +29,22 @@ abstract class ActionProcess {
             "monitor",
             "fork"
         );
-        $longopts = array_merge($longopts, $objOptions);
+        if(is_array($objOptions))
+            $longopts = array_merge($longopts, $objOptions);
 
         /////////////////////////////////
 
         $options = getopt($shortopts, $longopts);
 
         if(array_key_exists("mongodb", $options))
-            $this->$reporter = new MongoReporter();
+            $this->reporter = new MongoReporter();
         else
-            $this->$reporter = new ConsoleReporter();
+            $this->reporter = new ConsoleReporter();
 
         if(array_key_exists("monitor", $options))
-            $this->$monitor = true;
+            $this->monitor = true;
         if(array_key_exists("fork", $options))
-            $this->$fork = true;
+            $this->fork = true;
 
         ////////////////////////////////////
 

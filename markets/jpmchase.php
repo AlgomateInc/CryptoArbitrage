@@ -46,6 +46,8 @@ class JPMChase implements IAccount
 
         return $balances;
     }
+
+    public function transactions(){}
 }
 
 ?>

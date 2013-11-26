@@ -28,3 +28,17 @@ class ArbitrageOrder{
     public $quantity = 0;
     public $executionQuantity = 0;
 }
+
+class TransactionType{
+    const Debit = 'DEBIT';
+    const Credit = 'CREDIT';
+}
+
+class Transaction{
+    public $exchange;
+    public $id;
+    public $type;
+    public $currency;
+    public $amount;
+    public $timestamp;
+}
