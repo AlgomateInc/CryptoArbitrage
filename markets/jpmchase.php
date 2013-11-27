@@ -96,7 +96,7 @@ class JPMChase implements IAccount
         {
             $tx = new Transaction();
             $tx->exchange = Exchange::JPMChase;
-            $tx->id = hash('sha256',$bodyText) . '-' . $updateDate . '-' . $i;
+            $tx->id = hash('sha256',$bodyText . $updateDate . $txType . $i);
             $tx->type = $txType;
             $tx->currency = Currency::USD;
             $tx->amount = str_replace(',','', $matches[$i]);
