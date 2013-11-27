@@ -116,9 +116,9 @@ class MongoReporter implements IReporter
     {
         $tx_entry = array(
             'Exchange'=>"$exchange_name",
-            'TxId'=>$id,
-            'Type'=>$type,
-            'Currency'=>$currency,
+            'TxId'=>"$id",
+            'Type'=>"$type",
+            'Currency'=>"$currency",
             'Amount'=>$amount,
             'Timestamp'=>$timestamp
         );
