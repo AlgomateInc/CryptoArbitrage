@@ -125,7 +125,7 @@ class MongoReporter implements IReporter
 
         $txdb = $this->mdb->transactions;
         $txdb->update(
-            array('TxId' => $id, 'Exchange' => $exchange_name),
+            array('TxId' => "$id", 'Exchange' => "$exchange_name"),
             $tx_entry,
             array('upsert'=>true)
         );
