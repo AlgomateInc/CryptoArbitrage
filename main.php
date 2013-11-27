@@ -236,7 +236,7 @@ function fetchMarketData()
 
     try{
         //////////////////////////////////////////
-        // Fetch the account balances
+        // Fetch the account balances and transaction history
         //////////////////////////////////////////
         static $balances = array();
         if(count($balances) == 0){
@@ -244,9 +244,10 @@ function fetchMarketData()
                 $balances[$mkt->Name()] = array();
         }
 
-        foreach($exchanges as $mkt){
+        foreach($exchanges as $mkt)
+        {
+            //get balances
             $balList = $mkt->balances();
-
             foreach($balList as $cur => $bal){
                 //report balance only on balance change (or first run)
                 if(!isset($balances[$mkt->Name()][$cur]) || $balances[$mkt->Name()][$cur] != $bal)
@@ -254,6 +255,19 @@ function fetchMarketData()
 
                 $balances[$mkt->Name()][$cur] = $bal;
             }
+
+            //get the transactions
+            $txList = $mkt->transactions();
+            foreach($txList as $tx)
+                if($tx instanceof Transaction)
+                    $reporter->transaction(
+                        $tx->exchange,
+                        $tx->id,
+                        $tx->type,
+                        $tx->currency,
+                        $tx->amount,
+                        $tx->timestamp
+                    );
         }
 
         //////////////////////////////////////////
