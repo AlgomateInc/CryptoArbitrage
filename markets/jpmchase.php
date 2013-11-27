@@ -17,15 +17,11 @@ class JPMChase implements IAccount
         return 'JPMChase';
     }
 
-    public function balances()
+    private function getLatestMessage()
     {
         $conn = imap_open($this->mailbox, $this->user, $this->pwd);
         if($conn === false)
             throw new Exception('Could not connect to IMAP server for JPM balance');
-
-        //default response
-        $balances = array();
-        $balances[Currency::USD] = 0;
 
         //get the most recent message to parse
         $msgCount = imap_num_msg($conn);
@@ -36,6 +32,21 @@ class JPMChase implements IAccount
                 $bodyText = imap_fetchbody($conn,$msgCount,1);
             }
 
+            return $bodyText;
+        }
+
+        return null;
+    }
+
+    public function balances()
+    {
+        //default response
+        $balances = array();
+        $balances[Currency::USD] = 0;
+
+        $bodyText = $this->getLatestMessage();
+        if($bodyText != null)
+        {
             //parse message text for balance
             $res = preg_match('/End of day balance: \$([\d,.]+)/', $bodyText, $matches);
             if($res != 1)
@@ -49,7 +60,52 @@ class JPMChase implements IAccount
 
     public function transactions()
     {
-        return array();
+        $transactions = array();
+
+        $bodyText = $this->getLatestMessage();
+        if($bodyText != null)
+        {
+            $dep = $this->matchTxAmounts($bodyText, "Deposit ", TransactionType::Credit);
+            $wd = $this->matchTxAmounts($bodyText, "Withdrawal ", TransactionType::Debit);
+
+            $transactions = array_merge($transactions, $dep);
+            $transactions = array_merge($transactions, $wd);
+        }
+
+        return $transactions;
+    }
+
+    private function getSummaryDate($bodyText)
+    {
+        $res = preg_match('/Here is your Chase account summary for (.+)\./', $bodyText, $matches);
+        if($res != 1)
+            throw new Exception('Message retrieved does not contain date: ' . $bodyText);
+
+        return strtotime($matches[1]);
+    }
+
+    private function matchTxAmounts($bodyText, $prefix, $txType)
+    {
+        $txList = array();
+
+        $updateDate = $this->getSummaryDate($bodyText);
+
+        ///////////
+        $res = preg_match('/' . $prefix . '\$([\d,.]+)/', $bodyText, $matches);
+        for($i = 1; $i < count($matches); $i++)
+        {
+            $tx = new Transaction();
+            $tx->exchange = Exchange::JPMChase;
+            $tx->id = hash('sha256',$bodyText) . '-' . $updateDate . '-' . $i;
+            $tx->type = $txType;
+            $tx->currency = Currency::USD;
+            $tx->amount = str_replace(',','', $matches[$i]);
+            $tx->timestamp = new MongoDate($updateDate);
+
+            $txList[] = $tx;
+        }
+
+        return $txList;
     }
 }
 
