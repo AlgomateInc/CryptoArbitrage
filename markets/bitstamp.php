@@ -132,7 +132,7 @@ class BitstampExchange implements IExchange
             $tx->type = ($btx['type'] == 0)? TransactionType::Credit : TransactionType::Debit;
             $tx->currency = ($btx['usd'] != 0)? Currency::USD : Currency::BTC;
             $tx->amount = ($btx['usd'] != 0)? $btx['usd'] : $btx['btc'];
-            $tx->timestamp = $btx['datetime'];
+            $tx->timestamp = new MongoDate(strtotime($btx['datetime']));
 
             $ret[] = $tx;
         }

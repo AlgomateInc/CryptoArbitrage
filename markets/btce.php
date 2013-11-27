@@ -76,7 +76,7 @@ class BtceExchange implements IExchange
             $tx->type = ($btx['type'] == 1)? TransactionType::Credit: TransactionType::Debit;
             $tx->currency = $btx['currency'];
             $tx->amount = $btx['amount'];
-            $tx->timestamp = $btx['timestamp'];
+            $tx->timestamp = new MongoDate($btx['timestamp']);
 
             $ret[] = $tx;
         }

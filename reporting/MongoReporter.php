@@ -120,7 +120,7 @@ class MongoReporter implements IReporter
             'Type'=>$type,
             'Currency'=>$currency,
             'Amount'=>$amount,
-            'Timestamp'=>"$timestamp"
+            'Timestamp'=>$timestamp
         );
 
         $txdb = $this->mdb->transactions;
