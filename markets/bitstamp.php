@@ -45,12 +45,12 @@ class BitstampExchange implements IExchange
 
     public function buy($quantity, $price)
     {
-        return bitstamp_buy($quantity,$price);
+        return bitstamp_query('buy', array("amount" => $quantity, "price" => $price));
     }
 
     public function sell($quantity, $price)
     {
-        return bitstamp_sell($quantity,$price);
+        return bitstamp_query('sell', array("amount" => $quantity, "price" => $price));
     }
 
     public function activeOrders()
@@ -156,14 +156,6 @@ class BitstampExchange implements IExchange
 
 function bitstamp_trades(){
     return curl_query('https://www.bitstamp.net/api/transactions/');
-}
-
-function bitstamp_buy($quantity, $price){
-    return bitstamp_query('buy', array("amount" => $quantity, "price" => $price));
-}
-
-function bitstamp_sell($quantity, $price){
-    return bitstamp_query('sell', array("amount" => $quantity, "price" => $price));
 }
 
 function bitstamp_query($method, array $req = array()) {

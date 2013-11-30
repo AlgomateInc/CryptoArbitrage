@@ -41,12 +41,16 @@ class BtceExchange implements IExchange
 
     public function buy($quantity, $price)
     {
-        return btce_buy($quantity,$price);
+        $btce_result = btce_query("Trade", array("pair" => "btc_usd", "type" => "buy",
+            "amount" => $quantity, "rate" => $price ));
+        return $btce_result;
     }
 
     public function sell($quantity, $price)
     {
-        return btce_sell($quantity,$price);
+        $btce_result = btce_query("Trade", array("pair" => "btc_usd", "type" => "sell",
+            "amount" => $quantity, "rate" => $price ));
+        return $btce_result;
     }
 
     public function activeOrders()
@@ -156,18 +160,6 @@ class BtceExchange implements IExchange
 
         return $response;
     }
-}
-
-function btce_buy($quantity, $price){
-    $btce_result = btce_query("Trade", array("pair" => "btc_usd", "type" => "buy",
-        "amount" => $quantity, "rate" => $price ));
-    return $btce_result;
-}
-
-function btce_sell($quantity, $price){
-    $btce_result = btce_query("Trade", array("pair" => "btc_usd", "type" => "sell",
-        "amount" => $quantity, "rate" => $price ));
-    return $btce_result;
 }
 
 function btce_trades(){
