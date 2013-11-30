@@ -337,7 +337,7 @@ function fetchMarketData()
         //////////////////////////////////////////
         // Execute the order
         //////////////////////////////////////////
-        if($ior != null && $ior->executionQuantity > 0){
+        if($ior instanceof ArbitrageOrder && $ior->executionQuantity > 0){
             //adjust order size based on available balance
             if($balances[$ior->sellExchange][Currency::BTC] < $ior->executionQuantity)
                 $ior->executionQuantity = $balances[$ior->sellExchange][Currency::BTC];
