@@ -31,6 +31,18 @@ class BitstampExchange implements IExchange
         return $bstamp_depth;
     }
 
+    public function ticker()
+    {
+        $raw = curl_query('https://www.bitstamp.net/api/ticker/');
+
+        $t = new Ticker();
+        $t->bid = $raw['bid'];
+        $t->ask = $raw['ask'];
+        $t->last = $raw['last'];
+
+        return $t;
+    }
+
     public function buy($quantity, $price)
     {
         return bitstamp_buy($quantity,$price);
@@ -140,10 +152,6 @@ class BitstampExchange implements IExchange
         return $ret;
     }
 
-}
-
-function bitstamp_ticker(){
-    return curl_query('https://www.bitstamp.net/api/ticker/');
 }
 
 function bitstamp_trades(){

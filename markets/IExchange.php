@@ -4,6 +4,7 @@ require_once('IAccount.php');
 
 interface IExchange extends IAccount
 {
+    public function ticker();
     public function depth();
     public function buy($quantity, $price);
     public function sell($quantity, $price);

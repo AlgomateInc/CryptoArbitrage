@@ -246,39 +246,40 @@ function fetchMarketData()
 
         foreach($exchanges as $mkt)
         {
-            //get balances
-            $balList = $mkt->balances();
-            foreach($balList as $cur => $bal){
-                //report balance only on balance change (or first run)
-                if(!isset($balances[$mkt->Name()][$cur]) || $balances[$mkt->Name()][$cur] != $bal)
-                    $reporter->balance($mkt->Name(), $cur, $bal);
+            if($mkt instanceof IAccount)
+            {
+                //get balances
+                $balList = $mkt->balances();
+                foreach($balList as $cur => $bal){
+                    //report balance only on balance change (or first run)
+                    if(!isset($balances[$mkt->Name()][$cur]) || $balances[$mkt->Name()][$cur] != $bal)
+                        $reporter->balance($mkt->Name(), $cur, $bal);
 
-                $balances[$mkt->Name()][$cur] = $bal;
+                    $balances[$mkt->Name()][$cur] = $bal;
+                }
+
+                //get the transactions
+                $txList = $mkt->transactions();
+                foreach($txList as $tx)
+                    if($tx instanceof Transaction)
+                        $reporter->transaction(
+                            $tx->exchange,
+                            $tx->id,
+                            $tx->type,
+                            $tx->currency,
+                            $tx->amount,
+                            $tx->timestamp
+                        );
+
+                if($mkt instanceof IExchange)
+                {
+                    //get the current market data
+                    $tickerData = $mkt->ticker();
+                    if($tickerData instanceof Ticker)
+                        $reporter->market($mkt->Name(), CurrencyPair::BTCUSD, $tickerData->bid, $tickerData->ask, $tickerData->last);
+                }
             }
-
-            //get the transactions
-            $txList = $mkt->transactions();
-            foreach($txList as $tx)
-                if($tx instanceof Transaction)
-                    $reporter->transaction(
-                        $tx->exchange,
-                        $tx->id,
-                        $tx->type,
-                        $tx->currency,
-                        $tx->amount,
-                        $tx->timestamp
-                    );
         }
-
-        //////////////////////////////////////////
-        // Get the current market data
-        //////////////////////////////////////////
-
-        $btce = btce_ticker();
-        $bstamp = bitstamp_ticker();
-
-        $reporter->market(Exchange::Btce, CurrencyPair::BTCUSD, $btce['ticker']['sell'], $btce['ticker']['buy'], $btce['ticker']['last']);
-        $reporter->market(Exchange::Bitstamp, CurrencyPair::BTCUSD, $bstamp['bid'], $bstamp['ask'], $bstamp['last']);
 
         //////////////////////////////////////////
         // Check and process any active orders

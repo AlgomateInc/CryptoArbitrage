@@ -27,6 +27,18 @@ class BtceExchange implements IExchange
         return curl_query('https://btc-e.com/api/2/btc_usd/depth');
     }
 
+    public function ticker()
+    {
+        $rawTick = curl_query('https://btc-e.com/api/2/btc_usd/ticker');
+
+        $t = new Ticker();
+        $t->bid = $rawTick['ticker']['sell'];
+        $t->ask = $rawTick['ticker']['buy'];
+        $t->last = $rawTick['ticker']['last'];
+
+        return $t;
+    }
+
     public function buy($quantity, $price)
     {
         return btce_buy($quantity,$price);
@@ -156,10 +168,6 @@ function btce_sell($quantity, $price){
     $btce_result = btce_query("Trade", array("pair" => "btc_usd", "type" => "sell",
         "amount" => $quantity, "rate" => $price ));
     return $btce_result;
-}
-
-function btce_ticker(){
-    return curl_query('https://btc-e.com/api/2/btc_usd/ticker');
 }
 
 function btce_trades(){

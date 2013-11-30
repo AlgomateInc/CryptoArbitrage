@@ -42,3 +42,9 @@ class Transaction{
     public $amount;
     public $timestamp;
 }
+
+class Ticker{
+    public $bid;
+    public $ask;
+    public $last;
+}
