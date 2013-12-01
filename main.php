@@ -321,6 +321,16 @@ function fetchMarketData()
                     if($arbOrder->executionQuantity * $arbOrder->buyLimit > $fctr->maxUsdOrderSize)
                         $arbOrder->executionQuantity = floorp($fctr->maxUsdOrderSize/$arbOrder->buyLimit, 8);
 
+                    //adjust order size based on available balances
+                    $arbOrder->executionQuantity = min(
+                        $arbOrder->executionQuantity,
+                        $balances[$arbOrder->sellExchange][CurrencyPair::Base($arbOrder->currencyPair)]);
+
+                    $quoteBalance = $balances[$arbOrder->buyExchange][CurrencyPair::Quote($arbOrder->currencyPair)];
+                    if($quoteBalance < $arbOrder->executionQuantity * $arbOrder->buyLimit)
+                        $arbOrder->executionQuantity = floorp($quoteBalance / $arbOrder->buyLimit, 8);
+
+                    /////////////////////////
                     $arbOrderList[] = $arbOrder;
                 }
             }
@@ -338,12 +348,6 @@ function fetchMarketData()
         // Execute the order
         //////////////////////////////////////////
         if($ior instanceof ArbitrageOrder && $ior->executionQuantity > 0){
-            //adjust order size based on available balance
-            if($balances[$ior->sellExchange][Currency::BTC] < $ior->executionQuantity)
-                $ior->executionQuantity = $balances[$ior->sellExchange][Currency::BTC];
-            if($balances[$ior->buyExchange][Currency::USD] < $ior->executionQuantity * $ior->buyLimit)
-                $ior->executionQuantity = floorp($balances[$ior->buyExchange][Currency::USD]/$ior->buyLimit,8);
-
             //execute the order on the market if it meets minimum size
             //TODO: remove hardcoding of minimum size
             if($ior->executionQuantity > 0.01)

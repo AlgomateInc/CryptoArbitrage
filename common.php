@@ -13,6 +13,14 @@ class Currency{
 
 class CurrencyPair{
     const BTCUSD = "BTCUSD";
+
+    public static function Base($strPair){
+        return substr($strPair, 0, 3);
+    }
+
+    public static function Quote($strPair){
+        return substr($strPair, 3, 3);
+    }
 }
 
 class OrderType{
