@@ -22,7 +22,11 @@ class BitstampExchange implements IExchange
         return $balances;
     }
 
-    public function depth(){
+    public function depth($currencyPair){
+
+        if($currencyPair != CurrencyPair::BTCUSD)
+            throw new UnexpectedValueException("Currency pair not supported");
+
         $bstamp_depth = curl_query('https://www.bitstamp.net/api/order_book/');
 
         $bstamp_depth['bids'] = array_slice($bstamp_depth['bids'],0,150);

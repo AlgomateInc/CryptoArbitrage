@@ -22,9 +22,21 @@ class BtceExchange implements IExchange
         return $balances;
     }
 
-    public function depth()
+    private function getCurrencyPairName($currencyPair)
     {
-        return curl_query('https://btc-e.com/api/2/btc_usd/depth');
+        switch($currencyPair)
+        {
+            case CurrencyPair::BTCUSD:
+                return 'btc_usd';
+
+            default:
+                throw new UnexpectedValueException('Currency pair not supported');
+        }
+    }
+
+    public function depth($currencyPair)
+    {
+        return curl_query('https://btc-e.com/api/2/' . $this->getCurrencyPairName($currencyPair) . '/depth');
     }
 
     public function ticker()

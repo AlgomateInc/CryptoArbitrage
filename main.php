@@ -57,21 +57,6 @@ function floorp($val, $precision)
     return floor($val * $mult) / $mult;
 }
 
-function getMarketDepthDirect(){
-
-    $depth = array();
-
-    global $exchanges;
-    foreach($exchanges as $mkt)
-    {
-        if($mkt instanceof IExchange){
-            $depth[$mkt->Name()] = $mkt->depth();
-        }
-    }
-
-    return $depth;
-}
-
 function computeDepthStats($depth){
 
     $qtySum = 0; //running depth quantity
@@ -298,15 +283,29 @@ function fetchMarketData()
         global $arbInstructionLoader;
         $instructions = $arbInstructionLoader->load();
 
-        $depth = getMarketDepthDirect();
+        $depth = array();
 
         $arbOrderList = array();
         foreach($instructions as $inst)
         {
+            if($inst instanceof ArbInstructions)
             foreach($inst->arbExecutionFactorList as $fctr)
             {
-                $arbOrder = getOptimalOrder($depth[$inst->buyExchange]['asks'],
-                    $depth[$inst->sellExchange]['bids'], $fctr->targetSpreadPct);
+                //get the depth for the necessary markets
+                //check if we fetched it already. if not, get it
+                if(!array_key_exists($inst->buyExchange, $depth) || !array_key_exists($inst->currencyPair, $depth[$inst->buyExchange])){
+                    $depth[$inst->buyExchange][$inst->currencyPair] = $exchanges[$inst->buyExchange]->depth($inst->currencyPair);
+                }
+
+                if(!array_key_exists($inst->sellExchange, $depth) || !array_key_exists($inst->currencyPair, $depth[$inst->sellExchange])){
+                    $depth[$inst->sellExchange][$inst->currencyPair] = $exchanges[$inst->sellExchange]->depth($inst->currencyPair);;
+                }
+
+                $buyDepth = $depth[$inst->buyExchange][$inst->currencyPair];
+                $sellDepth = $depth[$inst->sellExchange][$inst->currencyPair];
+
+                //calculate optimal order
+                $arbOrder = getOptimalOrder($buyDepth['asks'], $sellDepth['bids'], $fctr->targetSpreadPct);
 
                 //once we find an order that can be placed, we queue it up
                 if($arbOrder->quantity > 0){
@@ -356,8 +355,11 @@ function fetchMarketData()
         }
 
         //report the market depth
-        $reporter->depth(Exchange::Btce, CurrencyPair::BTCUSD, $depth[Exchange::Btce]);
-        $reporter->depth(Exchange::Bitstamp, CurrencyPair::BTCUSD, $depth[Exchange::Bitstamp]);
+        foreach($depth as $mktName => $currencyPairDepth){
+            foreach($currencyPairDepth as $pairName => $pairDepth){
+                $reporter->depth($mktName, $pairName, $pairDepth);
+            }
+        }
 
     }catch(Exception $e){
         syslog(LOG_ERR, $e);
