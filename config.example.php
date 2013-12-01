@@ -15,6 +15,7 @@ $mailbox_password = 'password';
 
 $arbInstructions = array(
     array(
+        'currencyPair'=>'BTCUSD',
         'from'=>'fromexchangename',
         'to'=>'toexchangename',
         'factors'=>array(

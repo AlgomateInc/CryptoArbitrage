@@ -21,6 +21,7 @@ class OrderType{
 }
 
 class ArbitrageOrder{
+    public $currencyPair;
     public $buyExchange;
     public $buyLimit = 0;
     public $sellExchange;

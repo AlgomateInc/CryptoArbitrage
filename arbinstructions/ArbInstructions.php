@@ -2,6 +2,7 @@
 
 class ArbInstructions
 {
+    public $currencyPair;
     public $buyExchange;
     public $sellExchange;
     public $arbExecutionFactorList = array();

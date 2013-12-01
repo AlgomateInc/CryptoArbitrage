@@ -13,6 +13,7 @@ class ConfigArbInstructionLoader implements IArbInstructionLoader {
         foreach($configArbInstructions as $cfgArb)
         {
             $arb = new ArbInstructions();
+            $arb->currencyPair = $cfgArb['currencyPair'];
             $arb->buyExchange = $cfgArb['from'];
             $arb->sellExchange = $cfgArb['to'];
 

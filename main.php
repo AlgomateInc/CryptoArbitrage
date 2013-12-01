@@ -310,6 +310,7 @@ function fetchMarketData()
 
                 //once we find an order that can be placed, we queue it up
                 if($arbOrder->quantity > 0){
+                    $arbOrder->currencyPair = $inst->currencyPair;
                     $arbOrder->buyExchange = $inst->buyExchange;
                     $arbOrder->sellExchange = $inst->sellExchange;
                     $arbOrder->executionQuantity = $arbOrder->quantity;

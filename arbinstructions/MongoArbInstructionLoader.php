@@ -27,6 +27,7 @@ class MongoArbInstructionLoader implements IArbInstructionLoader {
         $arbList = $arbCollection->find();
         foreach($arbList as $arb){
             $ai = new ArbInstructions();
+            $ai->currencyPair = $arb['CurrencyPair'];
             $ai->buyExchange = $arb['BuyExchange'];
             $ai->sellExchange = $arb['SellExchange'];
 
