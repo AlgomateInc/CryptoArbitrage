@@ -4,16 +4,30 @@ require_once(__DIR__.'/../config.php');
 require_once(__DIR__.'/../curl_helper.php');
 require_once('IExchange.php');
 require_once(__DIR__.'/../OrderExecution.php');
+require_once('NonceFactory.php');
 
 class BitstampExchange implements IExchange
 {
+    private $custid;
+    private $key;
+    private $secret;
+    private $nonceFactory;
+
+    public function __construct($custid, $key, $secret){
+        $this->custid = $custid;
+        $this->key = $key;
+        $this->secret = $secret;
+
+        $this->nonceFactory = new NonceFactory();
+    }
+
     public function Name(){
         return 'Bitstamp';
     }
 
     public function balances()
     {
-        $bstamp_info = $this->assertSuccessResponse(bitstamp_query('balance'));
+        $bstamp_info = $this->assertSuccessResponse($this->authQuery('balance'));
 
         $balances = array();
         $balances[Currency::USD] = $bstamp_info['usd_balance'];
@@ -49,17 +63,17 @@ class BitstampExchange implements IExchange
 
     public function buy($quantity, $price)
     {
-        return bitstamp_query('buy', array("amount" => $quantity, "price" => $price));
+        return $this->authQuery('buy', array("amount" => $quantity, "price" => $price));
     }
 
     public function sell($quantity, $price)
     {
-        return bitstamp_query('sell', array("amount" => $quantity, "price" => $price));
+        return $this->authQuery('sell', array("amount" => $quantity, "price" => $price));
     }
 
     public function activeOrders()
     {
-        return bitstamp_query('open_orders');
+        return $this->authQuery('open_orders');
     }
 
     public function hasActiveOrders()
@@ -100,7 +114,7 @@ class BitstampExchange implements IExchange
 
     public function getOrderExecutions($orderResponse)
     {
-        $usrTx = bitstamp_query('user_transactions');
+        $usrTx = $this->authQuery('user_transactions');
 
         $orderTx = array();
 
@@ -132,7 +146,7 @@ class BitstampExchange implements IExchange
 
     public function transactions()
     {
-        $response =  bitstamp_query('user_transactions', array('limit'=>1000));
+        $response =  $this->authQuery('user_transactions', array('limit'=>1000));
         $this->assertSuccessResponse($response);
 
         $ret = array();
@@ -156,37 +170,17 @@ class BitstampExchange implements IExchange
         return $ret;
     }
 
-}
+    function authQuery($method, array $req = array()) {
+        if(!$this->nonceFactory instanceof NonceFactory)
+            throw new Exception('No way to get nonce!');
 
-function bitstamp_trades(){
-    return curl_query('https://www.bitstamp.net/api/transactions/');
-}
+        // generate the POST data string
+        $req['key'] = $this->key;
+        $req['nonce'] = $this->nonceFactory->get();
+        $req['signature'] = strtoupper(hash_hmac("sha256", $req['nonce'] . $this->custid . $this->key, $this->secret));
+        $post_data = http_build_query($req, '', '&');
 
-function bitstamp_query($method, array $req = array()) {
-    
-    global $bitstamp_custid;
-    global $bitstamp_key;
-    global $bitstamp_secret;
-    
-	// API settings
-    $custid = $bitstamp_custid;
-	$key = $bitstamp_key; // your API-key
-	$secret = $bitstamp_secret; // your Secret-key
-
-    //generate nonce
-    static $noncetime = null;
-    static $nonce = null;
-    if(is_null($noncetime)){ 
-        $mt = explode(' ', microtime());
-        $noncetime = $mt[1];
+        return curl_query('https://www.bitstamp.net/api/' . $method . '/', $post_data);
     }
-    $nonce++;
-    $req['nonce'] = $noncetime + $nonce;
-                                      
-	// generate the POST data string
-	$req['key'] = $key;
-	$req['signature'] = strtoupper(hash_hmac("sha256", $req['nonce'] . $custid . $key, $secret));
-	$post_data = http_build_query($req, '', '&');
-
-	return curl_query('https://www.bitstamp.net/api/' . $method . '/', $post_data);
 }
+

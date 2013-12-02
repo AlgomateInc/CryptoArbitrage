@@ -43,8 +43,8 @@ if(array_key_exists("live", $options))
 //////////////////////////////////////////////////////////
 // Initialize active exchange interfaces and active order list
 $exchanges = array();
-$exchanges[Exchange::Btce] = new BtceExchange();
-$exchanges[Exchange::Bitstamp] = new BitstampExchange();
+$exchanges[Exchange::Btce] = new BtceExchange($btce_key, $btce_secret);
+$exchanges[Exchange::Bitstamp] = new BitstampExchange($bitstamp_custid, $bitstamp_key, $bitstamp_secret);
 $exchanges[Exchange::JPMChase] = new JPMChase($mailbox_name, $mailbox_username, $mailbox_password);
 
 

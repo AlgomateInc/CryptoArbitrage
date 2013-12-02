@@ -4,16 +4,28 @@ require_once(__DIR__.'/../config.php');
 require_once(__DIR__.'/../curl_helper.php');
 require_once('IExchange.php');
 require_once(__DIR__.'/../OrderExecution.php');
+require_once('NonceFactory.php');
 
 class BtceExchange implements IExchange
 {
+    private $key;
+    private $secret;
+    private $nonceFactory;
+
+    public function __construct($key, $secret){
+        $this->key = $key;
+        $this->secret = $secret;
+
+        $this->nonceFactory = new NonceFactory();
+    }
+
     public function Name(){
         return "Btce";
     }
 
     public function balances()
     {
-        $btce_info = $this->assertSuccessResponse(btce_query("getInfo"));
+        $btce_info = $this->assertSuccessResponse($this->authQuery("getInfo"));
 
         $balances = array();
         $balances[Currency::USD] = $btce_info['return']['funds']['usd'];
@@ -53,21 +65,21 @@ class BtceExchange implements IExchange
 
     public function buy($quantity, $price)
     {
-        $btce_result = btce_query("Trade", array("pair" => "btc_usd", "type" => "buy",
+        $btce_result = $this->authQuery("Trade", array("pair" => "btc_usd", "type" => "buy",
             "amount" => $quantity, "rate" => $price ));
         return $btce_result;
     }
 
     public function sell($quantity, $price)
     {
-        $btce_result = btce_query("Trade", array("pair" => "btc_usd", "type" => "sell",
+        $btce_result = $this->authQuery("Trade", array("pair" => "btc_usd", "type" => "sell",
             "amount" => $quantity, "rate" => $price ));
         return $btce_result;
     }
 
     public function activeOrders()
     {
-        return btce_query("ActiveOrders", array("pair" => "btc_usd"));
+        return $this->authQuery("ActiveOrders", array("pair" => "btc_usd"));
     }
 
     public function hasActiveOrders()
@@ -82,12 +94,12 @@ class BtceExchange implements IExchange
 
     public function tradeHistory()
     {
-        return $this->assertSuccessResponse(btce_query("TradeHistory"));
+        return $this->assertSuccessResponse($this->authQuery("TradeHistory"));
     }
 
     public function transactions()
     {
-        $response = btce_query("TransHistory", array('count'=>1000));
+        $response = $this->authQuery("TransHistory", array('count'=>1000));
         $this->assertSuccessResponse($response);
 
         $transactionList = $response['return'];
@@ -172,47 +184,26 @@ class BtceExchange implements IExchange
 
         return $response;
     }
+
+    function authQuery($method, array $req = array()) {
+        if(!$this->nonceFactory instanceof NonceFactory)
+            throw new Exception('No way to get nonce!');
+
+        $req['method'] = $method;
+        $req['nonce'] = $this->nonceFactory->get();
+
+        // generate the POST data string
+        $post_data = http_build_query($req, '', '&');
+
+        $sign = hash_hmac("sha512", $post_data, $this->secret);
+
+        // generate the extra headers
+        $headers = array(
+            'Sign: '.$sign,
+            'Key: '.$this->key,
+        );
+
+        return curl_query('https://btc-e.com/tapi/', $post_data, $headers);
+    }
 }
 
-function btce_trades(){
-    return curl_query('https://btc-e.com/api/2/btc_usd/trades');
-}
-    
-function btce_query($method, array $req = array()) {
-    
-    global $btce_key;
-    global $btce_secret;
-    
-	// API settings
-	$key = $btce_key; // your API-key
-	$secret = $btce_secret; // your Secret-key
-
-	$req['method'] = $method;
-
-	static $noncetime = null;
-	static $nonce = null;
-	if(is_null($noncetime)){ 
-		$mt = explode(' ', microtime());
-		$noncetime = $mt[1];
-	}
-	$nonce++;
-	$req['nonce'] = $noncetime + $nonce;
-
-	// generate the POST data string
-	$post_data = http_build_query($req, '', '&');
-
-	$sign = hash_hmac("sha512", $post_data, $secret);
-
-	// generate the extra headers
-	$headers = array(
-		'Sign: '.$sign,
-		'Key: '.$key,
-	);
-
-	return curl_query('https://btc-e.com/tapi/', $post_data, $headers);
-}
-
-//$result = btce_query("getInfo");
-//$result = btce_query("Trade", array("pair" => "btc_usd", "type" => "buy", "amount" => 1, "rate" => 10)); //buy 1 BTC @ 10 USD
-
-//var_dump($result);
