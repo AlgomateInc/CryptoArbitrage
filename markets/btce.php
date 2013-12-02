@@ -209,24 +209,7 @@ function btce_query($method, array $req = array()) {
 		'Key: '.$key,
 	);
 
-	// our curl handle (initialize if required)
-	static $ch = null;
-	if (is_null($ch)) {
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; BTCE PHP client; '.php_uname('s').'; PHP/'.phpversion().')');
-	}
-	curl_setopt($ch, CURLOPT_URL, 'https://btc-e.com/tapi/');
-	curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
-	curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-
-	// run the query
-	$res = curl_exec($ch);
-	if ($res === false) throw new Exception('Could not get reply: '.curl_error($ch));
-	$dec = json_decode($res, true);
-	if ($dec === null) throw new Exception("Invalid data received. Server returned:\n $res");
-	return $dec;
+	return curl_query('https://btc-e.com/tapi/', $post_data, $headers);
 }
 
 //$result = btce_query("getInfo");

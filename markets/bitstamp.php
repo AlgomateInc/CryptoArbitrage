@@ -188,21 +188,5 @@ function bitstamp_query($method, array $req = array()) {
 	$req['signature'] = strtoupper(hash_hmac("sha256", $req['nonce'] . $custid . $key, $secret));
 	$post_data = http_build_query($req, '', '&');
 
-	// our curl handle (initialize if required)
-	static $ch = null;
-	if (is_null($ch)) {
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; Bitstamp PHP client; '.php_uname('s').'; PHP/'.phpversion().')');
-	}
-	curl_setopt($ch, CURLOPT_URL, 'https://www.bitstamp.net/api/' . $method . '/');
-	curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
-	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-
-	// run the query
-	$res = curl_exec($ch);
-	if ($res === false) throw new Exception('Could not get reply: '.curl_error($ch));
-	$dec = json_decode($res, true);
-	if ($dec === null) throw new Exception("Invalid data received. Server returned:\n $res");
-	return $dec;
+	return curl_query('https://www.bitstamp.net/api/' . $method . '/', $post_data);
 }
