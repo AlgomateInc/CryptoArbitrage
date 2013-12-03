@@ -34,16 +34,20 @@ class BtceExchange implements IExchange
         return $balances;
     }
 
-    private function getCurrencyPairName($currencyPair)
-    {
-        switch($currencyPair)
-        {
-            case CurrencyPair::BTCUSD:
-                return 'btc_usd';
+    public function supportedCurrencyPairs(){
+        return [CurrencyPair::BTCUSD];
+    }
 
-            default:
-                throw new UnexpectedValueException('Currency pair not supported');
-        }
+    public function supports($currencyPair){
+        return in_array($currencyPair, $this->supportedCurrencyPairs());
+    }
+
+    private function getCurrencyPairName($pair)
+    {
+        if(!$this->supports($pair))
+            throw new UnexpectedValueException('Currency pair not supported');
+
+        return strtolower(CurrencyPair::Base($pair)) . '_' . strtolower(CurrencyPair::Quote($pair));
     }
 
     public function depth($currencyPair)

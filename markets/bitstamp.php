@@ -25,6 +25,14 @@ class BitstampExchange implements IExchange
         return 'Bitstamp';
     }
 
+    public function supportedCurrencyPairs(){
+        return [CurrencyPair::BTCUSD];
+    }
+
+    public function supports($currencyPair){
+        return in_array($currencyPair, $this->supportedCurrencyPairs());
+    }
+
     public function balances()
     {
         $bstamp_info = $this->assertSuccessResponse($this->authQuery('balance'));
