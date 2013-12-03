@@ -224,15 +224,18 @@ function fetchMarketData()
         // Fetch the account balances and transaction history
         //////////////////////////////////////////
         static $balances = array();
-        if(count($balances) == 0){
-            foreach($exchanges as $mkt)
-                $balances[$mkt->Name()] = array();
-        }
+        $depth = array();
 
         foreach($exchanges as $mkt)
         {
             if($mkt instanceof IAccount)
             {
+                //initialize local data structures
+                if(!array_key_exists($mkt->Name(), $balances))
+                    $balances[$mkt->Name()] = array();
+                if(!array_key_exists($mkt->Name(), $depth))
+                    $depth[$mkt->Name()] = array();
+
                 //get balances
                 $balList = $mkt->balances();
                 foreach($balList as $cur => $bal){
@@ -278,32 +281,55 @@ function fetchMarketData()
             return;
 
         //////////////////////////////////////////
-        // Calculate an optimal order from instructions and the current depth
+        // Run through all arbitrage instructions and execute as necessary
         //////////////////////////////////////////
         global $arbInstructionLoader;
         $instructions = $arbInstructionLoader->load();
 
-        $depth = array();
-
-        $arbOrderList = array();
         foreach($instructions as $inst)
         {
-            if($inst instanceof ArbInstructions)
+            if(!$inst instanceof ArbInstructions)
+                continue;
+
+            //////////////////////////////////////////
+            // Check the necessary markets exist and support trading for pair
+            //////////////////////////////////////////
+            if(!array_key_exists($inst->buyExchange, $exchanges) || !array_key_exists($inst->sellExchange, $exchanges)){
+                syslog(LOG_WARNING, 'Markets in arbitrage instructions not supported');
+                continue;
+            }
+
+            $buyMarket = $exchanges[$inst->buyExchange];
+            $sellMarket = $exchanges[$inst->sellExchange];
+            if(!($buyMarket instanceof IExchange && $sellMarket instanceof IExchange))
+                continue;
+
+            if(!($buyMarket->supports($inst->currencyPair) && $sellMarket->supports($inst->currencyPair))){
+                syslog(LOG_WARNING, 'Markets in arbitrage instructions do not support pair: ' . $inst->currencyPair);
+                continue;
+            }
+
+            /////////////////////////////////////////////////////////
+            // Get the depth for the necessary markets
+            // check if we fetched it already. if not, get it
+            /////////////////////////////////////////////////////////
+            if(!array_key_exists($inst->currencyPair, $depth[$inst->buyExchange])){
+                $depth[$inst->buyExchange][$inst->currencyPair] = $buyMarket->depth($inst->currencyPair);
+            }
+
+            if(!array_key_exists($inst->currencyPair, $depth[$inst->sellExchange])){
+                $depth[$inst->sellExchange][$inst->currencyPair] = $sellMarket->depth($inst->currencyPair);;
+            }
+
+            $buyDepth = $depth[$inst->buyExchange][$inst->currencyPair];
+            $sellDepth = $depth[$inst->sellExchange][$inst->currencyPair];
+
+            ////////////////////////////////////////////////////////////////
+            // Run through all factors on arbitrage instructions and find execution candidates
+            ////////////////////////////////////////////////////////////////
+            $arbOrderList = array();
             foreach($inst->arbExecutionFactorList as $fctr)
             {
-                //get the depth for the necessary markets
-                //check if we fetched it already. if not, get it
-                if(!array_key_exists($inst->buyExchange, $depth) || !array_key_exists($inst->currencyPair, $depth[$inst->buyExchange])){
-                    $depth[$inst->buyExchange][$inst->currencyPair] = $exchanges[$inst->buyExchange]->depth($inst->currencyPair);
-                }
-
-                if(!array_key_exists($inst->sellExchange, $depth) || !array_key_exists($inst->currencyPair, $depth[$inst->sellExchange])){
-                    $depth[$inst->sellExchange][$inst->currencyPair] = $exchanges[$inst->sellExchange]->depth($inst->currencyPair);;
-                }
-
-                $buyDepth = $depth[$inst->buyExchange][$inst->currencyPair];
-                $sellDepth = $depth[$inst->sellExchange][$inst->currencyPair];
-
                 //calculate optimal order
                 $arbOrder = getOptimalOrder($buyDepth['asks'], $sellDepth['bids'], $fctr->targetSpreadPct);
 
@@ -334,27 +360,26 @@ function fetchMarketData()
                     $arbOrderList[] = $arbOrder;
                 }
             }
-        }
 
-        //select the target order by picking the one with the largest executable quantity
-        $ior = null;
-        foreach($arbOrderList as $ao)
-        {
-            if($ior == null || $ao->executionQuantity > $ior->executionQuantity)
-                $ior = $ao;
-        }
+            //select the target order by picking the one with the largest executable quantity
+            $ior = null;
+            foreach($arbOrderList as $ao){
+                if($ior == null || $ao->executionQuantity > $ior->executionQuantity)
+                    $ior = $ao;
+            }
 
-        //////////////////////////////////////////
-        // Execute the order
-        //////////////////////////////////////////
-        if($ior instanceof ArbitrageOrder && $ior->executionQuantity > 0){
-            //execute the order on the market if it meets minimum size
-            //TODO: remove hardcoding of minimum size
-            if($ior->executionQuantity > 0.01)
-                execute_trades($ior);
-            else{
-                //no execution, but report the arbitrage with the original, desired, quantity for records
-                $reporter->arbitrage($ior->quantity,$ior->buyExchange,$ior->buyLimit,$ior->sellExchange, $ior->sellLimit);
+            //////////////////////////////////////////
+            // Execute the order
+            //////////////////////////////////////////
+            if($ior instanceof ArbitrageOrder && $ior->executionQuantity > 0){
+                //execute the order on the market if it meets minimum size
+                //TODO: remove hardcoding of minimum size
+                if($ior->executionQuantity > 0.01)
+                    execute_trades($ior);
+                else{
+                    //no execution, but report the arbitrage with the original, desired, quantity for records
+                    $reporter->arbitrage($ior->quantity,$ior->buyExchange,$ior->buyLimit,$ior->sellExchange, $ior->sellLimit);
+                }
             }
         }
 
