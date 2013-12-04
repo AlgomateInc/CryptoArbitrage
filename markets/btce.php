@@ -35,7 +35,7 @@ class BtceExchange implements IExchange
     }
 
     public function supportedCurrencyPairs(){
-        return [CurrencyPair::BTCUSD];
+        return array(CurrencyPair::BTCUSD);
     }
 
     public function supports($currencyPair){
