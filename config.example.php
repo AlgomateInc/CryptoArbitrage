@@ -8,6 +8,7 @@ $bitstamp_key = 'STAMPKEY'; // your API-key
 $bitstamp_secret = 'STAMPSECRET'; // your Secret-key
 
 $mongodb_uri = 'mongodb://localhost';
+$mongodb_db = 'coindata';
 
 $mailbox_name = 'imapmailbox';
 $mailbox_username = 'username';

@@ -8,10 +8,10 @@ class MongoReporter implements IReporter
     private $mdb;
     
     public function __construct(){
-        global $mongodb_uri;
+        global $mongodb_uri, $mongodb_db;
         
         $this->mongo = new MongoClient($mongodb_uri);
-        $this->mdb = $this->mongo->coindata;
+        $this->mdb = $this->mongo->selectDB($mongodb_db);
     }
     
     public function balance($exchange_name, $currency, $balance){
