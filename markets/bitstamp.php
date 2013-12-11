@@ -75,13 +75,17 @@ class BitstampExchange implements IExchange
             throw new UnexpectedValueException("Currency pair not supported");
     }
 
-    public function buy($quantity, $price)
+    public function buy($pair, $quantity, $price)
     {
+        $this->assertValidCurrencyPair($pair);
+
         return $this->authQuery('buy', array("amount" => $quantity, "price" => $price));
     }
 
-    public function sell($quantity, $price)
+    public function sell($pair, $quantity, $price)
     {
+        $this->assertValidCurrencyPair($pair);
+
         return $this->authQuery('sell', array("amount" => $quantity, "price" => $price));
     }
 

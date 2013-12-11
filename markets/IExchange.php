@@ -18,8 +18,8 @@ interface IExchange extends IAccount
     public function ticker($pair);
     public function depth($currencyPair);
 
-    public function buy($quantity, $price);
-    public function sell($quantity, $price);
+    public function buy($pair, $quantity, $price);
+    public function sell($pair, $quantity, $price);
     public function activeOrders();
     public function hasActiveOrders();
 

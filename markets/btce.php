@@ -70,16 +70,20 @@ class BtceExchange implements IExchange
         return $t;
     }
 
-    public function buy($quantity, $price)
+    public function buy($pair, $quantity, $price)
     {
-        $btce_result = $this->authQuery("Trade", array("pair" => "btc_usd", "type" => "buy",
+        $btcePairName = $this->getCurrencyPairName($pair);
+
+        $btce_result = $this->authQuery("Trade", array("pair" => "$btcePairName", "type" => "buy",
             "amount" => $quantity, "rate" => $price ));
         return $btce_result;
     }
 
-    public function sell($quantity, $price)
+    public function sell($pair, $quantity, $price)
     {
-        $btce_result = $this->authQuery("Trade", array("pair" => "btc_usd", "type" => "sell",
+        $btcePairName = $this->getCurrencyPairName($pair);
+
+        $btce_result = $this->authQuery("Trade", array("pair" => "$btcePairName", "type" => "sell",
             "amount" => $quantity, "rate" => $price ));
         return $btce_result;
     }
