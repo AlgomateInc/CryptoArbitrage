@@ -45,9 +45,7 @@ class BitstampExchange implements IExchange
     }
 
     public function depth($currencyPair){
-
-        if($currencyPair != CurrencyPair::BTCUSD)
-            throw new UnexpectedValueException("Currency pair not supported");
+        $this->assertValidCurrencyPair($currencyPair);
 
         $bstamp_depth = curl_query('https://www.bitstamp.net/api/order_book/');
 
@@ -57,16 +55,24 @@ class BitstampExchange implements IExchange
         return $bstamp_depth;
     }
 
-    public function ticker()
+    public function ticker($pair)
     {
+        $this->assertValidCurrencyPair($pair);
+
         $raw = curl_query('https://www.bitstamp.net/api/ticker/');
 
         $t = new Ticker();
+        $t->currencyPair = $pair;
         $t->bid = $raw['bid'];
         $t->ask = $raw['ask'];
         $t->last = $raw['last'];
 
         return $t;
+    }
+
+    private function assertValidCurrencyPair($pair){
+        if($pair != CurrencyPair::BTCUSD)
+            throw new UnexpectedValueException("Currency pair not supported");
     }
 
     public function buy($quantity, $price)

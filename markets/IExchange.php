@@ -15,7 +15,7 @@ interface IExchange extends IAccount
      */
     public function supportedCurrencyPairs();
 
-    public function ticker();
+    public function ticker($pair);
     public function depth($currencyPair);
 
     public function buy($quantity, $price);

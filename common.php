@@ -53,6 +53,7 @@ class Transaction{
 }
 
 class Ticker{
+    public $currencyPair;
     public $bid;
     public $ask;
     public $last;

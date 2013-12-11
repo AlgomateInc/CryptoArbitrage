@@ -55,11 +55,14 @@ class BtceExchange implements IExchange
         return curl_query('https://btc-e.com/api/2/' . $this->getCurrencyPairName($currencyPair) . '/depth');
     }
 
-    public function ticker()
+    public function ticker($pair)
     {
-        $rawTick = curl_query('https://btc-e.com/api/2/btc_usd/ticker');
+        $btcePairName = $this->getCurrencyPairName($pair);
+
+        $rawTick = curl_query("https://btc-e.com/api/2/$btcePairName/ticker");
 
         $t = new Ticker();
+        $t->currencyPair = $pair;
         $t->bid = $rawTick['ticker']['sell'];
         $t->ask = $rawTick['ticker']['buy'];
         $t->last = $rawTick['ticker']['last'];

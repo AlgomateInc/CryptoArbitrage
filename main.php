@@ -262,9 +262,9 @@ function fetchMarketData()
                 if($mkt instanceof IExchange)
                 {
                     //get the current market data
-                    $tickerData = $mkt->ticker();
+                    $tickerData = $mkt->ticker(CurrencyPair::BTCUSD);
                     if($tickerData instanceof Ticker)
-                        $reporter->market($mkt->Name(), CurrencyPair::BTCUSD, $tickerData->bid, $tickerData->ask, $tickerData->last);
+                        $reporter->market($mkt->Name(), $tickerData->currencyPair, $tickerData->bid, $tickerData->ask, $tickerData->last);
                 }
             }
         }
