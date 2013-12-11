@@ -19,18 +19,15 @@ class BtceExchange extends BtceStyleExchange
         $btce_info = $this->assertSuccessResponse($this->authQuery("getInfo"));
 
         $balances = array();
-        $balances[Currency::USD] = $btce_info['return']['funds']['usd'];
-        $balances[Currency::BTC] = $btce_info['return']['funds']['btc'];
+        foreach($this->supportedCurrencies() as $curr){
+            $balances[$curr] = $btce_info['return']['funds'][strtolower($curr)];
+        }
 
         return $balances;
     }
 
     public function supportedCurrencyPairs(){
         return array(CurrencyPair::BTCUSD);
-    }
-
-    public function supports($currencyPair){
-        return in_array($currencyPair, $this->supportedCurrencyPairs());
     }
 
     private function getCurrencyPairName($pair)

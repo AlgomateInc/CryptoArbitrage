@@ -2,12 +2,12 @@
 
 require_once(__DIR__.'/../config.php');
 require_once(__DIR__.'/../curl_helper.php');
-require_once('IExchange.php');
+require_once('BaseExchange.php');
 require_once(__DIR__.'/../OrderExecution.php');
 require_once('NonceFactory.php');
 
 
-abstract class BtceStyleExchange implements IExchange {
+abstract class BtceStyleExchange extends BaseExchange {
 
     abstract protected function getAuthQueryUrl();
 

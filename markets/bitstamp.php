@@ -2,11 +2,11 @@
 
 require_once(__DIR__.'/../config.php');
 require_once(__DIR__.'/../curl_helper.php');
-require_once('IExchange.php');
+require_once('BaseExchange.php');
 require_once(__DIR__.'/../OrderExecution.php');
 require_once('NonceFactory.php');
 
-class BitstampExchange implements IExchange
+class BitstampExchange extends BaseExchange
 {
     private $custid;
     private $key;
@@ -27,10 +27,6 @@ class BitstampExchange implements IExchange
 
     public function supportedCurrencyPairs(){
         return array(CurrencyPair::BTCUSD);
-    }
-
-    public function supports($currencyPair){
-        return in_array($currencyPair, $this->supportedCurrencyPairs());
     }
 
     public function balances()

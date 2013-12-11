@@ -15,6 +15,11 @@ interface IExchange extends IAccount
      */
     public function supportedCurrencyPairs();
 
+    /**
+     * @return array Provides an array of strings listing supported currencies
+     */
+    public function supportedCurrencies();
+
     public function ticker($pair);
     public function depth($currencyPair);
 
