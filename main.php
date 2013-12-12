@@ -117,7 +117,6 @@ function getOptimalOrder($buy_depth, $sell_depth, $target_spread_pct)
                 $asks[$i][1] -= $execSize;
                 $buyQty = $asks[$i][1];
                 $bids[$j][1] -= $execSize;
-                $sellQty = $bids[$j][1];
 
                 //update order limits and size
                 $order->buyLimit = $buyPx;
@@ -149,8 +148,16 @@ function execute_trades(ArbitrageOrder $arb)
     $buyMarket = $exchanges[$arb->buyExchange];
     $sellMarket = $exchanges[$arb->sellExchange];
 
-    $buy_res = $buyMarket->buy($arb->executionQuantity, $arb->buyLimit);
-    $sell_res = $sellMarket->sell($arb->executionQuantity, $arb->sellLimit);
+    if(!$buyMarket instanceof IExchange)
+        throw new Exception('Cannot trade on non-market!');
+    if(!$sellMarket instanceof IExchange)
+        throw new Exception('Cannot trade on non-market!');
+
+    $buy_res = $buyMarket->buy($arb->currencyPair, $arb->executionQuantity, $arb->buyLimit);
+    $sell_res = $sellMarket->sell($arb->currencyPair, $arb->executionQuantity, $arb->sellLimit);
+
+    if(!$reporter instanceof IReporter)
+        throw new Exception('Invalid report was passed!');
 
     $arbid = $reporter->arbitrage($arb->quantity,$arb->buyExchange,$arb->buyLimit,$arb->sellExchange, $arb->sellLimit);
     $reporter->order($arb->buyExchange, OrderType::BUY, $arb->executionQuantity, $arb->buyLimit, $buy_res, $arbid);
@@ -188,6 +195,9 @@ function processActiveOrders()
         $market = $activeOrders[$i]['exchange'];
         $marketResponse = $activeOrders[$i]['response'];
         $arbid = $activeOrders[$i]['arbid'];
+
+        if(!$market instanceof IExchange)
+            continue;
 
         //check if the order is done
         if(!$market->isOrderOpen($marketResponse))
