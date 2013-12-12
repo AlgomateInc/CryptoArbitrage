@@ -11,10 +11,10 @@ class Cryptsy extends BtceStyleExchange {
         parent::__construct($key, $secret);
 
         //get all the open markets so we have the ID mapping
-        $mkts = $this->assertSuccessResponse($this->authQuery('getmarkets'));
+        $markets = $this->assertSuccessResponse($this->authQuery('getmarkets'));
         foreach($this->supportedCurrencyPairs() as $pair)
         {
-            foreach($mkts['return'] as $mkt){
+            foreach($markets as $mkt){
                 if($mkt['primary_currency_code'] == CurrencyPair::Base($pair) &&
                     $mkt['secondary_currency_code'] == CurrencyPair::Quote($pair)){
                     $this->marketIdMapping[$pair] = $mkt['marketid'];
@@ -37,7 +37,7 @@ class Cryptsy extends BtceStyleExchange {
     {
         $info = $this->assertSuccessResponse($this->authQuery("getinfo"));
 
-        $bal = $info['return']['balances_available'];
+        $bal = $info['balances_available'];
 
         $balances = array();
         foreach($this->supportedCurrencies() as $curr){

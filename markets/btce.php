@@ -20,7 +20,7 @@ class BtceExchange extends BtceStyleExchange
 
         $balances = array();
         foreach($this->supportedCurrencies() as $curr){
-            $balances[$curr] = $btce_info['return']['funds'][strtolower($curr)];
+            $balances[$curr] = $btce_info['funds'][strtolower($curr)];
         }
 
         return $balances;
@@ -98,10 +98,7 @@ class BtceExchange extends BtceStyleExchange
 
     public function transactions()
     {
-        $response = $this->authQuery("TransHistory", array('count'=>1000));
-        $this->assertSuccessResponse($response);
-
-        $transactionList = $response['return'];
+        $transactionList = $this->assertSuccessResponse($this->authQuery("TransHistory", array('count'=>1000)));
 
         $ret = array();
         foreach($transactionList as $btxid => $btx)
@@ -159,7 +156,7 @@ class BtceExchange extends BtceStyleExchange
             return $execList;
 
         $history = $this->tradeHistory();
-        foreach($history['return'] as $key => $item){
+        foreach($history as $key => $item){
             if($item['order_id'] == $orderId)
             {
                 $oe = new OrderExecution();

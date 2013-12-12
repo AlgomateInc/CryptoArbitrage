@@ -27,7 +27,7 @@ abstract class BtceStyleExchange extends BaseExchange {
         if($response['success'] != 1)
             throw new Exception($response['error']);
 
-        return $response;
+        return $response['return'];
     }
 
     protected function authQuery($method, array $req = array()) {
