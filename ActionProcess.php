@@ -26,7 +26,7 @@ abstract class ActionProcess {
         $shortopts = "";
         $longopts = array(
             "mongodb",
-            "monitor",
+            "monitor::",
             "fork"
         );
         if(is_array($objOptions))
@@ -41,8 +41,13 @@ abstract class ActionProcess {
         else
             $this->reporter = new ConsoleReporter();
 
-        if(array_key_exists("monitor", $options))
+        if(array_key_exists("monitor", $options)){
             $this->monitor = true;
+
+            if(is_numeric($options['monitor']))
+                $this->monitor_timeout = intval($options['monitor']);
+        }
+
         if(array_key_exists("fork", $options))
             $this->fork = true;
 
