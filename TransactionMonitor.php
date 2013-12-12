@@ -8,6 +8,13 @@ require('markets/jpmchase.php');
 
 class TransactionMonitor extends ActionProcess{
 
+    private $exchanges;
+
+    public function __construct($exchanges)
+    {
+        $this->exchanges = $exchanges;
+    }
+
     public function getProgramOptions()
     {
 
@@ -25,13 +32,14 @@ class TransactionMonitor extends ActionProcess{
 
     public function run()
     {
-        $exchanges = array();
-        $exchanges[Exchange::Btce] = new BtceExchange();
-        $exchanges[Exchange::Bitstamp] = new BitstampExchange();
-        //$exchanges[Exchange::JPMChase] = new JPMChase($mailbox_name, $mailbox_username, $mailbox_password);
+        if(!$this->reporter instanceof IReporter)
+            throw new Exception('Reporter is not the right type!');
 
-        foreach($exchanges as $mkt)
+        foreach($this->exchanges as $mkt)
         {
+            if(!$mkt instanceof IAccount)
+                continue;
+
             $txList = $mkt->transactions();
 
             foreach($txList as $tx)
@@ -53,5 +61,10 @@ class TransactionMonitor extends ActionProcess{
     }
 }
 
-$txMon = new TransactionMonitor();
+$exchanges = array();
+$exchanges[Exchange::Btce] = new BtceExchange($btce_key, $btce_secret);
+$exchanges[Exchange::Bitstamp] = new BitstampExchange($bitstamp_custid, $bitstamp_key, $bitstamp_secret);
+$exchanges[Exchange::JPMChase] = new JPMChase($mailbox_name, $mailbox_username, $mailbox_password);
+
+$txMon = new TransactionMonitor($exchanges);
 $txMon->start();
