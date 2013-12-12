@@ -21,7 +21,9 @@ class Cryptsy extends BtceStyleExchange {
         $bal = $info['return']['balances_available'];
 
         $balances = array();
-        $balances[Currency::BTC] = $bal[Currency::BTC];
+        foreach($this->supportedCurrencies() as $curr){
+            $balances[$curr] = $bal[$curr];
+        }
 
         return $balances;
     }
@@ -32,20 +34,11 @@ class Cryptsy extends BtceStyleExchange {
     }
 
     /**
-     * @param string $currencyPair A currency pair to check support for
-     * @return bool True if the pair is supported, false otherwise
-     */
-    public function supports($currencyPair)
-    {
-        // TODO: Implement supports() method.
-    }
-
-    /**
      * @return array Provides an array of strings listing supported currency pairs
      */
     public function supportedCurrencyPairs()
     {
-        // TODO: Implement supportedCurrencyPairs() method.
+        return array(CurrencyPair::FTCBTC);
     }
 
     public function ticker($pair)

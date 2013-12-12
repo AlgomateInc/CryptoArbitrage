@@ -10,10 +10,12 @@ class Exchange{
 class Currency{
     const USD = "USD";
     const BTC = "BTC";
+    const FTC = 'FTC';
 }
 
 class CurrencyPair{
     const BTCUSD = "BTCUSD";
+    const FTCBTC = 'FTCBTC';
 
     public static function Base($strPair){
         return substr($strPair, 0, 3);
