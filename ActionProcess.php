@@ -19,6 +19,11 @@ abstract class ActionProcess {
     abstract public function run();
     abstract public function shutdown();
 
+    protected $exchanges;
+    public function __construct($exchanges){
+        $this->exchanges = $exchanges;
+    }
+
     private function processCommandLine()
     {
         $objOptions = $this->getProgramOptions();

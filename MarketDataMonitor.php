@@ -6,21 +6,18 @@ require('markets/btce.php');
 require('markets/bitstamp.php');
 require('markets/jpmchase.php');
 
-class TransactionMonitor extends ActionProcess{
+class MarketDataMonitor extends ActionProcess {
 
     public function getProgramOptions()
     {
-
     }
 
     public function processOptions($options)
     {
-
     }
 
     public function init()
     {
-
     }
 
     public function run()
@@ -30,27 +27,26 @@ class TransactionMonitor extends ActionProcess{
 
         foreach($this->exchanges as $mkt)
         {
-            if(!$mkt instanceof IAccount)
+            if(!$mkt instanceof IExchange)
                 continue;
 
-            $txList = $mkt->transactions();
+            foreach($mkt->supportedCurrencyPairs() as $pair){
+                $tickData = $mkt->ticker($pair);
 
-            foreach($txList as $tx)
-                if($tx instanceof Transaction)
-                    $this->reporter->transaction(
-                        $tx->exchange,
-                        $tx->id,
-                        $tx->type,
-                        $tx->currency,
-                        $tx->amount,
-                        $tx->timestamp
+                if($tickData instanceof Ticker)
+                    $this->reporter->market(
+                        $mkt->Name(),
+                        $tickData->currencyPair,
+                        $tickData->bid,
+                        $tickData->ask,
+                        $tickData->last
                     );
+            }
         }
     }
 
     public function shutdown()
     {
-
     }
 }
 
@@ -59,5 +55,5 @@ $exchanges[Exchange::Btce] = new BtceExchange($btce_key, $btce_secret);
 $exchanges[Exchange::Bitstamp] = new BitstampExchange($bitstamp_custid, $bitstamp_key, $bitstamp_secret);
 $exchanges[Exchange::JPMChase] = new JPMChase($mailbox_name, $mailbox_username, $mailbox_password);
 
-$txMon = new TransactionMonitor($exchanges);
+$txMon = new MarketDataMonitor($exchanges);
 $txMon->start();
