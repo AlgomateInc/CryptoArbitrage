@@ -245,27 +245,6 @@ function fetchMarketData()
 
                     $balances[$mkt->Name()][$cur] = $bal;
                 }
-
-                //get the transactions
-                $txList = $mkt->transactions();
-                foreach($txList as $tx)
-                    if($tx instanceof Transaction)
-                        $reporter->transaction(
-                            $tx->exchange,
-                            $tx->id,
-                            $tx->type,
-                            $tx->currency,
-                            $tx->amount,
-                            $tx->timestamp
-                        );
-
-                if($mkt instanceof IExchange)
-                {
-                    //get the current market data
-                    $tickerData = $mkt->ticker(CurrencyPair::BTCUSD);
-                    if($tickerData instanceof Ticker)
-                        $reporter->market($mkt->Name(), $tickerData->currencyPair, $tickerData->bid, $tickerData->ask, $tickerData->last);
-                }
             }
         }
 
