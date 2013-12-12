@@ -4,6 +4,25 @@ require_once('BtceStyleExchange.php');
 
 class Cryptsy extends BtceStyleExchange {
 
+    private $marketIdMapping = array();
+
+    public function __construct($key, $secret)
+    {
+        parent::__construct($key, $secret);
+
+        //get all the open markets so we have the ID mapping
+        $mkts = $this->assertSuccessResponse($this->authQuery('getmarkets'));
+        foreach($this->supportedCurrencyPairs() as $pair)
+        {
+            foreach($mkts['return'] as $mkt){
+                if($mkt['primary_currency_code'] == CurrencyPair::Base($pair) &&
+                    $mkt['secondary_currency_code'] == CurrencyPair::Quote($pair)){
+                    $this->marketIdMapping[$pair] = $mkt['marketid'];
+                }
+            }
+        }
+    }
+
     protected function getAuthQueryUrl()
     {
         return 'https://www.cryptsy.com/api';
