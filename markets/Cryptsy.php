@@ -67,22 +67,41 @@ class Cryptsy extends BtceStyleExchange {
 
     public function depth($currencyPair)
     {
-        // TODO: Implement depth() method.
+        $depth = $this->assertSuccessResponse(
+            $this->authQuery('depth', array('marketid' => $this->marketIdMapping[$currencyPair]))
+        );
+
+        $depth['bids'] = $depth['buy'];
+        unset($depth['buy']);
+        $depth['asks'] = $depth['sell'];
+        unset($depth['sell']);
+
+        return $depth;
     }
 
     public function buy($pair, $quantity, $price)
     {
-        // TODO: Implement buy() method.
+        return $this->authQuery('createorder', array(
+            'marketid' => $this->marketIdMapping[$pair],
+            'ordertype' => 'Buy',
+            'quantity' => $quantity,
+            'price' => $price
+        ));
     }
 
     public function sell($pair, $quantity, $price)
     {
-        // TODO: Implement sell() method.
+        return $this->authQuery('createorder', array(
+            'marketid' => $this->marketIdMapping[$pair],
+            'ordertype' => 'Sell',
+            'quantity' => $quantity,
+            'price' => $price
+        ));
     }
 
     public function activeOrders()
     {
-        // TODO: Implement activeOrders() method.
+        return $this->authQuery('allmyorders');
     }
 
     public function hasActiveOrders()
@@ -92,12 +111,22 @@ class Cryptsy extends BtceStyleExchange {
 
     public function isOrderAccepted($orderResponse)
     {
-        // TODO: Implement isOrderAccepted() method.
+        if($orderResponse['success'] != 1){
+            return isset($orderResponse['return']['orderid']);
+        }
+
+        return false;
     }
 
     public function isOrderOpen($orderResponse)
     {
-        // TODO: Implement isOrderOpen() method.
+        if(!$this->isOrderAccepted($orderResponse))
+            return false;
+
+        $ao = $this->activeOrders();
+        var_dump($ao);
+        $orderId = $orderResponse['return']['orderid'];
+        return isset($ao['return'][$orderId]);
     }
 
     public function getOrderExecutions($orderResponse)
