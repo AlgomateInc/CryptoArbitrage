@@ -64,11 +64,12 @@ class MongoReporter implements IReporter
         return $trades_entry['_id'];
     }
 
-    public function arbitrage($quantity, $buyExchange, $buyLimit, $sellExchange, $sellLimit)
+    public function arbitrage($quantity, $pair, $buyExchange, $buyLimit, $sellExchange, $sellLimit)
     {
         $arborders = $this->mdb->arborder;
         $arborder_entry = array(
             'Quantity'=>$quantity,
+            'CurrencyPair'=>"$pair",
             'BuyExchange'=>"$buyExchange",
             'BuyLimit'=>$buyLimit,
             'SellExchange'=>"$sellExchange",

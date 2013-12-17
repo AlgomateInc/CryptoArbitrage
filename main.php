@@ -161,7 +161,7 @@ function execute_trades(ArbitrageOrder $arb)
     if(!$reporter instanceof IReporter)
         throw new Exception('Invalid report was passed!');
 
-    $arbid = $reporter->arbitrage($arb->quantity,$arb->buyExchange,$arb->buyLimit,$arb->sellExchange, $arb->sellLimit);
+    $arbid = $reporter->arbitrage($arb->quantity, $arb->currencyPair,$arb->buyExchange,$arb->buyLimit,$arb->sellExchange, $arb->sellLimit);
     $reporter->order($arb->buyExchange, OrderType::BUY, $arb->executionQuantity, $arb->buyLimit, $buy_res, $arbid);
     $reporter->order($arb->sellExchange, OrderType::SELL, $arb->executionQuantity, $arb->sellLimit, $sell_res, $arbid);
 
@@ -369,7 +369,7 @@ function fetchMarketData()
                     execute_trades($ior);
                 else{
                     //no execution, but report the arbitrage with the original, desired, quantity for records
-                    $reporter->arbitrage($ior->quantity,$ior->buyExchange,$ior->buyLimit,$ior->sellExchange, $ior->sellLimit);
+                    $reporter->arbitrage($ior->quantity, $ior->currencyPair, $ior->buyExchange,$ior->buyLimit,$ior->sellExchange, $ior->sellLimit);
                 }
             }
         }
