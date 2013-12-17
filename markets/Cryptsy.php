@@ -111,7 +111,7 @@ class Cryptsy extends BtceStyleExchange {
 
     public function isOrderAccepted($orderResponse)
     {
-        if($orderResponse['success'] != 1){
+        if($orderResponse['success'] == 1){
             return isset($orderResponse['return']['orderid']);
         }
 
