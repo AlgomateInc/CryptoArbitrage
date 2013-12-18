@@ -46,8 +46,7 @@ if(array_key_exists("live", $options))
 $exchanges = array();
 $exchanges[Exchange::Btce] = new BtceExchange($btce_key, $btce_secret);
 $exchanges[Exchange::Bitstamp] = new BitstampExchange($bitstamp_custid, $bitstamp_key, $bitstamp_secret);
-$exchanges[Exchange::JPMChase] = new JPMChase($mailbox_name, $mailbox_username, $mailbox_password);
-$exchanges[Exchange::Cryptsy] = new Cryptsy($cryptsy_key, $cryptsy_secret);
+//$exchanges[Exchange::Cryptsy] = new Cryptsy($cryptsy_key, $cryptsy_secret);
 
 
 $activeOrders = array();
