@@ -86,7 +86,7 @@ abstract class ActionProcess {
 
         //if we are here, we are monitoring.
         //fork the process depending on setup and loop
-        if($this->$fork){
+        if($this->fork){
             $pid = pcntl_fork();
 
             if($pid == -1){
@@ -100,8 +100,8 @@ abstract class ActionProcess {
         //perform the monitoring loop
         do {
             $this->execute();
-            sleep($this->$monitor_timeout);
-        }while($this->$monitor);
+            sleep($this->monitor_timeout);
+        }while($this->monitor);
 
     }
 } 
