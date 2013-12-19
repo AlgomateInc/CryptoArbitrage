@@ -60,4 +60,5 @@ class Ticker{
     public $bid;
     public $ask;
     public $last;
+    public $volume;
 }

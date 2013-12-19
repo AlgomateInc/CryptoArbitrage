@@ -39,7 +39,8 @@ class MarketDataMonitor extends ActionProcess {
                         $tickData->currencyPair,
                         $tickData->bid,
                         $tickData->ask,
-                        $tickData->last
+                        $tickData->last,
+                        $tickData->volume
                     );
             }
         }

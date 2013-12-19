@@ -26,7 +26,7 @@ class MongoReporter implements IReporter
         return $balance_entry['_id'];
     }
 
-    public function market($exchange_name, $currencyPair, $bid, $ask, $last){
+    public function market($exchange_name, $currencyPair, $bid, $ask, $last, $vol){
         $markets = $this->mdb->market;
         $market_entry = array(
             'Exchange'=>"$exchange_name",
@@ -34,6 +34,7 @@ class MongoReporter implements IReporter
             'Bid'=>"$bid",
             'Ask'=>"$ask",
             'Last'=>"$last",
+            'Volume'=>"$vol",
             'Timestamp'=>new MongoDate());
         
         $markets->insert($market_entry);

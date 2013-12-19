@@ -54,6 +54,7 @@ class BtceExchange extends BtceStyleExchange
         $t->bid = $rawTick['ticker']['sell'];
         $t->ask = $rawTick['ticker']['buy'];
         $t->last = $rawTick['ticker']['last'];
+        $t->volume = $rawTick['ticker']['vol_cur'];
 
         return $t;
     }

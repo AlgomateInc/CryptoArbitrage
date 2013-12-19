@@ -62,6 +62,7 @@ class BitstampExchange extends BaseExchange
         $t->bid = $raw['bid'];
         $t->ask = $raw['ask'];
         $t->last = $raw['last'];
+        $t->volume = $raw['volume'];
 
         return $t;
     }

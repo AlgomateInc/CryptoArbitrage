@@ -8,8 +8,8 @@ class ConsoleReporter implements IReporter
         print("$exchange_name $currency Balance: $balance\n");
     }
 
-    public function market($exchange_name, $currencyPair, $bid, $ask, $last){
-        print("$exchange_name $currencyPair: Bid: $bid, Ask: $ask, Last: $last\n");
+    public function market($exchange_name, $currencyPair, $bid, $ask, $last, $vol){
+        print("$exchange_name $currencyPair: Bid: $bid, Ask: $ask, Last: $last, Volume: $vol\n");
     }
 
     public function depth($exchange_name, $currencyPair, $depth){
