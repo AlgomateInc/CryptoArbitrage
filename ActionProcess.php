@@ -1,7 +1,7 @@
 <?php
 
-require_once('config.php');
 require_once('common.php');
+require_once('ConfigAccountLoader.php');
 require_once('reporting/ConsoleReporter.php');
 require_once('reporting/MongoReporter.php');
 
@@ -20,9 +20,6 @@ abstract class ActionProcess {
     abstract public function shutdown();
 
     protected $exchanges;
-    public function __construct($exchanges){
-        $this->exchanges = $exchanges;
-    }
 
     private function processCommandLine()
     {
@@ -45,6 +42,9 @@ abstract class ActionProcess {
             $this->reporter = new MongoReporter();
         else
             $this->reporter = new ConsoleReporter();
+
+        $accountLoader = new ConfigAccountLoader();
+        $this->exchanges = $accountLoader->getAccounts();
 
         if(array_key_exists("monitor", $options)){
             $this->monitor = true;

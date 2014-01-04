@@ -2,10 +2,6 @@
 
 require_once('ActionProcess.php');
 
-require('markets/btce.php');
-require('markets/bitstamp.php');
-require('markets/jpmchase.php');
-
 class MarketDataMonitor extends ActionProcess {
 
     public function getProgramOptions()
@@ -51,10 +47,5 @@ class MarketDataMonitor extends ActionProcess {
     }
 }
 
-$exchanges = array();
-$exchanges[Exchange::Btce] = new BtceExchange($btce_key, $btce_secret);
-$exchanges[Exchange::Bitstamp] = new BitstampExchange($bitstamp_custid, $bitstamp_key, $bitstamp_secret);
-$exchanges[Exchange::JPMChase] = new JPMChase($mailbox_name, $mailbox_username, $mailbox_password);
-
-$txMon = new MarketDataMonitor($exchanges);
+$txMon = new MarketDataMonitor();
 $txMon->start();
