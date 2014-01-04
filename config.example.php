@@ -1,21 +1,28 @@
 <?php
 
-$btce_key = 'BTCEKEY'; // your API-key
-$btce_secret = 'BTCESECRET'; // your Secret-key
-
-$bitstamp_custid = 'STAMPCUSTID';
-$bitstamp_key = 'STAMPKEY'; // your API-key
-$bitstamp_secret = 'STAMPSECRET'; // your Secret-key
-
-$cryptsy_key = 'CRYPTSYKEY';
-$cryptsy_secret = 'CRYPTSYSECRET';
-
 $mongodb_uri = 'mongodb://localhost';
 $mongodb_db = 'coindata';
 
-$mailbox_name = 'imapmailbox';
-$mailbox_username = 'username';
-$mailbox_password = 'password';
+$accountsConfig = array(
+    'Btce' => array(
+        'key' => 'BTCEKEY',
+        'secret' => 'BTCESECRET'
+    ),
+    'Bitstamp'=> array(
+        'key' => 'STAMPKEY',
+        'secret' => 'STAMPSECRET',
+        'custid' => 'STAMPCUSTID'
+    ),
+    'Cryptsy' => array(
+        'key' => 'CRYPTSYKEY',
+        'secret' => 'CRYPTSYSECRET'
+    ),
+    'JPMChase' => array(
+        'name' => 'imapmailbox',
+        'username' => 'username',
+        'password' => 'password'
+    )
+);
 
 $arbInstructions = array(
     array(

@@ -1,10 +1,8 @@
 <?php
 
 require('common.php');
-require('markets/btce.php');
-require('markets/bitstamp.php');
-require('markets/jpmchase.php');
-require('markets/Cryptsy.php');
+
+require('ConfigAccountLoader.php');
 
 require('reporting/ConsoleReporter.php');
 require('reporting/MongoReporter.php');
@@ -16,6 +14,8 @@ require('arbinstructions/MongoArbInstructionLoader.php');
 
 $reporter = new ConsoleReporter();
 $arbInstructionLoader = new ConfigArbInstructionLoader($arbInstructions);
+$accountLoader = new ConfigAccountLoader();
+
 $monitor = false;
 $liveTrade = false;
 $fork = false;
@@ -43,12 +43,7 @@ if(array_key_exists("live", $options))
 
 //////////////////////////////////////////////////////////
 // Initialize active exchange interfaces and active order list
-$exchanges = array();
-$exchanges[Exchange::Btce] = new BtceExchange($btce_key, $btce_secret);
-$exchanges[Exchange::Bitstamp] = new BitstampExchange($bitstamp_custid, $bitstamp_key, $bitstamp_secret);
-$exchanges[Exchange::JPMChase] = new JPMChase($mailbox_name, $mailbox_username, $mailbox_password);
-//$exchanges[Exchange::Cryptsy] = new Cryptsy($cryptsy_key, $cryptsy_secret);
-
+$exchanges = $accountLoader->getAccounts();
 
 $activeOrders = array();
 
