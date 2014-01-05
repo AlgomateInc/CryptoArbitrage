@@ -22,7 +22,7 @@ class ConfigAccountLoader implements IAccountLoader{
             switch($mktName)
             {
                 case Exchange::Bitstamp:
-                    $accounts[] = new BitstampExchange(
+                    $accounts[Exchange::Bitstamp] = new BitstampExchange(
                         $mktConfig['custid'],
                         $mktConfig['key'],
                         $mktConfig['secret']
@@ -30,21 +30,21 @@ class ConfigAccountLoader implements IAccountLoader{
                     break;
 
                 case Exchange::Btce:
-                    $accounts[] = new BtceExchange(
+                    $accounts[Exchange::Btce] = new BtceExchange(
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );
                     break;
 
                 case Exchange::Cryptsy:
-                    $accounts[] = new Cryptsy(
+                    $accounts[Exchange::Cryptsy] = new Cryptsy(
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );
                     break;
 
                 case Exchange::JPMChase:
-                    $accounts[] = new JPMChase(
+                    $accounts[Exchange::JPMChase] = new JPMChase(
                         $mktConfig['name'],
                         $mktConfig['username'],
                         $mktConfig['password']
