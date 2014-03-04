@@ -259,11 +259,19 @@ function fetchMarketData()
         // Check and process any active orders
         //////////////////////////////////////////
 
+        global $activeOrders;
+        $origActiveOrderCount = count($activeOrders);
+
         processActiveOrders();
 
         //abort further processing if any active orders exist
-        global $activeOrders;
         if(count($activeOrders) > 0)
+            return;
+
+        //abort processing if active order count has changed
+        //this avoids a race condition where the balances fetched
+        //would not be correct and subsequent code tries to make orders too large
+        if(count($activeOrders) != $origActiveOrderCount)
             return;
 
         //////////////////////////////////////////
