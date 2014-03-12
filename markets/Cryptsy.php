@@ -62,7 +62,21 @@ class Cryptsy extends BtceStyleExchange {
 
     public function ticker($pair)
     {
-        // TODO: Implement ticker() method.
+        $mktResponse = curl_query("http://pubapi.cryptsy.com/api.php?method=singlemarketdata&marketid="
+            . $this->marketIdMapping[$pair]);
+
+        $mktInfo = $this->assertSuccessResponse($mktResponse);
+
+        $rawTick = $mktInfo['markets'][CurrencyPair::Base($pair)];
+
+        $t = new Ticker();
+        $t->currencyPair = $pair;
+        $t->bid = $rawTick['buyorders'][0]['price'];
+        $t->ask = $rawTick['sellorders'][0]['price'];
+        $t->last = $rawTick['lasttradeprice'];
+        $t->volume = $rawTick['volume'];
+
+        return $t;
     }
 
     public function depth($currencyPair)
