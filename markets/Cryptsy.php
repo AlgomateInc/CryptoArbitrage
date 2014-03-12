@@ -57,7 +57,7 @@ class Cryptsy extends BtceStyleExchange {
      */
     public function supportedCurrencyPairs()
     {
-        return array(CurrencyPair::FTCBTC);
+        return array(CurrencyPair::FTCBTC, CurrencyPair::LTCBTC);
     }
 
     public function ticker($pair)

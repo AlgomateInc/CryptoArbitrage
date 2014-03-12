@@ -11,11 +11,13 @@ class Currency{
     const USD = "USD";
     const BTC = "BTC";
     const FTC = 'FTC';
+    const LTC = 'LTC';
 }
 
 class CurrencyPair{
     const BTCUSD = "BTCUSD";
     const FTCBTC = 'FTCBTC';
+    const LTCBTC = 'LTCBTC';
 
     public static function Base($strPair){
         return substr($strPair, 0, 3);
