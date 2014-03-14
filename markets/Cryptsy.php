@@ -115,7 +115,9 @@ class Cryptsy extends BtceStyleExchange {
 
     public function activeOrders()
     {
-        return $this->authQuery('allmyorders');
+        return $this->assertSuccessResponse(
+            $this->authQuery('allmyorders')
+        );
     }
 
     public function hasActiveOrders()
@@ -126,7 +128,7 @@ class Cryptsy extends BtceStyleExchange {
     public function isOrderAccepted($orderResponse)
     {
         if($orderResponse['success'] == 1){
-            return isset($orderResponse['return']['orderid']);
+            return isset($orderResponse['orderid']);
         }
 
         return false;
@@ -138,13 +140,46 @@ class Cryptsy extends BtceStyleExchange {
             return false;
 
         $ao = $this->activeOrders();
-        var_dump($ao);
-        $orderId = $orderResponse['return']['orderid'];
-        return isset($ao['return'][$orderId]);
+        for($i = 0; $i< count($ao); $i++)
+        {
+            if($ao[$i]['orderid'] == $orderResponse['orderid'])
+                return true;
+        }
+
+        return false;
     }
 
     public function getOrderExecutions($orderResponse)
     {
-        // TODO: Implement getOrderExecutions() method.
+        $orderId = $orderResponse['orderid'];
+
+        //get the date to search trade records from
+        //do today minus 5 days
+        $startDate = date_create('now', timezone_open('UTC'));
+        date_sub($startDate, date_interval_create_from_date_string('5 days'));
+
+        $usrTx = $this->assertSuccessResponse(
+            $this->authQuery('allmytrades', array('startdate' => date_format($startDate, 'Y-m-d')))
+        );
+
+        $orderTx = array();
+
+        //run through all the transactions and find ones related to this order
+        for($i = 0; $i< count($usrTx); $i++)
+        {
+            if($usrTx[$i]['order_id'] == $orderId)
+            {
+                $exec = new OrderExecution();
+                $exec->txid = $usrTx[$i]['tradeid'];
+                $exec->orderId = $usrTx[$i]['order_id'];
+                $exec->quantity = abs($usrTx[$i]['quantity']);
+                $exec->price = abs((float)$usrTx[$i]['tradeprice']);
+                $exec->timestamp = $usrTx[$i]['datetime'];
+
+                $orderTx[] = $exec;
+            }
+        }
+
+        return $orderTx;
     }
 }
