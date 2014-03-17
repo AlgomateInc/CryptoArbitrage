@@ -18,6 +18,7 @@ class CurrencyPair{
     const BTCUSD = "BTCUSD";
     const FTCBTC = 'FTCBTC';
     const LTCBTC = 'LTCBTC';
+    const LTCUSD = 'LTCUSD';
 
     public static function Base($strPair){
         return substr($strPair, 0, 3);

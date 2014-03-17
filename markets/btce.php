@@ -27,7 +27,7 @@ class BtceExchange extends BtceStyleExchange
     }
 
     public function supportedCurrencyPairs(){
-        return array(CurrencyPair::BTCUSD, CurrencyPair::FTCBTC, CurrencyPair::LTCBTC);
+        return array(CurrencyPair::BTCUSD, CurrencyPair::FTCBTC, CurrencyPair::LTCBTC, CurrencyPair::LTCUSD);
     }
 
     private function getCurrencyPairName($pair)
