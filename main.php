@@ -377,13 +377,6 @@ function fetchMarketData()
             }
         }
 
-        //report the market depth
-        foreach($depth as $mktName => $currencyPairDepth){
-            foreach($currencyPairDepth as $pairName => $pairDepth){
-                $reporter->depth($mktName, $pairName, $pairDepth);
-            }
-        }
-
     }catch(Exception $e){
         syslog(LOG_ERR, $e);
     }

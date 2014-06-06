@@ -38,6 +38,10 @@ class MarketDataMonitor extends ActionProcess {
                         $tickData->last,
                         $tickData->volume
                     );
+
+                //get the order book data
+                $depth = $mkt->depth($pair);
+                $this->reporter->depth($mkt->Name(), $pair, $depth);
             }
         }
     }
