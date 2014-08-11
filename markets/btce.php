@@ -92,9 +92,37 @@ class BtceExchange extends BtceStyleExchange
         return true;
     }
 
-    public function tradeHistory()
+    public function tradeHistory($desiredCount = INF)
     {
-        return $this->assertSuccessResponse($this->authQuery("TradeHistory"));
+        $numFetched = 0;
+        $ret = array();
+
+        do
+        {
+            $res = $this->assertSuccessResponse($this->authQuery("TradeHistory", array('from' => "$numFetched")));
+            sleep(1);
+
+            foreach ($res as $od) {
+                $td = new Trade();
+                $td->exchange = $this->Name();
+                $td->currency = $od['pair'];
+                $td->orderType = ($od['type'] == 'sell')? OrderType::SELL : OrderType::BUY;
+                $td->price = $od['rate'];
+                $td->quantity = $od['amount'];
+                $td->timestamp = $od['timestamp'];
+
+                $ret[] = $td;
+                $numFetched += 1;
+
+                if($numFetched >= $desiredCount)
+                    break;
+            }
+
+            printf("Fetched $numFetched trade records...\n");
+        }
+        while ($numFetched < $desiredCount && count($res) == 1000);
+
+        return $ret;
     }
 
     public function transactions()

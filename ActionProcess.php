@@ -4,6 +4,7 @@ require_once('common.php');
 require_once('ConfigAccountLoader.php');
 require_once('reporting/ConsoleReporter.php');
 require_once('reporting/MongoReporter.php');
+require_once('reporting/FileReporter.php');
 
 abstract class ActionProcess {
 
@@ -28,6 +29,7 @@ abstract class ActionProcess {
         $shortopts = "";
         $longopts = array(
             "mongodb",
+            "file",
             "monitor::",
             "fork"
         );
@@ -40,6 +42,8 @@ abstract class ActionProcess {
 
         if(array_key_exists("mongodb", $options))
             $this->reporter = new MongoReporter();
+        elseif(array_key_exists("file", $options))
+            $this->reporter = new FileReporter();
         else
             $this->reporter = new ConsoleReporter();
 

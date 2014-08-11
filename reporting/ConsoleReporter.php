@@ -42,6 +42,11 @@ class ConsoleReporter implements IReporter
         var_dump($trades);
     }
 
+    public function trade($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp)
+    {
+        print "$exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp\n";
+    }
+
     public function arbitrage($quantity, $pair, $buyExchange, $buyLimit, $sellExchange, $sellLimit)
     {
         print "Arbitrage - $pair : BUY $buyExchange @ $buyLimit, SELL $sellExchange @ $sellLimit, SIZE $quantity\n";

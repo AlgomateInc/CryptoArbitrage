@@ -11,6 +11,8 @@ interface IReporter
     public function arbitrage($quantity, $pair, $buyExchange, $buyLimit, $sellExchange, $sellLimit);
     public function order($exchange, $type, $quantity, $price, $orderResponse, $arbid);
     public function execution($arbId, $market, $txid, $quantity, $price, $timestamp);
+
+    public function trade($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp);
 }
 
 ?>

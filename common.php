@@ -58,6 +58,15 @@ class Transaction{
     public $timestamp;
 }
 
+class Trade {
+    public $exchange;
+    public $currency;
+    public $orderType;
+    public $price;
+    public $quantity;
+    public $timestamp;
+}
+
 class Ticker{
     public $currencyPair;
     public $bid;
