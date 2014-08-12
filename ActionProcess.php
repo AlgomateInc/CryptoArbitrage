@@ -29,7 +29,7 @@ abstract class ActionProcess {
         $shortopts = "";
         $longopts = array(
             "mongodb",
-            "file",
+            "file:",
             "monitor::",
             "fork"
         );
@@ -42,8 +42,8 @@ abstract class ActionProcess {
 
         if(array_key_exists("mongodb", $options))
             $this->reporter = new MongoReporter();
-        elseif(array_key_exists("file", $options))
-            $this->reporter = new FileReporter();
+        elseif(array_key_exists("file", $options) && isset($options['file']))
+            $this->reporter = new FileReporter($options['file']);
         else
             $this->reporter = new ConsoleReporter();
 

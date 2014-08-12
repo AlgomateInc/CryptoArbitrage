@@ -6,9 +6,9 @@ class FileReporter implements IReporter {
 
     private $file;
 
-    public function __construct(){
+    public function __construct($filename){
 
-        $this->file = fopen("C:\\Temp\yomomma.txt", 'a');
+        $this->file = fopen($filename, 'w');
 
         $meta_data = stream_get_meta_data($this->file);
         $filename = $meta_data["uri"];
