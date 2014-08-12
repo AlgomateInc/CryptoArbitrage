@@ -185,6 +185,44 @@ class BitstampExchange extends BaseExchange
         return $ret;
     }
 
+    public function tradeHistory($desiredCount = INF)
+    {
+        $numFetched = 0;
+        $ret = array();
+
+        do
+        {
+            $res = $this->assertSuccessResponse($this->authQuery('user_transactions',
+                array('limit'=>1000, 'offset'=>$numFetched)));
+            sleep(1);
+
+            foreach ($res as $od) {
+
+                if($od['type'] != 2)
+                    continue;
+
+                $td = new Trade();
+                $td->exchange = $this->Name();
+                $td->currency = CurrencyPair::BTCUSD;
+                $td->orderType = ($od['usd'] > 0)? OrderType::SELL : OrderType::BUY;
+                $td->price = $od['btc_usd'];
+                $td->quantity = abs($od['btc']);
+                $td->timestamp = $od['datetime'];
+
+                $ret[] = $td;
+                $numFetched += 1;
+
+                if($numFetched >= $desiredCount)
+                    break;
+            }
+
+            printf("Fetched $numFetched trade records...\n");
+        }
+        while ($numFetched < $desiredCount && count($res) == 1000);
+
+        return $ret;
+    }
+
     function authQuery($method, array $req = array()) {
         if(!$this->nonceFactory instanceof NonceFactory)
             throw new Exception('No way to get nonce!');

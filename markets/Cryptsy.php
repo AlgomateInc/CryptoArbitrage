@@ -182,4 +182,9 @@ class Cryptsy extends BtceStyleExchange {
 
         return $orderTx;
     }
+
+    public function tradeHistory($desiredCount)
+    {
+
+    }
 }
