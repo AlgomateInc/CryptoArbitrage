@@ -65,17 +65,6 @@ abstract class ActionProcess {
         $this->processOptions($options);
     }
 
-    private function execute()
-    {
-        try{
-            $this->init();
-            $this->run();
-            $this->shutdown();
-        }catch(Exception $e){
-            syslog(LOG_ERR, $e);
-        }
-    }
-
     public function start()
     {
         $this->processCommandLine();
@@ -84,7 +73,13 @@ abstract class ActionProcess {
         // Execute process according to setup
         // if not monitoring, run once and exit
         if($this->monitor == false){
-            $this->execute();
+            try{
+                $this->init();
+                $this->run();
+                $this->shutdown();
+            }catch(Exception $e){
+                syslog(LOG_ERR, $e);
+            }
             exit;
         }
 
@@ -102,10 +97,18 @@ abstract class ActionProcess {
         }
 
         //perform the monitoring loop
-        do {
-            $this->execute();
-            sleep($this->monitor_timeout);
-        }while($this->monitor);
+        try{
+            $this->init();
+
+            do {
+                $this->run();
+                sleep($this->monitor_timeout);
+            }while($this->monitor);
+
+            $this->shutdown();
+        }catch(Exception $e){
+            syslog(LOG_ERR, $e);
+        }
 
     }
 } 
