@@ -125,6 +125,43 @@ class BtceExchange extends BtceStyleExchange
         return $ret;
     }
 
+    public function transactionHistory($desiredCount = INF)
+    {
+        $numFetched = 0;
+        $ret = array();
+
+        do
+        {
+            $res = $this->assertSuccessResponse($this->authQuery("TransHistory", array('from' => "$numFetched")));
+            sleep(1);
+
+            foreach($res as $btxid => $btx)
+            {
+                $numFetched += 1;
+                if($numFetched >= $desiredCount)
+                    break;
+
+                if($btx['type'] != 1 && $btx['type'] != 2)
+                    continue;
+
+                $tx = new Transaction();
+                $tx->exchange = Exchange::Btce;
+                $tx->id = $btxid;
+                $tx->type = ($btx['type'] == 1)? TransactionType::Credit: TransactionType::Debit;
+                $tx->currency = $btx['currency'];
+                $tx->amount = $btx['amount'];
+                $tx->timestamp = $btx['timestamp'];
+
+                $ret[] = $tx;
+            }
+
+            printf("Fetched $numFetched transaction records...\n");
+        }
+        while ($numFetched < $desiredCount && count($res) == 1000);
+
+        return $ret;
+    }
+
     public function transactions()
     {
         $transactionList = $this->assertSuccessResponse($this->authQuery("TransHistory", array('count'=>1000)));

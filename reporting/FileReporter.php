@@ -42,7 +42,7 @@ class FileReporter implements IReporter {
 
     public function transaction($exchange_name, $id, $type, $currency, $amount, $timestamp)
     {
-        // TODO: Implement transaction() method.
+        fwrite($this->file, "$exchange_name, $id, $type, $currency, $amount, $timestamp\n");
     }
 
     public function arbitrage($quantity, $pair, $buyExchange, $buyLimit, $sellExchange, $sellLimit)
