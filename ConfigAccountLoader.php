@@ -12,13 +12,19 @@ require_once('markets/Cryptsy.php');
 
 class ConfigAccountLoader implements IAccountLoader{
 
-    function getAccounts()
-    {
+    protected $accountsConfig;
+
+    public function __construct(){
         global $accountsConfig;
 
+        $this->accountsConfig = $accountsConfig;
+    }
+
+    function getAccounts()
+    {
         $accounts = array();
 
-        foreach($accountsConfig as $mktName => $mktConfig){
+        foreach($this->accountsConfig as $mktName => $mktConfig){
             switch($mktName)
             {
                 case Exchange::Bitstamp:

@@ -2,6 +2,7 @@
 
 require_once('common.php');
 require_once('ConfigAccountLoader.php');
+require_once('MongoAccountLoader.php');
 require_once('reporting/ConsoleReporter.php');
 require_once('reporting/MongoReporter.php');
 require_once('reporting/FileReporter.php');
@@ -40,6 +41,8 @@ abstract class ActionProcess {
 
         $options = getopt($shortopts, $longopts);
 
+        /////////////////////////////////
+        // Configure reporter
         if(array_key_exists("mongodb", $options))
             $this->reporter = new MongoReporter();
         elseif(array_key_exists("file", $options) && isset($options['file']))
@@ -47,9 +50,17 @@ abstract class ActionProcess {
         else
             $this->reporter = new ConsoleReporter();
 
-        $accountLoader = new ConfigAccountLoader();
+        ////////////////////////////////
+        // Load all the accounts data
+        $accountLoader = null;
+        if(array_key_exists("mongodb", $options))
+            $accountLoader = new MongoAccountLoader();
+        else
+            $accountLoader = new ConfigAccountLoader();
+
         $this->exchanges = $accountLoader->getAccounts();
 
+        ////////////////////////////////
         if(array_key_exists("monitor", $options)){
             $this->monitor = true;
 
