@@ -20,12 +20,13 @@ class MongoAccountLoader extends ConfigAccountLoader{
 
     function loadAccountConfig()
     {
-        $serverAccounts = $this->mdb->serverAccounts;
+        $serverAccounts = $this->mdb->accounts;
 
         //get the name of this server
         $machineName = gethostname();
 
         //find the config for this server
-        $this->accountsConfig = $serverAccounts->findOne(array('machine' => $machineName));
+        $acc = $serverAccounts->findOne(array('ServerName' => $machineName));
+        $this->accountsConfig = $acc['Credentials'];
     }
 }
