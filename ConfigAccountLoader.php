@@ -8,6 +8,7 @@ require_once('markets/btce.php');
 require_once('markets/bitstamp.php');
 require_once('markets/jpmchase.php');
 require_once('markets/Cryptsy.php');
+require_once('markets/Bitfinex.php');
 
 
 class ConfigAccountLoader implements IAccountLoader{
@@ -54,6 +55,13 @@ class ConfigAccountLoader implements IAccountLoader{
                         $mktConfig['name'],
                         $mktConfig['username'],
                         $mktConfig['password']
+                    );
+                    break;
+
+                case Exchange::Bitfinex:
+                    $accounts[Exchange::Bitfinex] = new Bitfinex(
+                        $mktConfig['key'],
+                        $mktConfig['secret']
                     );
                     break;
             }

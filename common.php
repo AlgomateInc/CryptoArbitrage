@@ -5,6 +5,7 @@ class Exchange{
     const Bitstamp = "Bitstamp";
     const JPMChase = 'JPMChase';
     const Cryptsy = 'Cryptsy';
+    const Bitfinex = 'Bitfinex';
 }
 
 class Currency{
@@ -12,6 +13,7 @@ class Currency{
     const BTC = "BTC";
     const FTC = 'FTC';
     const LTC = 'LTC';
+    const DRK = 'DRK';
 }
 
 class CurrencyPair{
@@ -19,6 +21,7 @@ class CurrencyPair{
     const FTCBTC = 'FTCBTC';
     const LTCBTC = 'LTCBTC';
     const LTCUSD = 'LTCUSD';
+    const DRKUSD = 'DRKUSD';
 
     public static function Base($strPair){
         return substr($strPair, 0, 3);
