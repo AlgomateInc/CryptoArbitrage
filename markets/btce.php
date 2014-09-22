@@ -40,7 +40,9 @@ class BtceExchange extends BtceStyleExchange
 
     public function depth($currencyPair)
     {
-        return curl_query('https://btc-e.com/api/2/' . $this->getCurrencyPairName($currencyPair) . '/depth');
+        $d = curl_query('https://btc-e.com/api/2/' . $this->getCurrencyPairName($currencyPair) . '/depth');
+
+        return new OrderBook($d);
     }
 
     public function ticker($pair)

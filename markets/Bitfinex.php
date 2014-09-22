@@ -57,9 +57,12 @@ class Bitfinex extends BaseExchange{
 
     public function depth($currencyPair)
     {
-        $raw = curl_query($this->getApiUrl() . 'book' . '/' . $currencyPair);
+        $raw = curl_query($this->getApiUrl() . 'book' . '/' . $currencyPair .
+            '?limit_bids=50&limit_asks=50&group=1');
 
-        return $raw;
+        $book = new OrderBook($raw);
+
+        return $book;
     }
 
     public function buy($pair, $quantity, $price)

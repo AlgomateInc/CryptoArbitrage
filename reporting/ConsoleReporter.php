@@ -12,23 +12,23 @@ class ConsoleReporter implements IReporter
         print("$exchange_name $currencyPair: Bid: $bid, Ask: $ask, Last: $last, Volume: $vol\n");
     }
 
-    public function depth($exchange_name, $currencyPair, $depth){
+    public function depth($exchange_name, $currencyPair, OrderBook $depth){
         print "$exchange_name - $currencyPair\n";
 
         print "Bid Quantity, Bid Price, Ask Price, Ask Quantity\n";
-        for($i = 0; $i < max(count($depth['bids']),count($depth['asks']));$i++){
-            if($i < count($depth['bids'])){
-                $px = $depth['bids'][$i][0];
-                $qty = $depth['bids'][$i][1];
+        for($i = 0; $i < max(count($depth->bids),count($depth->asks));$i++){
+            if($i < count($depth->bids)){
+                $px = $depth->bids[$i]->price;
+                $qty = $depth->bids[$i]->quantity;
                 print "$qty,$px";
             }else
                 print ",";
 
             print ",";
 
-            if($i < count($depth['asks'])){
-                $px = $depth['asks'][$i][0];
-                $qty = $depth['asks'][$i][1];
+            if($i < count($depth->asks)){
+                $px = $depth->asks[$i]->price;
+                $qty = $depth->asks[$i]->quantity;
                 print "$px,$qty";
             }else
                 print ",";
