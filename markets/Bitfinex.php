@@ -67,12 +67,30 @@ class Bitfinex extends BaseExchange{
 
     public function buy($pair, $quantity, $price)
     {
-        // TODO: Implement buy() method.
+        $result = $this->authQuery('order/new',array(
+            'symbol' => strtolower($pair),
+            'amount' => "$quantity",
+            'price' => "$price",
+            'exchange' => 'bitfinex',
+            'side' => 'buy',
+            'type' => 'limit'
+        ));
+
+        return $result;
     }
 
     public function sell($pair, $quantity, $price)
     {
-        // TODO: Implement sell() method.
+        $result = $this->authQuery('order/new',array(
+            'symbol' => strtolower($pair),
+            'amount' => "$quantity",
+            'price' => "$price",
+            'exchange' => 'bitfinex',
+            'side' => 'sell',
+            'type' => 'limit'
+        ));
+
+        return $result;
     }
 
     public function activeOrders()
@@ -87,7 +105,7 @@ class Bitfinex extends BaseExchange{
 
     public function isOrderAccepted($orderResponse)
     {
-        // TODO: Implement isOrderAccepted() method.
+        return isset($orderResponse['order_id']) && isset($orderResponse['id']);
     }
 
     public function isOrderOpen($orderResponse)
@@ -130,7 +148,7 @@ class Bitfinex extends BaseExchange{
             'X-BFX-SIGNATURE : '.$sign
         );
 
-        return curl_query($this->getApiUrl() . $method, null, $headers);
+        return curl_query($this->getApiUrl() . $method, $payload, $headers);
     }
 
     function getApiUrl()
