@@ -21,11 +21,17 @@ class ConfigAccountLoader implements IAccountLoader{
         $this->accountsConfig = $accountsConfig;
     }
 
-    function getAccounts()
+    function getAccounts(array $mktFilter = null)
     {
         $accounts = array();
 
         foreach($this->accountsConfig as $mktName => $mktConfig){
+
+            //filter to specific exchanges, as specified
+            if($mktFilter != null)
+                if(!in_array($mktName, $mktFilter))
+                    continue;
+
             switch($mktName)
             {
                 case Exchange::Bitstamp:
