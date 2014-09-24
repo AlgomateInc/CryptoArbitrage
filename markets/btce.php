@@ -221,7 +221,7 @@ class BtceExchange extends BtceStyleExchange
         if($orderId == 0)
             return $execList;
 
-        $history = $this->tradeHistory();
+        $history = $this->tradeHistory(100);
         foreach($history as $key => $item){
             if($item['order_id'] == $orderId)
             {
