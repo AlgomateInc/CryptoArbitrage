@@ -86,6 +86,11 @@ class BitstampExchange extends BaseExchange
         return $this->authQuery('sell', array("amount" => $quantity, "price" => $price));
     }
 
+    public function cancel($orderId)
+    {
+        // TODO: Implement cancel() method.
+    }
+
     public function activeOrders()
     {
         return $this->authQuery('open_orders');

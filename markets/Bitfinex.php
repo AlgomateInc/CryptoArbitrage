@@ -93,6 +93,15 @@ class Bitfinex extends BaseExchange{
         return $result;
     }
 
+    public function cancel($orderId)
+    {
+        $res = $this->authQuery('order/cancel', array(
+            'order_id' => $orderId
+        ));
+
+        return $res;
+    }
+
     public function activeOrders()
     {
         // TODO: Implement activeOrders() method.

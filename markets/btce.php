@@ -188,6 +188,11 @@ class BtceExchange extends BtceStyleExchange
         return $ret;
     }
 
+    public function cancel($orderId)
+    {
+        // TODO: Implement cancel() method.
+    }
+
     public function isOrderAccepted($orderResponse)
     {
         if($orderResponse['success'] == 1){

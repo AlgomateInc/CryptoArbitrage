@@ -113,6 +113,11 @@ class Cryptsy extends BtceStyleExchange {
         ));
     }
 
+    public function cancel($orderId)
+    {
+        // TODO: Implement cancel() method.
+    }
+
     public function activeOrders()
     {
         return $this->assertSuccessResponse(

@@ -39,6 +39,8 @@ class BitfinexTest extends PHPUnit_Framework_TestCase {
             $this->assertNotNull($response);
 
             $this->assertTrue($this->bf->isOrderAccepted($response));
+
+            $this->assertNotNull($this->bf->cancel($response['order_id']));
         }
     }
 
@@ -51,6 +53,8 @@ class BitfinexTest extends PHPUnit_Framework_TestCase {
             $this->assertNotNull($response);
 
             $this->assertTrue($this->bf->isOrderAccepted($response));
+
+            $this->assertNotNull($this->bf->cancel($response['order_id']));
         }
     }
 }
