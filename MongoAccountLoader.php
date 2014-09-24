@@ -20,13 +20,23 @@ class MongoAccountLoader extends ConfigAccountLoader{
 
     function loadAccountConfig()
     {
-        $serverAccounts = $this->mdb->accounts;
+        $serverAccounts = $this->mdb->servers;
 
         //get the name of this server
         $machineName = gethostname();
 
         //find the config for this server
         $acc = $serverAccounts->findOne(array('ServerName' => $machineName));
-        $this->accountsConfig = $acc['Credentials'];
+        if($acc == null)
+            return;
+
+        $mktConfig = $acc['ExchangeSettings'];
+
+        //rework the exchange settings to expected, legacy, format used by ConfigAccountLoader
+        //which expects an associative array
+        $this->accountsConfig = array();
+        foreach ($mktConfig as $mktSetItem) {
+            $this->accountsConfig[$mktSetItem['Name']] = $mktSetItem['Settings'];
+        }
     }
 }
