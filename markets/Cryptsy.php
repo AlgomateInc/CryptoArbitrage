@@ -115,7 +115,7 @@ class Cryptsy extends BtceStyleExchange {
 
     public function cancel($orderId)
     {
-        // TODO: Implement cancel() method.
+        return $this->authQuery('cancelorder', array('orderid'=>$orderId));
     }
 
     public function activeOrders()

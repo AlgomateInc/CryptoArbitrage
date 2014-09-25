@@ -190,7 +190,9 @@ class BtceExchange extends BtceStyleExchange
 
     public function cancel($orderId)
     {
-        // TODO: Implement cancel() method.
+        return $this->assertSuccessResponse(
+            $this->authQuery('CancelOrder', array('order_id' => $orderId))
+        );
     }
 
     public function isOrderAccepted($orderResponse)
