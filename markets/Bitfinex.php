@@ -119,12 +119,18 @@ class Bitfinex extends BaseExchange{
 
     public function isOrderOpen($orderResponse)
     {
-        // TODO: Implement isOrderOpen() method.
+        if(!$this->isOrderAccepted($orderResponse))
+            return false;
+
+        $os = $this->authQuery('order/status', array('order_id' => $orderResponse['order_id']));
+
+        return $os['is_live'];
     }
 
     public function getOrderExecutions($orderResponse)
     {
         // TODO: Implement getOrderExecutions() method.
+        return array();
     }
 
     public function tradeHistory($desiredCount)

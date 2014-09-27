@@ -35,12 +35,7 @@ class BitfinexTest extends PHPUnit_Framework_TestCase {
         if($this->bf instanceof Bitfinex)
         {
             $response = $this->bf->buy(CurrencyPair::BTCUSD, 1, 1);
-
-            $this->assertNotNull($response);
-
-            $this->assertTrue($this->bf->isOrderAccepted($response));
-
-            $this->assertNotNull($this->bf->cancel($response['order_id']));
+            $this->checkAndCancelOrder($response);
         }
     }
 
@@ -49,13 +44,19 @@ class BitfinexTest extends PHPUnit_Framework_TestCase {
         if($this->bf instanceof Bitfinex)
         {
             $response = $this->bf->sell(CurrencyPair::BTCUSD, 1, 10000);
-
-            $this->assertNotNull($response);
-
-            $this->assertTrue($this->bf->isOrderAccepted($response));
-
-            $this->assertNotNull($this->bf->cancel($response['order_id']));
+            $this->checkAndCancelOrder($response);
         }
+    }
+
+    private function checkAndCancelOrder($response)
+    {
+        $this->assertNotNull($response);
+
+        $this->assertTrue($this->bf->isOrderAccepted($response));
+        $this->assertTrue($this->bf->isOrderOpen($response));
+
+        $this->assertNotNull($this->bf->cancel($response['order_id']));
+        $this->assertFalse($this->bf->isOrderOpen($response));
     }
 }
  
