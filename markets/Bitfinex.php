@@ -135,7 +135,11 @@ class Bitfinex extends BaseExchange{
 
     public function tradeHistory($desiredCount)
     {
-        // TODO: Implement tradeHistory() method.
+        $th = $this->authQuery('mytrades',
+            array('limit_trades' => $desiredCount,
+            'symbol' => strtolower(CurrencyPair::BTCUSD)));
+
+        return $th;
     }
 
     /**

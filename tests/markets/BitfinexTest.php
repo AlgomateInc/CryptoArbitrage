@@ -48,6 +48,15 @@ class BitfinexTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testMyTrades()
+    {
+        if($this->bf instanceof Bitfinex)
+        {
+            $res = $this->bf->tradeHistory(50);
+            $this->assertNotNull($res);
+        }
+    }
+
     private function checkAndCancelOrder($response)
     {
         $this->assertNotNull($response);
