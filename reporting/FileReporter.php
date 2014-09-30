@@ -30,7 +30,7 @@ class FileReporter implements IReporter {
         // TODO: Implement market() method.
     }
 
-    public function depth($exchange_name, $currencyPair, $depth)
+    public function depth($exchange_name, $currencyPair, OrderBook $depth)
     {
         // TODO: Implement depth() method.
     }

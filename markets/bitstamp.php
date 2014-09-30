@@ -48,7 +48,7 @@ class BitstampExchange extends BaseExchange
         $bstamp_depth['bids'] = array_slice($bstamp_depth['bids'],0,150);
         $bstamp_depth['asks'] = array_slice($bstamp_depth['asks'],0,150);
 
-        return $bstamp_depth;
+        return new OrderBook($bstamp_depth);
     }
 
     public function ticker($pair)
@@ -84,6 +84,11 @@ class BitstampExchange extends BaseExchange
         $this->assertValidCurrencyPair($pair);
 
         return $this->authQuery('sell', array("amount" => $quantity, "price" => $price));
+    }
+
+    public function cancel($orderId)
+    {
+        return $this->authQuery('cancel_order', array('id' => $orderId));
     }
 
     public function activeOrders()

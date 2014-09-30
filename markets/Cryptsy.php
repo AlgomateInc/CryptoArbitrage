@@ -90,7 +90,7 @@ class Cryptsy extends BtceStyleExchange {
         $depth['asks'] = $depth['sell'];
         unset($depth['sell']);
 
-        return $depth;
+        return new OrderBook($depth);
     }
 
     public function buy($pair, $quantity, $price)
@@ -111,6 +111,11 @@ class Cryptsy extends BtceStyleExchange {
             'quantity' => $quantity,
             'price' => $price
         ));
+    }
+
+    public function cancel($orderId)
+    {
+        return $this->authQuery('cancelorder', array('orderid'=>$orderId));
     }
 
     public function activeOrders()

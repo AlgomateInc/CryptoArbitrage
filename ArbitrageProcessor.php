@@ -125,6 +125,11 @@ class ArbitrageProcessor extends ActionProcess {
 
             $buyDepth = $depth[$inst->buyExchange][$inst->currencyPair];
             $sellDepth = $depth[$inst->sellExchange][$inst->currencyPair];
+            if(!($buyDepth instanceof OrderBook && $sellDepth instanceof OrderBook)){
+                syslog(LOG_WARNING, 'Markets returned depth in wrong format: ' .
+                    $inst->buyExchange . ',' . $inst->sellExchange);
+                continue;
+            }
 
             ////////////////////////////////////////////////////////////////
             // Run through all factors on arbitrage instructions and find execution candidates
@@ -133,7 +138,7 @@ class ArbitrageProcessor extends ActionProcess {
             foreach($inst->arbExecutionFactorList as $fctr)
             {
                 //calculate optimal order
-                $arbOrder = $this->getOptimalOrder($buyDepth['asks'], $sellDepth['bids'], $fctr->targetSpreadPct);
+                $arbOrder = $this->getOptimalOrder($buyDepth->asks, $sellDepth->bids, $fctr->targetSpreadPct);
 
                 //once we find an order that can be placed, we queue it up
                 if($arbOrder->quantity > 0){
@@ -291,21 +296,29 @@ class ArbitrageProcessor extends ActionProcess {
         //calculate order size and limits
         $order = new ArbitrageOrder();
 
-        for($i = 0; $i < count($asks); $i++){
-            $buyPx = $asks[$i][0];
-            $buyQty = $asks[$i][1];
+        foreach($asks as $askItem){
+
+            if(!$askItem instanceof DepthItem)
+                throw new Exception('Invalid order book depth item type');
+
+            $buyPx = $askItem->price;
+            $buyQty = $askItem->quantity;
 
             //check our wavg stat for exit condition
-            $buyDiffSum = $asks[$i][3];
+            $buyDiffSum = $askItem->stats[0];
             if($buyDiffSum > 1)
                 return $order;
 
-            for ($j = 0; $j < count($bids);$j++){
-                $sellPx = $bids[$j][0];
-                $sellQty = $bids[$j][1];
+            foreach($bids as $bidItem){
+
+                if(!$bidItem instanceof DepthItem)
+                    throw new Exception('Invalid order book depth item type');
+
+                $sellPx = $bidItem->price;
+                $sellQty = $bidItem->quantity;
 
                 //check our wavg stat for exit condition
-                $sellDiffSum = $bids[$j][3];
+                $sellDiffSum = $bidItem->stats[0];
                 if($sellDiffSum > 1)
                     return $order;
 
@@ -314,9 +327,9 @@ class ArbitrageProcessor extends ActionProcess {
                     $execSize = min($buyQty, $sellQty);
 
                     //update leftover order sizes
-                    $asks[$i][1] -= $execSize;
-                    $buyQty = $asks[$i][1];
-                    $bids[$j][1] -= $execSize;
+                    $askItem->quantity -= $execSize;
+                    $buyQty = $askItem->quantity;
+                    $bidItem->quantity -= $execSize;
 
                     //update order limits and size
                     $order->buyLimit = $buyPx;
@@ -340,9 +353,12 @@ class ArbitrageProcessor extends ActionProcess {
         $pxqtySum = 0; //price times quantity, running total
         $wavgDiffSum = 0; //wavg px minus px, running total
 
-        for($i = 0; $i < count($depth); $i++){
-            $px = $depth[$i][0];
-            $qty = $depth[$i][1];
+        foreach($depth as $item){
+            if(!$item instanceof DepthItem)
+                throw new Exception('Order book depth not the right type');
+
+            $px = $item->price;
+            $qty = $item->quantity;
 
             //update our running sums
             $qtySum += $qty;
@@ -353,8 +369,8 @@ class ArbitrageProcessor extends ActionProcess {
             $wavgDiffSum += abs($wavgPx - $px);
 
             //add depth stats to depth array
-            $depth[$i][] = $wavgPx;
-            $depth[$i][] = $wavgDiffSum;
+            $item->stats[] = $wavgPx;
+            $item->stats[] = $wavgDiffSum;
         }
 
         return $depth;

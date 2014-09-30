@@ -1,5 +1,5 @@
 <?php
 
 interface IAccountLoader {
-    function getAccounts();
+    function getAccounts(array $mktFilter = null);
 } 

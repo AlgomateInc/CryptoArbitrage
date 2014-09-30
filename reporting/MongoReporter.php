@@ -41,7 +41,7 @@ class MongoReporter implements IReporter
         return $market_entry['_id'];
     }
 
-    public function depth($exchange_name, $currencyPair, $depth){
+    public function depth($exchange_name, $currencyPair, OrderBook $depth){
         $orderbooks = $this->mdb->orderbook;
         $book_entry = array(
             'Exchange'=>"$exchange_name",

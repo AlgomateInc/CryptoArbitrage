@@ -40,7 +40,9 @@ class BtceExchange extends BtceStyleExchange
 
     public function depth($currencyPair)
     {
-        return curl_query('https://btc-e.com/api/2/' . $this->getCurrencyPairName($currencyPair) . '/depth');
+        $d = curl_query('https://btc-e.com/api/2/' . $this->getCurrencyPairName($currencyPair) . '/depth');
+
+        return new OrderBook($d);
     }
 
     public function ticker($pair)
@@ -184,6 +186,13 @@ class BtceExchange extends BtceStyleExchange
         }
 
         return $ret;
+    }
+
+    public function cancel($orderId)
+    {
+        return $this->assertSuccessResponse(
+            $this->authQuery('CancelOrder', array('order_id' => $orderId))
+        );
     }
 
     public function isOrderAccepted($orderResponse)

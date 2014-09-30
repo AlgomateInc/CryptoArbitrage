@@ -27,6 +27,7 @@ interface IExchange extends IAccount
     public function sell($pair, $quantity, $price);
     public function activeOrders();
     public function hasActiveOrders();
+    public function cancel($orderId);
 
     public function isOrderAccepted($orderResponse);
     public function isOrderOpen($orderResponse);
