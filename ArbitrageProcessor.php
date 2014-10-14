@@ -305,7 +305,7 @@ class ArbitrageProcessor extends ActionProcess {
             $buyQty = $askItem->quantity;
 
             //check our wavg stat for exit condition
-            $buyDiffSum = $askItem->stats[0];
+            $buyDiffSum = $askItem->stats[1];
             if($buyDiffSum > 1)
                 return $order;
 
@@ -318,7 +318,7 @@ class ArbitrageProcessor extends ActionProcess {
                 $sellQty = $bidItem->quantity;
 
                 //check our wavg stat for exit condition
-                $sellDiffSum = $bidItem->stats[0];
+                $sellDiffSum = $bidItem->stats[1];
                 if($sellDiffSum > 1)
                     return $order;
 
