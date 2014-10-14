@@ -24,13 +24,16 @@ $accountsConfig = array(
     )
 );
 
-$arbInstructions = array(
+$strategyInstructions = array(
     array(
-        'currencyPair'=>'BTCUSD',
-        'from'=>'fromexchangename',
-        'to'=>'toexchangename',
-        'factors'=>array(
-            array('spreadPct'=>INF, 'maxUsdSize'=>50, 'sizeFactor'=> 1)
+        'name' => 'strategyclassname',
+        'data' => array(
+            'currencyPair'=>'BTCUSD',
+            'from'=>'fromexchangename',
+            'to'=>'toexchangename',
+            'factors'=>array(
+                array('spreadPct'=>INF, 'maxUsdSize'=>50, 'sizeFactor'=> 1)
+            )
         )
     )
 );
