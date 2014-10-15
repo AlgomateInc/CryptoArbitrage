@@ -134,7 +134,7 @@ class StrategyProcessor extends ActionProcess {
         {
             $market = $this->activeOrders[$i]['exchange'];
             $marketResponse = $this->activeOrders[$i]['response'];
-            $arbid = $this->activeOrders[$i]['arbid'];
+            $strategyId = $this->activeOrders[$i]['strategyId'];
 
             if(!$market instanceof IExchange)
                 continue;
@@ -149,7 +149,7 @@ class StrategyProcessor extends ActionProcess {
                 $execs = $market->getOrderExecutions($marketResponse);
                 foreach($execs as $execItem){
                     $this->reporter->execution(
-                        $arbid,
+                        $strategyId,
                         $market->Name(),
                         $execItem->txid,
                         $execItem->quantity,
@@ -185,9 +185,9 @@ class StrategyProcessor extends ActionProcess {
         if(!$this->reporter instanceof IReporter)
             throw new Exception('Invalid report was passed!');
 
-        $arbid = $this->reporter->arbitrage($arb->quantity, $arb->currencyPair,$arb->buyExchange,$arb->buyLimit,$arb->sellExchange, $arb->sellLimit);
-        $this->reporter->order($arb->buyExchange, OrderType::BUY, $arb->executionQuantity, $arb->buyLimit, $buy_res, $arbid);
-        $this->reporter->order($arb->sellExchange, OrderType::SELL, $arb->executionQuantity, $arb->sellLimit, $sell_res, $arbid);
+        $strategyId = $this->reporter->arbitrage($arb->quantity, $arb->currencyPair,$arb->buyExchange,$arb->buyLimit,$arb->sellExchange, $arb->sellLimit);
+        $this->reporter->order($arb->buyExchange, OrderType::BUY, $arb->executionQuantity, $arb->buyLimit, $buy_res, $strategyId);
+        $this->reporter->order($arb->sellExchange, OrderType::SELL, $arb->executionQuantity, $arb->sellLimit, $sell_res, $strategyId);
 
         //if orders failed, we need to take evasive action
         $buyFail = !$buyMarket->isOrderAccepted($buy_res);
@@ -197,7 +197,7 @@ class StrategyProcessor extends ActionProcess {
             //if both orders failed, simply throw an exception
             //no damage was done as we are still position-neutral
             if($buyFail && $sellFail)
-                throw new Exception("Order entry failed for arbid: $arbid");
+                throw new Exception("Order entry failed for strategy: $strategyId");
 
             //TODO:if just one of two orders failed, we need to correct our position
             //TODO:right now, stop trading
@@ -207,8 +207,8 @@ class StrategyProcessor extends ActionProcess {
 
         //at this point, we are sure both orders were accepted
         //add orders to active list so we can track their progress
-        $this->activeOrders[] = array('exchange'=>$buyMarket, 'arbid' => $arbid, 'response'=>$buy_res);
-        $this->activeOrders[] = array('exchange'=>$sellMarket, 'arbid' => $arbid, 'response'=>$sell_res);
+        $this->activeOrders[] = array('exchange'=>$buyMarket, 'strategyId' => $strategyId, 'response'=>$buy_res);
+        $this->activeOrders[] = array('exchange'=>$sellMarket, 'strategyId' => $strategyId, 'response'=>$sell_res);
     }
 }
 
