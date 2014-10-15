@@ -5,7 +5,7 @@ require_once('ActionProcess.php');
 require_once('strategy/ConfigStrategyLoader.php');
 require_once('strategy/MongoStrategyLoader.php');
 
-require_once('strategy/ArbitrageStrategy.php');
+require_once('strategy/arbitrage/ArbitrageStrategy.php');
 
 class StrategyProcessor extends ActionProcess {
 
@@ -102,7 +102,15 @@ class StrategyProcessor extends ActionProcess {
             if(!$s instanceof IStrategy)
                 continue;
 
-            $s->run($inst->data, $this->exchanges, $balances);
+            $iso = $s->run($inst->data, $this->exchanges, $balances);
+
+            //////////////////////////////////////////
+            // Execute the order(s) returned
+            //////////////////////////////////////////
+            if($iso instanceof IStrategyOrder){
+                $this->execute_trades($iso);
+            }
+
         }
 
     }

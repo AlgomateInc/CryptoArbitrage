@@ -6,8 +6,9 @@
  * Time: 9:34 AM
  */
 
-require_once('IStrategy.php');
-require_once(__DIR__ . '/../arbinstructions/ConfigArbInstructionLoader.php');
+require_once('ArbitrageOrder.php');
+require_once(__DIR__ . '/../IStrategy.php');
+require_once(__DIR__ . '/../../arbinstructions/ConfigArbInstructionLoader.php');
 
 class ArbitrageStrategy implements IStrategy {
 
@@ -23,17 +24,17 @@ class ArbitrageStrategy implements IStrategy {
         //////////////////////////////////////////
         if(!array_key_exists($inst->buyExchange, $markets) || !array_key_exists($inst->sellExchange, $markets)){
             syslog(LOG_WARNING, 'Markets in arbitrage instructions not supported');
-            return;
+            return null;
         }
 
         $buyMarket = $markets[$inst->buyExchange];
         $sellMarket = $markets[$inst->sellExchange];
         if(!($buyMarket instanceof IExchange && $sellMarket instanceof IExchange))
-            return;
+            return null;
 
         if(!($buyMarket->supports($inst->currencyPair) && $sellMarket->supports($inst->currencyPair))){
             syslog(LOG_WARNING, 'Markets in arbitrage instructions do not support pair: ' . $inst->currencyPair);
-            return;
+            return null;
         }
 
         /////////////////////////////////////////////////////////
@@ -53,7 +54,7 @@ class ArbitrageStrategy implements IStrategy {
         if(!($buyDepth instanceof OrderBook && $sellDepth instanceof OrderBook)){
             syslog(LOG_WARNING, 'Markets returned depth in wrong format: ' .
                 $inst->buyExchange . ',' . $inst->sellExchange);
-            return;
+            return null;
         }
 
         ////////////////////////////////////////////////////////////////
@@ -100,19 +101,12 @@ class ArbitrageStrategy implements IStrategy {
                 $ior = $ao;
         }
 
-        //////////////////////////////////////////
-        // Execute the order
-        //////////////////////////////////////////
-        if($ior instanceof ArbitrageOrder && $ior->executionQuantity > 0){
-            //execute the order on the market if it meets minimum size
-            //TODO: remove hardcoding of minimum size
-            if($ior->executionQuantity > 0.01)
-                $this->execute_trades($ior);
-            else{
-                //no execution, but report the arbitrage with the original, desired, quantity for records
-                $this->reporter->arbitrage($ior->quantity, $ior->currencyPair, $ior->buyExchange,$ior->buyLimit,$ior->sellExchange, $ior->sellLimit);
-            }
-        }
+        //send the order for execution on the market if it meets minimum size
+        //TODO: remove hardcoding of minimum size
+        if($ior instanceof ArbitrageOrder && $ior->executionQuantity > 0.01)
+            return $ior;
+
+        return null;
     }
 
     function getOptimalOrder($buy_depth, $sell_depth, $target_spread_pct)

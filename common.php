@@ -37,14 +37,12 @@ class OrderType{
     const SELL = 'SELL';
 }
 
-class ArbitrageOrder{
+class Order{
     public $currencyPair;
-    public $buyExchange;
-    public $buyLimit = 0;
-    public $sellExchange;
-    public $sellLimit = INF;
+    public $exchange;
+    public $orderType = OrderType::BUY;
+    public $limit = 0;
     public $quantity = 0;
-    public $executionQuantity = 0;
 }
 
 class TransactionType{
