@@ -108,7 +108,7 @@ class StrategyProcessor extends ActionProcess {
             // Execute the order(s) returned
             //////////////////////////////////////////
             if($iso instanceof IStrategyOrder){
-                $this->execute_trades($iso);
+                $this->executeStrategy($iso);
             }
 
         }
@@ -163,52 +163,79 @@ class StrategyProcessor extends ActionProcess {
         $this->activeOrders = array_values($this->activeOrders);
     }
 
-    function execute_trades(ArbitrageOrder $arb)
+    function execute(Order $o, $strategyId)
     {
+        $market = $this->exchanges[$o->exchange];
+
+        if(!$market instanceof IExchange)
+            throw new Exception("Cannot trade on non-market: $o->exchange");
+
         //abort if this is test only
         if($this->liveTrade != true)
-            return;
+            return true;
+
+        //submit the order to the market
+        $marketResponse = null;
+        if($o->orderType == OrderType::BUY)
+            $marketResponse = $market->buy($o->currencyPair, $o->quantity, $o->limit);
+        elseif($o->orderType == OrderType::SELL)
+            $marketResponse = $market->sell($o->currencyPair, $o->quantity, $o->limit);
+        else
+            throw new Exception("Unable to execute order type: $o->orderType");
+
+        //check if the market accepted the order
+        if(!$market->isOrderAccepted($marketResponse))
+            return false;
+
+        //record the order and add to active list for tracking
+        $this->reporter->order($o->exchange, $o->orderType, $o->quantity, $o->limit, $marketResponse, $strategyId);
+        $this->activeOrders[] = array('exchange'=>$market, 'strategyId' => $strategyId, 'response'=> $marketResponse);
+        return true;
+    }
+
+    function executeStrategy(IStrategyOrder $iso)
+    {
+        if(!$this->reporter instanceof IReporter)
+            throw new Exception('Invalid reporter was passed!');
+
+        $strategyId = null;
+
+        //TODO: total hack on strategy-specific reporting. needs revisiting
+        if($iso instanceof ArbitrageOrder)
+            $this->reporter->arbitrage($iso->quantity, $iso->currencyPair,$iso->buyExchange,
+                $iso->buyLimit,$iso->sellExchange, $iso->sellLimit);
 
         //submit orders to the exchanges
         //and report them as we go
-        $buyMarket = $this->exchanges[$arb->buyExchange];
-        $sellMarket = $this->exchanges[$arb->sellExchange];
-
-        if(!$buyMarket instanceof IExchange)
-            throw new Exception('Cannot trade on non-market!');
-        if(!$sellMarket instanceof IExchange)
-            throw new Exception('Cannot trade on non-market!');
-
-        $buy_res = $buyMarket->buy($arb->currencyPair, $arb->executionQuantity, $arb->buyLimit);
-        $sell_res = $sellMarket->sell($arb->currencyPair, $arb->executionQuantity, $arb->sellLimit);
-
-        if(!$this->reporter instanceof IReporter)
-            throw new Exception('Invalid report was passed!');
-
-        $strategyId = $this->reporter->arbitrage($arb->quantity, $arb->currencyPair,$arb->buyExchange,$arb->buyLimit,$arb->sellExchange, $arb->sellLimit);
-        $this->reporter->order($arb->buyExchange, OrderType::BUY, $arb->executionQuantity, $arb->buyLimit, $buy_res, $strategyId);
-        $this->reporter->order($arb->sellExchange, OrderType::SELL, $arb->executionQuantity, $arb->sellLimit, $sell_res, $strategyId);
-
-        //if orders failed, we need to take evasive action
-        $buyFail = !$buyMarket->isOrderAccepted($buy_res);
-        $sellFail = !$sellMarket->isOrderAccepted($sell_res);
-        if($buyFail || $sellFail)
+        $orders = $iso->getOrders();
+        $orderAcceptState = array();
+        foreach($orders as $o)
         {
-            //if both orders failed, simply throw an exception
-            //no damage was done as we are still position-neutral
-            if($buyFail && $sellFail)
-                throw new Exception("Order entry failed for strategy: $strategyId");
+            if(!$o instanceof Order)
+                throw new Exception('Strategy returned invalid order');
 
-            //TODO:if just one of two orders failed, we need to correct our position
-            //TODO:right now, stop trading
-            syslog(LOG_CRIT, 'Position imbalance! Pair order entry failed.');
-            $this->liveTrade = false;
+            $orderAcceptState[] = $this->execute($o, $strategyId);
         }
 
-        //at this point, we are sure both orders were accepted
-        //add orders to active list so we can track their progress
-        $this->activeOrders[] = array('exchange'=>$buyMarket, 'strategyId' => $strategyId, 'response'=>$buy_res);
-        $this->activeOrders[] = array('exchange'=>$sellMarket, 'strategyId' => $strategyId, 'response'=>$sell_res);
+        //if orders failed, we need to take evasive action
+        $allOrdersFailed = true;
+        $someOrdersFailed = false;
+        foreach($orderAcceptState as $orderAccepted){
+            $allOrdersFailed = $allOrdersFailed && !$orderAccepted;
+            $someOrdersFailed = $someOrdersFailed || !$orderAccepted;
+        }
+
+        //if all orders failed, simply throw an exception
+        //no damage was done as we are still position-neutral
+        if($allOrdersFailed)
+            throw new Exception("Order entry failed for strategy: $strategyId");
+
+        //TODO:if just some of the orders failed, we need to correct our position
+        //TODO:right now, stop trading
+        if($someOrdersFailed){
+            syslog(LOG_CRIT, 'Position imbalance! Strategy order entry failed.');
+            $this->liveTrade = false;
+        }
     }
 }
 
