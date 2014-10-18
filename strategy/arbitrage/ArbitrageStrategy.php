@@ -127,7 +127,7 @@ class ArbitrageStrategy implements IStrategy {
 
                 //we're going to adjust the orders so that they are non-executable
                 //but placed in the thinnest part of the book around the inside bid/ask
-                $fullDepth = array_merge($buyDepth, $sellDepth);
+                $fullDepth = array_merge(array_reverse($buyDepth), $sellDepth);
 
                 $minVolume = INF;
                 $minVolBid = 0;
@@ -137,8 +137,10 @@ class ArbitrageStrategy implements IStrategy {
                 $startMidPoint = $insideBid->price * (1.0 - $halfSpread);
                 $endMidPoint = $insideAsk->price * (1.0 + $halfSpread);
                 for($mid = $startMidPoint; $mid <= $endMidPoint; $mid += ($endMidPoint - $startMidPoint)/100.0){
-                    $lowPx = $mid * (1 - $halfSpread);
-                    $highPx = $mid * (1 + $halfSpread);
+
+                    //TODO: rounding in this calculation has to be to number of decimals in quote currency (default USD, i.e 2)
+                    $lowPx = $this->floorp($mid * (1 - $halfSpread), 2);
+                    $highPx = $this->floorp($mid * (1 + $halfSpread), 2);
                     $vol = $this->getVolumeInPriceRange($lowPx, $highPx, $fullDepth);
 
                     if($vol < $minVolume){
@@ -150,8 +152,8 @@ class ArbitrageStrategy implements IStrategy {
 
                 //set order limits and size
                 //size is set to INF so we hit the quote size limits
-                $order->buyLimit = $this->floorp($minVolBid, 2);
-                $order->sellLimit = $this->floorp($minVolAsk, 2);
+                $order->buyLimit = $minVolBid;
+                $order->sellLimit = $minVolAsk;
                 $order->quantity = 1;
 
             }
