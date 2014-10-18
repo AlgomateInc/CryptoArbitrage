@@ -45,6 +45,11 @@ class Order{
     public $quantity = 0;
 }
 
+class TradingRole{
+    const Maker = 'Maker';
+    const Taker = 'Taker';
+}
+
 class TransactionType{
     const Debit = 'DEBIT';
     const Credit = 'CREDIT';

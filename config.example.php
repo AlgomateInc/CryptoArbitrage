@@ -30,7 +30,9 @@ $strategyInstructions = array(
         'data' => array(
             'currencyPair'=>'BTCUSD',
             'from'=>'fromexchangename',
+            'buySideRole'=>'Taker',
             'to'=>'toexchangename',
+            'sellSideRole'=>'Taker',
             'factors'=>array(
                 array('spreadPct'=>INF, 'maxUsdSize'=>50, 'sizeFactor'=> 1)
             )

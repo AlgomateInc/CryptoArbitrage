@@ -6,6 +6,9 @@ class ArbInstructions
     public $buyExchange;
     public $sellExchange;
     public $arbExecutionFactorList = array();
+
+    public $buySideRole;
+    public $sellSideRole;
 }
 
 class ArbExecutionFactor

@@ -31,6 +31,9 @@ class MongoArbInstructionLoader implements IArbInstructionLoader {
             $ai->buyExchange = $arb['BuyExchange'];
             $ai->sellExchange = $arb['SellExchange'];
 
+            $ai->buySideRole = $arb['BuySideRole'];
+            $ai->sellSideRole = $arb['SellSideRole'];
+
             foreach($arb['Factors'] as $fctr){
                 $fi = new ArbExecutionFactor();
 

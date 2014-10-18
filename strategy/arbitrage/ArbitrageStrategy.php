@@ -64,7 +64,13 @@ class ArbitrageStrategy implements IStrategy {
         foreach($inst->arbExecutionFactorList as $fctr)
         {
             //calculate optimal order
-            $arbOrder = $this->getOptimalOrder($buyDepth->asks, $sellDepth->bids, $fctr->targetSpreadPct);
+            $arbOrder = null;
+            if($inst->buySideRole == TradingRole::Taker && $inst->sellSideRole == TradingRole::Taker)
+                $arbOrder = $this->getOptimalTakerOrder($buyDepth->asks, $sellDepth->bids, $fctr->targetSpreadPct);
+            elseif($inst->buySideRole == TradingRole::Maker && $inst->sellSideRole == TradingRole::Maker)
+                $arbOrder = $this->getOptimalMakerOrder($buyDepth->bids, $sellDepth->asks, $fctr->targetSpreadPct);
+            else
+                throw new Exception('Unsupported trading role combination in instructions');
 
             //once we find an order that can be placed, we queue it up
             if($arbOrder->quantity > 0){
@@ -109,7 +115,69 @@ class ArbitrageStrategy implements IStrategy {
         return null;
     }
 
-    function getOptimalOrder($buy_depth, $sell_depth, $target_spread_pct)
+    function getOptimalMakerOrder($buyDepth, $sellDepth, $targetSpreadPct)
+    {
+        $order = new ArbitrageOrder();
+
+        if(count($buyDepth) > 0 && count($sellDepth) > 0){
+            $insideBid = $buyDepth[0];
+            $insideAsk = $sellDepth[0];
+
+            if($insideBid instanceof DepthItem && $insideAsk instanceof DepthItem){
+
+                //we're going to adjust the orders so that they are non-executable
+                //but placed in the thinnest part of the book around the inside bid/ask
+                $fullDepth = array_merge($buyDepth, $sellDepth);
+
+                $minVolume = INF;
+                $minVolBid = 0;
+                $minVolAsk = 0;
+
+                $halfSpread = $targetSpreadPct / 100.0 / 2.0;
+                $startMidPoint = $insideBid->price * (1.0 - $halfSpread);
+                $endMidPoint = $insideAsk->price * (1.0 + $halfSpread);
+                for($mid = $startMidPoint; $mid <= $endMidPoint; $mid += ($endMidPoint - $startMidPoint)/100.0){
+                    $lowPx = $mid * (1 - $halfSpread);
+                    $highPx = $mid * (1 + $halfSpread);
+                    $vol = $this->getVolumeInPriceRange($lowPx, $highPx, $fullDepth);
+
+                    if($vol < $minVolume){
+                        $minVolume = $vol;
+                        $minVolBid = $lowPx;
+                        $minVolAsk = $highPx;
+                    }
+                }
+
+                //set order limits and size
+                //size is set to INF so we hit the quote size limits
+                $order->buyLimit = $this->floorp($minVolBid, 2);
+                $order->sellLimit = $this->floorp($minVolAsk, 2);
+                $order->quantity = 1;
+
+            }
+
+        }
+
+        return $order;
+    }
+
+    function getVolumeInPriceRange($lowPx, $highPx, $depth)
+    {
+        $vol = 0;
+
+        foreach($depth as $d)
+        {
+            if(!$d instanceof DepthItem)
+                throw new Exception('Invalid depth type for volume calculation');
+
+            if($d->price >= $lowPx && $d->price <= $highPx)
+                $vol += $d->quantity;
+        }
+
+        return $vol;
+    }
+
+    function getOptimalTakerOrder($buy_depth, $sell_depth, $target_spread_pct)
     {
         $asks = $this->computeDepthStats($buy_depth);
         $bids = $this->computeDepthStats($sell_depth);

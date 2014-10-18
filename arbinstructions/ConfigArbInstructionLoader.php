@@ -34,6 +34,9 @@ class SingleArbInstructionLoader implements IArbInstructionLoader {
         $arb->buyExchange = $cfgArb['from'];
         $arb->sellExchange = $cfgArb['to'];
 
+        $arb->buySideRole = $cfgArb['buySideRole'];
+        $arb->sellSideRole = $cfgArb['sellSideRole'];
+
         foreach($cfgArb['factors'] as $f)
         {
             $factor = new ArbExecutionFactor();
