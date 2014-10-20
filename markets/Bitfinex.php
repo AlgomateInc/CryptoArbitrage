@@ -3,8 +3,9 @@
 require_once(__DIR__.'/../curl_helper.php');
 require_once('BaseExchange.php');
 require_once('NonceFactory.php');
+require_once('IMarginExchange.php');
 
-class Bitfinex extends BaseExchange{
+class Bitfinex extends BaseExchange implements IMarginExchange{
 
     private $key;
     private $secret;
@@ -65,29 +66,31 @@ class Bitfinex extends BaseExchange{
         return $book;
     }
 
-    public function buy($pair, $quantity, $price)
-    {
-        $result = $this->authQuery('order/new',array(
-            'symbol' => strtolower($pair),
-            'amount' => "$quantity",
-            'price' => "$price",
-            'exchange' => 'bitfinex',
-            'side' => 'buy',
-            'type' => 'limit'
-        ));
-
-        return $result;
+    public function buy($pair, $quantity, $price){
+        return $this->submitOrder('buy','exchange limit', $pair, $quantity, $price);
     }
 
-    public function sell($pair, $quantity, $price)
+    public function sell($pair, $quantity, $price){
+        return $this->submitOrder('sell','exchange limit', $pair, $quantity, $price);
+    }
+
+    public function long($pair, $quantity, $price){
+        return $this->submitOrder('buy','limit', $pair, $quantity, $price);
+    }
+
+    public function short($pair, $quantity, $price){
+        return $this->submitOrder('sell','limit', $pair, $quantity, $price);
+    }
+
+    private function submitOrder($side, $type, $pair, $quantity, $price)
     {
         $result = $this->authQuery('order/new',array(
             'symbol' => strtolower($pair),
             'amount' => "$quantity",
             'price' => "$price",
             'exchange' => 'bitfinex',
-            'side' => 'sell',
-            'type' => 'limit'
+            'side' => "$side",
+            'type' => "$type"
         ));
 
         return $result;
