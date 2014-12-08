@@ -18,9 +18,12 @@ function curl_query($url, $post_data = null, $headers = array()){
     $res = curl_exec($ch);
     if ($res === false) 
         throw new Exception('Could not get reply: '.curl_error($ch));
+
     $dec = json_decode($res, true);
-    if ($dec === NULL)
-        throw new Exception("Invalid data received. Server returned:\n $res");
+    $err = json_last_error();
+    if ($err !== JSON_ERROR_NONE) {
+        throw new Exception("Invalid data received\nError: $err\nServer returned:\n $res");
+    }
     return $dec;
 }
 

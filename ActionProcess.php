@@ -125,6 +125,7 @@ abstract class ActionProcess {
             $this->shutdown();
         }catch(Exception $e){
             syslog(LOG_ERR, $e);
+            exit(1);
         }
 
     }
