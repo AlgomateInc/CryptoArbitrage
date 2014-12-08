@@ -14,6 +14,7 @@ class Currency{
     const FTC = 'FTC';
     const LTC = 'LTC';
     const DRK = 'DRK';
+    const NXT = 'NXT';
 }
 
 class CurrencyPair{
@@ -22,6 +23,7 @@ class CurrencyPair{
     const LTCBTC = 'LTCBTC';
     const LTCUSD = 'LTCUSD';
     const DRKUSD = 'DRKUSD';
+    const NXTBTC = 'NXTBTC';
 
     public static function Base($strPair){
         return substr($strPair, 0, 3);
