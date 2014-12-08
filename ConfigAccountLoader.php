@@ -9,6 +9,7 @@ require_once('markets/bitstamp.php');
 require_once('markets/jpmchase.php');
 require_once('markets/Cryptsy.php');
 require_once('markets/Bitfinex.php');
+require_once('markets/BitVC.php');
 
 
 class ConfigAccountLoader implements IAccountLoader{
@@ -66,6 +67,13 @@ class ConfigAccountLoader implements IAccountLoader{
 
                 case Exchange::Bitfinex:
                     $accounts[Exchange::Bitfinex] = new Bitfinex(
+                        $mktConfig['key'],
+                        $mktConfig['secret']
+                    );
+                    break;
+
+                case Exchange::BitVC:
+                    $accounts[Exchange::BitVC] = new BitVC(
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );
