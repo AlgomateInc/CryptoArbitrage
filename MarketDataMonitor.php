@@ -26,22 +26,26 @@ class MarketDataMonitor extends ActionProcess {
             if(!$mkt instanceof IExchange)
                 continue;
 
-            foreach($mkt->supportedCurrencyPairs() as $pair){
-                $tickData = $mkt->ticker($pair);
+            try {
+                foreach ($mkt->supportedCurrencyPairs() as $pair) {
+                    $tickData = $mkt->ticker($pair);
 
-                if($tickData instanceof Ticker)
-                    $this->reporter->market(
-                        $mkt->Name(),
-                        $tickData->currencyPair,
-                        $tickData->bid,
-                        $tickData->ask,
-                        $tickData->last,
-                        $tickData->volume
-                    );
+                    if ($tickData instanceof Ticker)
+                        $this->reporter->market(
+                            $mkt->Name(),
+                            $tickData->currencyPair,
+                            $tickData->bid,
+                            $tickData->ask,
+                            $tickData->last,
+                            $tickData->volume
+                        );
 
-                //get the order book data
-                $depth = $mkt->depth($pair);
-                $this->reporter->depth($mkt->Name(), $pair, $depth);
+                    //get the order book data
+                    $depth = $mkt->depth($pair);
+                    $this->reporter->depth($mkt->Name(), $pair, $depth);
+                }
+            }catch(Exception $e){
+                syslog(LOG_WARNING, get_class($this) . ' could not get market data for: ' . $mkt->Name() . "\n$e");
             }
         }
     }
