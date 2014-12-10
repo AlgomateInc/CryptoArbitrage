@@ -84,6 +84,8 @@ abstract class ActionProcess {
 
     public function start()
     {
+        syslog(LOG_INFO, get_class($this) . ' is starting');
+
         $this->processCommandLine();
 
         ////////////////////////////////////////////////////////
@@ -96,6 +98,7 @@ abstract class ActionProcess {
                 $this->shutdown();
             }catch(Exception $e){
                 syslog(LOG_ERR, $e);
+                exit(1);
             }
             exit;
         }
@@ -115,6 +118,7 @@ abstract class ActionProcess {
 
         //perform the monitoring loop
         try{
+            syslog(LOG_INFO, get_class($this) . ' - monitoring starting');
             $this->init();
 
             do {
@@ -123,6 +127,7 @@ abstract class ActionProcess {
             }while($this->monitor);
 
             $this->shutdown();
+            syslog(LOG_INFO, get_class($this) . ' - monitoring finished');
         }catch(Exception $e){
             syslog(LOG_ERR, $e);
             exit(1);
