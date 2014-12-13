@@ -29,6 +29,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange{
 
         $balances = array();
         foreach($this->supportedCurrencies() as $curr){
+            $balances[$curr] = 0;
             foreach($balance_info as $balItem)
                 if($balItem['currency'] == strtolower($curr))
                     $balances[$curr] += $balItem['amount'];

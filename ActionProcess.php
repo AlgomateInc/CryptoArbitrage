@@ -86,6 +86,8 @@ abstract class ActionProcess {
     {
         syslog(LOG_INFO, get_class($this) . ' is starting');
 
+        date_default_timezone_set('UTC');
+
         $this->processCommandLine();
 
         ////////////////////////////////////////////////////////

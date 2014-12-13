@@ -41,11 +41,13 @@ class ArbitrageStrategy implements IStrategy {
         // Get the depth for the necessary markets
         // check if we fetched it already. if not, get it
         /////////////////////////////////////////////////////////
-        if(!array_key_exists($inst->currencyPair, static::$depth[$inst->buyExchange])){
+        if(!array_key_exists($inst->buyExchange, static::$depth) ||
+            !array_key_exists($inst->currencyPair, static::$depth[$inst->buyExchange])){
             static::$depth[$inst->buyExchange][$inst->currencyPair] = $buyMarket->depth($inst->currencyPair);
         }
 
-        if(!array_key_exists($inst->currencyPair, static::$depth[$inst->sellExchange])){
+        if(!array_key_exists($inst->sellExchange, static::$depth) ||
+            !array_key_exists($inst->currencyPair, static::$depth[$inst->sellExchange])){
             static::$depth[$inst->sellExchange][$inst->currencyPair] = $sellMarket->depth($inst->currencyPair);;
         }
 
