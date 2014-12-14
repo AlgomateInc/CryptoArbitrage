@@ -8,5 +8,6 @@
 
 class StrategyInstructions {
     public $strategyName;
+    public $isActive;
     public $data;
 }

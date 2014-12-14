@@ -20,9 +20,11 @@ class ConfigStrategyLoader implements IStrategyLoader{
         {
             $s = new StrategyInstructions();
             $s->strategyName = $cfg['name'];
+            $s->isActive = $cfg['active'];
             $s->data = $cfg['data'];
 
-            $this->inst[] = $s;
+            if($s->isActive === true)
+                $this->inst[] = $s;
         }
     }
 

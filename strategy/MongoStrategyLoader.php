@@ -28,6 +28,7 @@ class MongoStrategyLoader implements IStrategyLoader{
         foreach($strategyList as $dbStrategy){
             $s = new StrategyInstructions();
             $s->strategyName = $dbStrategy['Name'];
+            $s->isActive = true;
             $s->data = $dbStrategy['Data'];
 
             $retArray[] = $s;
