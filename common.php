@@ -17,6 +17,24 @@ class Currency{
     const DRK = 'DRK';
     const NXT = 'NXT';
     const CNY = 'CNY';
+
+    public static function FloorValue($value, $currency)
+    {
+        $precision = array(
+            static::USD => 2,
+            static::BTC => 8,
+            static::FTC => 8,
+            static::LTC => 8,
+            static::DRK => 8,
+            static::NXT => 8,
+            static::CNY => 2,
+        );
+
+        $p = $precision[$currency];
+
+        $mul = pow(10, $p);
+        return floor($value * $mul) / $mul;
+    }
 }
 
 class CurrencyPair{

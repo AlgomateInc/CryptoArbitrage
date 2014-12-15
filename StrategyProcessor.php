@@ -6,6 +6,7 @@ require_once('strategy/ConfigStrategyLoader.php');
 require_once('strategy/MongoStrategyLoader.php');
 
 require_once('strategy/arbitrage/ArbitrageStrategy.php');
+require_once('strategy/position/PositionStrategy.php');
 
 class StrategyProcessor extends ActionProcess {
 
