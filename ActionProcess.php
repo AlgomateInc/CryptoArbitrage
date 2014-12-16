@@ -82,6 +82,15 @@ abstract class ActionProcess {
         $this->processOptions($options);
     }
 
+    private function initialize()
+    {
+        foreach($this->exchanges as $mkt)
+            if($mkt instanceof ILifecycleHandler)
+                $mkt->init();
+
+        $this->init();
+    }
+
     public function start()
     {
         syslog(LOG_INFO, get_class($this) . ' is starting');
@@ -95,7 +104,7 @@ abstract class ActionProcess {
         // if not monitoring, run once and exit
         if($this->monitor == false){
             try{
-                $this->init();
+                $this->initialize();
                 $this->run();
                 $this->shutdown();
             }catch(Exception $e){
@@ -121,7 +130,7 @@ abstract class ActionProcess {
         //perform the monitoring loop
         try{
             syslog(LOG_INFO, get_class($this) . ' - monitoring starting');
-            $this->init();
+            $this->initialize();
 
             do {
                 $this->run();

@@ -1,15 +1,14 @@
 <?php
 
 require_once('BtceStyleExchange.php');
+require_once('ILifecycleHandler.php');
 
-class Cryptsy extends BtceStyleExchange {
+class Cryptsy extends BtceStyleExchange implements ILifecycleHandler{
 
     private $marketIdMapping = array();
 
-    public function __construct($key, $secret)
+    function init()
     {
-        parent::__construct($key, $secret);
-
         //get all the open markets so we have the ID mapping
         $markets = $this->assertSuccessResponse($this->authQuery('getmarkets'));
         foreach($this->supportedCurrencyPairs() as $pair)
@@ -22,6 +21,7 @@ class Cryptsy extends BtceStyleExchange {
             }
         }
     }
+
 
     protected function getAuthQueryUrl()
     {
