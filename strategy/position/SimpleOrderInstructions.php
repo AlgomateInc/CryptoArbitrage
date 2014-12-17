@@ -19,7 +19,7 @@ class SimpleOrderInstructions implements IStrategyInstructions, IStrategyOrder {
             $this->exchange = $data['Exchange'];
 
         $this->currencyPair = $data['CurrencyPair'];
-        $this->type = $data['Type'];
+        $this->type = strtoupper($data['Type']);
         $this->price = $data['Price'];
         $this->size = $data['Size'];
     }
