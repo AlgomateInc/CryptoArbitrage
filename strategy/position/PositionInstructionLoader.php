@@ -13,7 +13,11 @@ require_once('FragmentOrderInstructions.php');
 class PositionInstructionLoader {
     public function load($data)
     {
-        $instType = $data['InstructionType'];
+        $instType = null;
+        if(isset($data['InstructionType']))
+            $instType = $data['InstructionType'];
+        else
+            $instType = $data['_t'];
 
         $inst = new $instType;
         if(!$inst instanceof IStrategyInstructions)
