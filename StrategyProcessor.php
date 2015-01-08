@@ -57,7 +57,15 @@ class StrategyProcessor extends ActionProcess {
                     $depth[$mkt->Name()] = array();
 
                 //get balances
-                $balList = $mkt->balances();
+                $balList = array();
+                try{
+                    $balList = $mkt->balances();
+                }catch(Exception $e){
+                    syslog(LOG_WARNING, $e->getTraceAsString());
+                    unset($balances[$mkt->Name()]);
+                }
+
+                //update our running list of balances
                 foreach($balList as $cur => $bal){
                     //report balance only on balance change (or first run)
                     if(!isset($balances[$mkt->Name()][$cur]) || $balances[$mkt->Name()][$cur] != $bal)
