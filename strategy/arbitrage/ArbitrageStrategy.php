@@ -156,7 +156,7 @@ class ArbitrageStrategy implements IStrategy {
                 //size is set to INF so we hit the quote size limits
                 $order->buyLimit = $minVolBid;
                 $order->sellLimit = $minVolAsk;
-                $order->quantity = $minVolume;
+                $order->quantity = ($minVolume == 0)? INF : $minVolume;
 
             }
 
