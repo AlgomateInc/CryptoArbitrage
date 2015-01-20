@@ -211,7 +211,7 @@ class StrategyProcessor extends ActionProcess {
 
         //TODO: total hack on strategy-specific reporting. needs revisiting
         if($iso instanceof ArbitrageOrder)
-            $this->reporter->arbitrage($iso->quantity, $iso->currencyPair,$iso->buyExchange,
+            $strategyId = $this->reporter->arbitrage($iso->quantity, $iso->currencyPair,$iso->buyExchange,
                 $iso->buyLimit,$iso->sellExchange, $iso->sellLimit);
 
         //submit orders to the exchanges
