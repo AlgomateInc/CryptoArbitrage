@@ -136,15 +136,27 @@ class ArbitrageStrategy implements IStrategy {
                 $minVolAsk = 0;
 
                 $halfSpread = $targetSpreadPct / 100.0 / 2.0;
-                $startMidPoint = $insideBid->price * (1.0 - $halfSpread);
-                $endMidPoint = $insideAsk->price * (1.0 + $halfSpread);
-                for($mid = $startMidPoint; $mid <= $endMidPoint; $mid += ($endMidPoint - $startMidPoint)/100.0){
+
+                //move a sliding window that is equal to the target spread pct
+                //across the center of the order book and
+                //find the lowest volume area to place the orders in
+                $startMidPoint = $insideBid->price / (1.0 + $halfSpread);
+                $endMidPoint = $insideAsk->price / (1.0 - $halfSpread);
+                $interval = ($endMidPoint - $startMidPoint) / 100.0;
+                $lowestNonZeroVolumeWindowSize = INF;
+                for($mid = $startMidPoint + $interval; $mid < $endMidPoint; $mid += $interval){
 
                     //TODO: rounding in this calculation has to be to number of decimals in quote currency (default USD, i.e 2)
                     $lowPx = $this->floorp($mid * (1 - $halfSpread), 2);
                     $highPx = $this->floorp($mid * (1 + $halfSpread), 2);
                     $vol = $this->getVolumeInPriceRange($lowPx, $highPx, $fullDepth);
 
+                    //keep track of the lowest volume window
+                    //in case we need a volume for a zero size window later
+                    if($vol > 0 && $vol < $lowestNonZeroVolumeWindowSize)
+                        $lowestNonZeroVolumeWindowSize = $vol;
+
+                    //if window volume is lower and orders are not executable, this is a good window
                     if($vol < $minVolume && $lowPx < $insideAsk->price && $highPx > $insideBid->price){
                         $minVolume = $vol;
                         $minVolBid = $lowPx;
@@ -156,7 +168,7 @@ class ArbitrageStrategy implements IStrategy {
                 //size is set to INF so we hit the quote size limits
                 $order->buyLimit = $minVolBid;
                 $order->sellLimit = $minVolAsk;
-                $order->quantity = ($minVolume == 0)? INF : $minVolume;
+                $order->quantity = ($minVolume == 0)? $lowestNonZeroVolumeWindowSize : $minVolume;
 
             }
 
