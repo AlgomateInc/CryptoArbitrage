@@ -145,7 +145,7 @@ class ArbitrageStrategy implements IStrategy {
                     $highPx = $this->floorp($mid * (1 + $halfSpread), 2);
                     $vol = $this->getVolumeInPriceRange($lowPx, $highPx, $fullDepth);
 
-                    if($vol < $minVolume){
+                    if($vol < $minVolume && $lowPx < $insideAsk->price && $highPx > $insideBid->price){
                         $minVolume = $vol;
                         $minVolBid = $lowPx;
                         $minVolAsk = $highPx;
