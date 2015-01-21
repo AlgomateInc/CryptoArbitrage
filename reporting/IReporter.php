@@ -9,8 +9,8 @@ interface IReporter
     public function transaction($exchange_name, $id, $type, $currency, $amount, $timestamp);
 
     public function arbitrage($quantity, $pair, $buyExchange, $buyLimit, $sellExchange, $sellLimit);
-    public function order($exchange, $type, $quantity, $price, $orderResponse, $arbid);
-    public function execution($arbId, $market, $txid, $quantity, $price, $timestamp);
+    public function order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $arbid);
+    public function execution($arbId, $orderId, $market, $txid, $quantity, $price, $timestamp);
 
     public function trade($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp);
 }

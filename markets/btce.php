@@ -220,6 +220,11 @@ class BtceExchange extends BtceStyleExchange
         return isset($ao['return'][$orderId]);
     }
 
+    public function getOrderID($orderResponse)
+    {
+        return $orderResponse['return']['order_id'];
+    }
+
     public function getOrderExecutions($orderResponse)
     {
         $execList = array();

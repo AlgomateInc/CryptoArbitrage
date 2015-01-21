@@ -35,6 +35,8 @@ interface IExchange extends IAccount
     public function getOrderExecutions($orderResponse);
 
     public function tradeHistory($desiredCount);
+
+    public function getOrderID($orderResponse);
 }
 
 ?>

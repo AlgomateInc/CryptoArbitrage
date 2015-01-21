@@ -240,5 +240,10 @@ class BitstampExchange extends BaseExchange
 
         return curl_query('https://www.bitstamp.net/api/' . $method . '/', $post_data);
     }
+
+    public function getOrderID($orderResponse)
+    {
+        return $orderResponse['id'];
+    }
 }
 

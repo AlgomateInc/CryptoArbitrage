@@ -156,9 +156,11 @@ class StrategyProcessor extends ActionProcess {
 
                 //get the executions on this order and report them
                 $execs = $market->getOrderExecutions($marketResponse);
+                $oid = $market->getOrderID($marketResponse);
                 foreach($execs as $execItem){
                     $this->reporter->execution(
                         $strategyId,
+                        $oid,
                         $market->Name(),
                         $execItem->txid,
                         $execItem->quantity,
@@ -197,7 +199,8 @@ class StrategyProcessor extends ActionProcess {
             return false;
 
         //record the order and add to active list for tracking
-        $this->reporter->order($o->exchange, $o->orderType, $o->quantity, $o->limit, $marketResponse, $strategyId);
+        $oid = $market->getOrderID($marketResponse);
+        $this->reporter->order($o->exchange, $o->orderType, $o->quantity, $o->limit, $oid, $marketResponse, $strategyId);
         $this->activeOrders[] = array('exchange'=>$market, 'strategyId' => $strategyId, 'response'=> $marketResponse);
         return true;
     }

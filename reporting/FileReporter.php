@@ -50,12 +50,12 @@ class FileReporter implements IReporter {
         // TODO: Implement arbitrage() method.
     }
 
-    public function order($exchange, $type, $quantity, $price, $orderResponse, $arbid)
+    public function order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $arbid)
     {
         // TODO: Implement order() method.
     }
 
-    public function execution($arbId, $market, $txid, $quantity, $price, $timestamp)
+    public function execution($arbId, $orderId, $market, $txid, $quantity, $price, $timestamp)
     {
         // TODO: Implement execution() method.
     }

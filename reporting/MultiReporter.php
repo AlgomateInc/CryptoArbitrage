@@ -90,23 +90,23 @@ class MultiReporter implements IReporter {
         return $ret;
     }
 
-    public function order($exchange, $type, $quantity, $price, $orderResponse, $arbid)
+    public function order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $arbid)
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
                 throw new Exception('Invalid reporter in multi-reporter');
 
-            $rpt->order($exchange, $type, $quantity, $price, $orderResponse, $arbid);
+            $rpt->order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $arbid);
         }
     }
 
-    public function execution($arbId, $market, $txid, $quantity, $price, $timestamp)
+    public function execution($arbId, $orderId, $market, $txid, $quantity, $price, $timestamp)
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
                 throw new Exception('Invalid reporter in multi-reporter');
 
-            $rpt->execution($arbId, $market, $txid, $quantity, $price, $timestamp);
+            $rpt->execution($arbId, $orderId, $market, $txid, $quantity, $price, $timestamp);
         }
     }
 

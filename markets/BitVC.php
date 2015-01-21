@@ -48,6 +48,11 @@ class BitVC extends BaseExchange{
         return 'http://market.bitvc.com/futures/ticker_btc_week.js';
     }
 
+    public function getOrderID($orderResponse)
+    {
+        // TODO: Implement getOrderID() method.
+    }
+
     public function balances()
     {
         $bi = $this->authQuery('balance');

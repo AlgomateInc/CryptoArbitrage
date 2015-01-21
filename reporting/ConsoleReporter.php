@@ -52,15 +52,14 @@ class ConsoleReporter implements IReporter
         print "Arbitrage - $pair : BUY $buyExchange @ $buyLimit, SELL $sellExchange @ $sellLimit, SIZE $quantity\n";
     }
 
-    public function order($exchange, $type, $quantity, $price, $orderResponse, $arbid)
+    public function order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $arbid)
     {
-        print "Order: $type $exchange $quantity @ $price\n";
-        var_dump($orderResponse);
+        print "Order ($orderId): $type $exchange $quantity @ $price\n";
     }
 
-    public function execution($arbId, $market, $txid, $quantity, $price, $timestamp)
+    public function execution($arbId, $orderId, $market, $txid, $quantity, $price, $timestamp)
     {
-        print "Execution $txid: $market, $quantity @ $price; $timestamp\n";
+        print "Execution ($txid) for order $orderId: $market, $quantity @ $price; $timestamp\n";
     }
 
     public function transaction($exchange_name, $id, $type, $currency, $amount, $timestamp)

@@ -86,11 +86,12 @@ class MongoReporter implements IReporter
         return $arborder_entry['_id'];
     }
 
-    public function order($exchange, $type, $quantity, $price, $orderResponse, $arbid)
+    public function order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $arbid)
     {
         $order_entry = array(
             'Exchange'=>"$exchange",
             'Type'=>"$type",
+            'OrderID'=>$orderId,
             'Quantity'=>$quantity,
             'Price'=>$price,
             'ExchangeResponse'=>$orderResponse,
@@ -103,7 +104,7 @@ class MongoReporter implements IReporter
         );
     }
 
-    public function execution($arbId, $market, $txid, $quantity, $price, $timestamp)
+    public function execution($arbId, $orderId, $market, $txid, $quantity, $price, $timestamp)
     {
         $exec_entry = array(
             'TxId'=>"$txid",
@@ -114,7 +115,7 @@ class MongoReporter implements IReporter
 
         $arborders = $this->mdb->arborder;
         $arborders->update(
-            array('_id' => $arbId, "Orders.Exchange" => $market),
+            array('_id' => $arbId, "Orders.OrderID" => $orderId),
             array('$push' => array("Orders.$.Executions" => $exec_entry))
         );
     }

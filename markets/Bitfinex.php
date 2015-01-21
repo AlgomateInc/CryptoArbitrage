@@ -195,4 +195,9 @@ class Bitfinex extends BaseExchange implements IMarginExchange{
     {
         return 'https://api.bitfinex.com/v1/';
     }
+
+    public function getOrderID($orderResponse)
+    {
+        return $orderResponse['order_id'];
+    }
 }

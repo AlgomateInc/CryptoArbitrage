@@ -154,6 +154,11 @@ class Cryptsy extends BtceStyleExchange implements ILifecycleHandler{
         return false;
     }
 
+    public function getOrderID($orderResponse)
+    {
+        return $orderResponse['orderid'];
+    }
+
     public function getOrderExecutions($orderResponse)
     {
         $orderId = $orderResponse['orderid'];
