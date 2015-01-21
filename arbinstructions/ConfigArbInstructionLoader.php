@@ -30,19 +30,19 @@ class SingleArbInstructionLoader implements IArbInstructionLoader {
     public function __construct($cfgArb)
     {
         $arb = new ArbInstructions();
-        $arb->currencyPair = $cfgArb['currencyPair'];
-        $arb->buyExchange = $cfgArb['from'];
-        $arb->sellExchange = $cfgArb['to'];
+        $arb->currencyPair = $cfgArb['CurrencyPair'];
+        $arb->buyExchange = $cfgArb['BuyExchange'];
+        $arb->sellExchange = $cfgArb['SellExchange'];
 
-        $arb->buySideRole = $cfgArb['buySideRole'];
-        $arb->sellSideRole = $cfgArb['sellSideRole'];
+        $arb->buySideRole = $cfgArb['BuySideRole'];
+        $arb->sellSideRole = $cfgArb['SellSideRole'];
 
-        foreach($cfgArb['factors'] as $f)
+        foreach($cfgArb['Factors'] as $f)
         {
             $factor = new ArbExecutionFactor();
-            $factor->targetSpreadPct = $f['spreadPct'];
-            $factor->maxUsdOrderSize = $f['maxUsdSize'];
-            $factor->orderSizeScaling = $f['sizeFactor'];
+            $factor->targetSpreadPct = $f['TargetSpreadPct'];
+            $factor->maxUsdOrderSize = $f['MaxUsdOrderSize'];
+            $factor->orderSizeScaling = $f['OrderSizeScaling'];
 
             $arb->arbExecutionFactorList[] = $factor;
         }
