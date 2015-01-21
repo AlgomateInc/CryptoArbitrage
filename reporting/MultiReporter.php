@@ -76,12 +76,18 @@ class MultiReporter implements IReporter {
 
     public function arbitrage($quantity, $pair, $buyExchange, $buyLimit, $sellExchange, $sellLimit)
     {
+        $ret = null;
+
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
                 throw new Exception('Invalid reporter in multi-reporter');
 
-            $rpt->arbitrage($quantity, $pair, $buyExchange, $buyLimit, $sellExchange, $sellLimit);
+            $r = $rpt->arbitrage($quantity, $pair, $buyExchange, $buyLimit, $sellExchange, $sellLimit);
+            if($ret === null)
+                $ret = $r;
         }
+
+        return $ret;
     }
 
     public function order($exchange, $type, $quantity, $price, $orderResponse, $arbid)
