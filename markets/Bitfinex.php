@@ -133,8 +133,25 @@ class Bitfinex extends BaseExchange implements IMarginExchange{
 
     public function getOrderExecutions($orderResponse)
     {
-        // TODO: Implement getOrderExecutions() method.
-        return array();
+        $trades = $this->tradeHistory(50);
+
+        $orderTx = array();
+
+        foreach($trades as $t){
+
+            if($t['order_id'] == $orderResponse['order_id']){
+                $exec = new OrderExecution();
+                $exec->txid = $t['tid'];
+                $exec->orderId = $t['order_id'];
+                $exec->quantity = $t['amount'];
+                $exec->price = $t['price'];
+                $exec->timestamp = $t['timestamp'];
+
+                $orderTx[] = $exec;
+            }
+        }
+
+        return $orderTx;
     }
 
     public function tradeHistory($desiredCount)
