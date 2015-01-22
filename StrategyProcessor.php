@@ -194,15 +194,18 @@ class StrategyProcessor extends ActionProcess {
         else
             throw new Exception("Unable to execute order type: $o->orderType");
 
-        //check if the market accepted the order
-        if(!$market->isOrderAccepted($marketResponse))
-            return false;
+        //get the order id and add to active list if the order was accepted by the market
+        $oid = null;
+        $orderAccepted = $market->isOrderAccepted($marketResponse);
+        if($orderAccepted){
+            $oid = $market->getOrderID($marketResponse);
+            $this->activeOrders[] = array('exchange'=>$market, 'strategyId' => $strategyId, 'response'=> $marketResponse);
+        }
 
-        //record the order and add to active list for tracking
-        $oid = $market->getOrderID($marketResponse);
+        //record the order and market response
         $this->reporter->order($o->exchange, $o->orderType, $o->quantity, $o->limit, $oid, $marketResponse, $strategyId);
-        $this->activeOrders[] = array('exchange'=>$market, 'strategyId' => $strategyId, 'response'=> $marketResponse);
-        return true;
+
+        return $orderAccepted;
     }
 
     function executeStrategy(IStrategyOrder $iso)

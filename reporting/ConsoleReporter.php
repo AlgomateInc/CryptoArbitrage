@@ -54,7 +54,12 @@ class ConsoleReporter implements IReporter
 
     public function order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $arbid)
     {
-        print "Order ($orderId): $type $exchange $quantity @ $price\n";
+        if($orderId != null)
+            print "Order ($orderId): $type $exchange $quantity @ $price\n";
+        else {
+            print "Order (NOT PLACED): $type $exchange $quantity @ $price\n";
+            var_dump($orderResponse);
+        }
     }
 
     public function execution($arbId, $orderId, $market, $txid, $quantity, $price, $timestamp)
