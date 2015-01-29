@@ -27,14 +27,15 @@ $accountsConfig = array(
 $strategyInstructions = array(
     array(
         'name' => 'strategyclassname',
+        'active' => true,
         'data' => array(
-            'currencyPair'=>'BTCUSD',
-            'from'=>'fromexchangename',
-            'buySideRole'=>'Taker',
-            'to'=>'toexchangename',
-            'sellSideRole'=>'Taker',
-            'factors'=>array(
-                array('spreadPct'=>INF, 'maxUsdSize'=>50, 'sizeFactor'=> 1)
+            'CurrencyPair'=>'BTCUSD',
+            'BuyExchange'=>'fromexchangename',
+            'BuySideRole'=>'Taker',
+            'SellExchange'=>'toexchangename',
+            'SellSideRole'=>'Taker',
+            'Factors'=>array(
+                array('TargetSpreadPct'=>INF, 'MaxUsdOrderSize'=>50, 'OrderSizeScaling'=> 1)
             )
         )
     )

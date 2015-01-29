@@ -7,6 +7,7 @@ require_once('reporting/MultiReporter.php');
 require_once('reporting/ConsoleReporter.php');
 require_once('reporting/MongoReporter.php');
 require_once('reporting/FileReporter.php');
+require_once('reporting/SocketReporter.php');
 
 abstract class ActionProcess {
 
@@ -34,7 +35,9 @@ abstract class ActionProcess {
             "mongodb",
             "file:",
             "monitor::",
-            "fork"
+            "fork",
+            'host:',
+            'port:'
         );
         if(is_array($objOptions))
             $longopts = array_merge($longopts, $objOptions);
@@ -52,6 +55,12 @@ abstract class ActionProcess {
 
         if(array_key_exists("file", $options) && isset($options['file']))
             $this->reporter->add(new FileReporter($options['file']));
+
+        if(array_key_exists("host", $options) &&
+            isset($options['host']) &&
+            array_key_exists("port", $options) &&
+            isset($options['port']))
+            $this->reporter->add(new SocketReporter($options['host'], $options['port']));
 
         if(array_key_exists('console', $options) || $this->reporter->count() == 0)
             $this->reporter->add(new ConsoleReporter());
