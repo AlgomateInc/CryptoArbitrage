@@ -12,7 +12,12 @@ require_once(__DIR__ . '/../../arbinstructions/ConfigArbInstructionLoader.php');
 
 class ArbitrageStrategy implements IStrategy {
 
-    public static $depth = array();
+    public static $depth;
+
+    function __construct()
+    {
+        static::$depth = array();
+    }
 
     public function run($instructions, $markets, $balances)
     {
