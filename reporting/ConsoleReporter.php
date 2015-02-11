@@ -47,6 +47,11 @@ class ConsoleReporter implements IReporter
         print "$exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp\n";
     }
 
+    public function position($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp)
+    {
+        print "Position: $exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp\n";
+    }
+
     public function arbitrage($quantity, $pair, $buyExchange, $buyLimit, $sellExchange, $sellLimit)
     {
         print "Arbitrage - $pair : BUY $buyExchange @ $buyLimit, SELL $sellExchange @ $sellLimit, SIZE $quantity\n";

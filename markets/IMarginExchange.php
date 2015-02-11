@@ -11,4 +11,6 @@ require_once('IExchange.php');
 interface IMarginExchange extends IExchange {
     public function long($pair, $quantity, $price);
     public function short($pair, $quantity, $price);
+
+    public function positions();
 } 

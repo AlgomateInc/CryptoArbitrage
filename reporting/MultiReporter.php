@@ -119,4 +119,16 @@ class MultiReporter implements IReporter {
             $rpt->trade($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp);
         }
     }
+
+    public function position($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp)
+    {
+        foreach($this->rptList as $rpt){
+            if(!$rpt instanceof IReporter)
+                throw new Exception('Invalid reporter in multi-reporter');
+
+            $rpt->position($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp);
+        }
+    }
+
+
 }

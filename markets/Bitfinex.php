@@ -191,6 +191,27 @@ class Bitfinex extends BaseExchange implements IMarginExchange{
         return curl_query($this->getApiUrl() . $method, $payload, $headers);
     }
 
+    public function positions()
+    {
+        $rawPosList = $this->authQuery('positions');
+
+        $retList = array();
+        foreach($rawPosList as $p)
+        {
+            $pos = new Trade();
+            $pos->currencyPair = strtoupper($p['symbol']);
+            $pos->exchange = Exchange::Bitfinex;
+            $pos->orderType = ($p['amount'] < 0)? OrderType::SELL : OrderType::BUY;
+            $pos->price = $p['base'];
+            $pos->quantity = (string)abs($p['amount']);
+            $pos->timestamp = $p['timestamp'];
+
+            $retList[] = $pos;
+        }
+
+        return $retList;
+    }
+
     function getApiUrl()
     {
         return 'https://api.bitfinex.com/v1/';

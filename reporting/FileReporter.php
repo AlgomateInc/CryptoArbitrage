@@ -64,4 +64,10 @@ class FileReporter implements IReporter {
     {
         fwrite($this->file, "$exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp\n");
     }
+
+    public function position($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp)
+    {
+        // TODO: Implement position() method.
+    }
+
 }

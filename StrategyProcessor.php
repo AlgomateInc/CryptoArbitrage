@@ -73,6 +73,21 @@ class StrategyProcessor extends ActionProcess {
 
                     $balances[$mkt->Name()][$cur] = $bal;
                 }
+
+                if($mkt instanceof IMarginExchange){
+                    $posList = $mkt->positions();
+                    foreach($posList as $pos){
+                        if($pos instanceof Trade){
+                            $this->reporter->position(
+                                $pos->exchange,
+                                $pos->currencyPair,
+                                $pos->orderType,
+                                $pos->price,
+                                $pos->quantity,
+                                $pos->timestamp);
+                        }
+                    }
+                }
             }
         }
 

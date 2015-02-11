@@ -13,6 +13,7 @@ interface IReporter
     public function execution($arbId, $orderId, $market, $txid, $quantity, $price, $timestamp);
 
     public function trade($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp);
+    public function position($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp);
 }
 
 ?>

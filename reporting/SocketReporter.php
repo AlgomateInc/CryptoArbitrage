@@ -118,4 +118,9 @@ class SocketReporter implements IReporter {
     {
         // TODO: Implement trade() method.
     }
+
+    public function position($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp)
+    {
+        // TODO: Implement position() method.
+    }
 }

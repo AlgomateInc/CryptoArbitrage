@@ -70,6 +70,25 @@ class MongoReporter implements IReporter
 
     }
 
+    public function position($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp)
+    {
+        $position_entry = array(
+            'Exchange'=>"$exchange_name",
+            'CurrencyPair'=>"$currencyPair",
+            'Type'=>"$orderType",
+            'Quantity'=>"$quantity",
+            'Price'=>"$price",
+            'Timestamp'=>"$timestamp");
+
+        $positionCollection = $this->mdb->position;
+        $positionCollection->update(
+            array('Timestamp' => "$timestamp", 'Exchange' => "$exchange_name",'CurrencyPair'=>"$currencyPair",
+            'Type'=>"$orderType"),
+            $position_entry,
+            array('upsert'=>true)
+        );
+    }
+
     public function arbitrage($quantity, $pair, $buyExchange, $buyLimit, $sellExchange, $sellLimit)
     {
         $arborders = $this->mdb->arborder;
