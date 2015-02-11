@@ -8,8 +8,9 @@
 
 require_once(__DIR__.'/../curl_helper.php');
 require_once('BaseExchange.php');
+require_once('IMarginExchange.php');
 
-class BitVC extends BaseExchange{
+class BitVC extends BaseExchange implements IMarginExchange{
 
     private $key;
     private $secret;
@@ -58,7 +59,7 @@ class BitVC extends BaseExchange{
         $bi = $this->authQuery('balance');
 
         $balances = array();
-        $balances[Currency::BTC] = $bi['dynamicRights'];
+        $balances[Currency::BTC] = $bi['staticRights'];
 
         return $balances;
     }
@@ -103,6 +104,39 @@ class BitVC extends BaseExchange{
         $book = new OrderBook($raw);
 
         return $book;
+    }
+
+    public function long($pair, $quantity, $price)
+    {
+        // TODO: Implement long() method.
+    }
+
+    public function short($pair, $quantity, $price)
+    {
+        // TODO: Implement short() method.
+    }
+
+    public function positions()
+    {
+        $rawPosList = $this->authQuery('holdOrder/list');
+
+        $retList = array();
+        foreach($rawPosList as $contract)
+        {
+            foreach($contract as $p) {
+                $pos = new Trade();
+                $pos->currencyPair = CurrencyPair::BTCCNY;
+                $pos->exchange = Exchange::BitVC;
+                $pos->orderType = ($p['tradeType'] == 2) ? OrderType::SELL : OrderType::BUY;
+                $pos->price = (string) $p['price'];
+                $pos->quantity = (string) ($p['closeMoney'] / $p['price']);
+                $pos->timestamp = $p['id'];
+
+                $retList[] = $pos;
+            }
+        }
+
+        return $retList;
     }
 
     public function buy($pair, $quantity, $price)
