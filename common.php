@@ -89,7 +89,7 @@ class Transaction{
 
 class Trade {
     public $exchange;
-    public $currency;
+    public $currencyPair;
     public $orderType;
     public $price;
     public $quantity;

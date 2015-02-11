@@ -107,7 +107,7 @@ class BtceExchange extends BtceStyleExchange
             foreach ($res as $od) {
                 $td = new Trade();
                 $td->exchange = $this->Name();
-                $td->currency = $od['pair'];
+                $td->currencyPair = $od['pair'];
                 $td->orderType = ($od['type'] == 'sell')? OrderType::SELL : OrderType::BUY;
                 $td->price = $od['rate'];
                 $td->quantity = $od['amount'];

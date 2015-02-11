@@ -208,7 +208,7 @@ class BitstampExchange extends BaseExchange
 
                 $td = new Trade();
                 $td->exchange = $this->Name();
-                $td->currency = CurrencyPair::BTCUSD;
+                $td->currencyPair = CurrencyPair::BTCUSD;
                 $td->orderType = ($od['usd'] > 0)? OrderType::SELL : OrderType::BUY;
                 $td->price = $od['btc_usd'];
                 $td->quantity = abs($od['btc']);

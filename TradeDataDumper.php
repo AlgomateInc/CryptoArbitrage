@@ -34,7 +34,7 @@ class TradeDataDumper extends ActionProcess {
                 if($tx instanceof Trade)
                     $this->reporter->trade(
                         $mkt->Name(),
-                        $tx->currency,
+                        $tx->currencyPair,
                         $tx->orderType,
                         $tx->price,
                         $tx->quantity,
