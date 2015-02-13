@@ -68,6 +68,14 @@ class Order{
     public $quantity = 0;
 }
 
+class ActiveOrder{
+    public $order;
+    public $marketResponse;
+    public $strategyId;
+
+    public $marketObj;
+}
+
 class TradingRole{
     const Maker = 'Maker';
     const Taker = 'Taker';

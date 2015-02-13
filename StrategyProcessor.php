@@ -156,9 +156,15 @@ class StrategyProcessor extends ActionProcess {
         $aoCount = count($this->activeOrders);
         for($i = 0;$i < $aoCount;$i++)
         {
-            $market = $this->activeOrders[$i]['exchange'];
-            $marketResponse = $this->activeOrders[$i]['response'];
-            $strategyId = $this->activeOrders[$i]['strategyId'];
+            $ao = $this->activeOrders[$i];
+            if(!$ao instanceof ActiveOrder){
+                unset($this->activeOrders[$i]);
+                continue;
+            }
+
+            $market = $ao->marketObj;
+            $marketResponse = $ao->marketResponse;
+            $strategyId = $ao->strategyId;
 
             if(!$market instanceof IExchange)
                 continue;
@@ -214,7 +220,14 @@ class StrategyProcessor extends ActionProcess {
         $orderAccepted = $market->isOrderAccepted($marketResponse);
         if($orderAccepted){
             $oid = $market->getOrderID($marketResponse);
-            $this->activeOrders[] = array('exchange'=>$market, 'strategyId' => $strategyId, 'response'=> $marketResponse);
+
+            $ao = new ActiveOrder();
+            $ao->marketObj = $market;
+            $ao->marketResponse = $marketResponse;
+            $ao->order = $o;
+            $ao->strategyId = $strategyId;
+
+            $this->activeOrders[] = $ao;
         }
 
         //record the order and market response
