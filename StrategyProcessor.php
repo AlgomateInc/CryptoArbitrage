@@ -35,7 +35,7 @@ class StrategyProcessor extends ActionProcess {
 
     public function init()
     {
-
+        $this->loadActiveOrders();
     }
 
     public function run()
@@ -150,6 +150,37 @@ class StrategyProcessor extends ActionProcess {
         }
     }
 
+    private function saveActiveOrders()
+    {
+        file_put_contents('activeOrders.json', serialize($this->activeOrders));
+    }
+
+    private function loadActiveOrders()
+    {
+        $fileName = 'activeOrders.json';
+        if(!file_exists($fileName))
+            return;
+
+        $aoFileStr = file_get_contents($fileName);
+        if($aoFileStr === false)
+            return;
+
+        $aoJson = unserialize($aoFileStr);
+        if($aoJson === null)
+            return;
+
+        //we have our active list. update it and fix our market references
+        $aoCount = count($aoJson);
+        for($i = 0;$i < $aoCount;$i++) {
+            $ao = $aoJson[$i];
+            if ($ao instanceof ActiveOrder && $ao->marketObj instanceof IExchange)
+                $ao->marketObj = $this->exchanges[$ao->marketObj->Name()];
+            else
+                unset($aoJson[$i]);
+        }
+
+        $this->activeOrders = array_values($aoJson);
+    }
 
     function processActiveOrders()
     {
@@ -193,6 +224,7 @@ class StrategyProcessor extends ActionProcess {
         }
         //we may have removed some orders with unset(). fix indices
         $this->activeOrders = array_values($this->activeOrders);
+        $this->saveActiveOrders();
     }
 
     function execute(Order $o, $strategyId)
@@ -228,6 +260,7 @@ class StrategyProcessor extends ActionProcess {
             $ao->strategyId = $strategyId;
 
             $this->activeOrders[] = $ao;
+            $this->saveActiveOrders();
         }
 
         //record the order and market response
