@@ -168,7 +168,8 @@ class Bitfinex extends BaseExchange implements IMarginExchange{
      */
     public function supportedCurrencyPairs()
     {
-        return array(CurrencyPair::BTCUSD, CurrencyPair::LTCBTC, CurrencyPair::LTCUSD, CurrencyPair::DRKUSD);
+        return array(CurrencyPair::BTCUSD, CurrencyPair::LTCBTC,
+            CurrencyPair::LTCUSD, CurrencyPair::DRKUSD, CurrencyPair::DRKBTC);
     }
 
     protected function authQuery($method, array $req = array()) {

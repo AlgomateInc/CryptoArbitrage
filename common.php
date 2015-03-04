@@ -45,6 +45,7 @@ class CurrencyPair{
     const DRKUSD = 'DRKUSD';
     const NXTBTC = 'NXTBTC';
     const BTCCNY = 'BTCCNY';
+    const DRKBTC = 'DRKBTC';
 
     public static function Base($strPair){
         return substr($strPair, 0, 3);

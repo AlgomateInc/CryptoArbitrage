@@ -57,7 +57,7 @@ class Cryptsy extends BtceStyleExchange implements ILifecycleHandler{
      */
     public function supportedCurrencyPairs()
     {
-        return array(CurrencyPair::FTCBTC, CurrencyPair::LTCBTC, CurrencyPair::NXTBTC);
+        return array(CurrencyPair::FTCBTC, CurrencyPair::LTCBTC, CurrencyPair::NXTBTC, CurrencyPair::DRKBTC);
     }
 
     public function ticker($pair)
