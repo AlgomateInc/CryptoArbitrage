@@ -156,11 +156,37 @@ class Bitfinex extends BaseExchange implements IMarginExchange{
 
     public function tradeHistory($desiredCount)
     {
-        $th = $this->authQuery('mytrades',
-            array('limit_trades' => $desiredCount,
-            'symbol' => strtolower(CurrencyPair::BTCUSD)));
+        $ret = array();
 
-        return $th;
+        //get the last trades for all supported pairs
+        foreach($this->supportedCurrencyPairs() as $pair){
+            $th = $this->authQuery('mytrades',
+                array('limit_trades' => $desiredCount,
+                    'symbol' => strtolower($pair)));
+
+            //make a note of the currency pair on each returned item
+            //bitfinex does not return this information
+            for($i = 0; $i < count($th); $i++){
+                $th[$i]['pair'] = $pair;
+            }
+
+            //merge with the rest of the history
+            $ret = array_merge($ret, $th);
+        }
+
+        //sort history descending by timestamp (latest trade first)
+        usort($ret, function($a, $b){
+            $aTime = $a['timestamp'];
+            $bTime = $b['timestamp'];
+
+            if($aTime == $bTime)
+                return 0;
+            return ($aTime > $bTime)? -1 : 1;
+        });
+
+        //cut down to desired size and return
+        $ret = array_slice($ret, 0, $desiredCount);
+        return $ret;
     }
 
     /**
