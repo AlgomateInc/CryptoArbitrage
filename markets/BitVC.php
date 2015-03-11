@@ -77,6 +77,15 @@ class BitVC extends BaseExchange implements IMarginExchange{
         return array(CurrencyPair::BTCCNY);
     }
 
+    /**
+     * @param $pair The pair we want to get minimum order size for
+     * @return mixed The minimum order size
+     */
+    public function minimumOrderSize($pair, $pairRate)
+    {
+        return 100.0/$pairRate; //min size for futures order is 100 yuan
+    }
+
     public function ticker($pair)
     {
         if($pair != CurrencyPair::BTCCNY)

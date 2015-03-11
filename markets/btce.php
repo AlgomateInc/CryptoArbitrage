@@ -3,15 +3,29 @@
 require_once(__DIR__.'/../curl_helper.php');
 require_once(__DIR__.'/../OrderExecution.php');
 require_once('BtceStyleExchange.php');
+require_once('ILifecycleHandler.php');
 
-class BtceExchange extends BtceStyleExchange
+class BtceExchange extends BtceStyleExchange implements ILifecycleHandler
 {
+    private $supportedPairs = array();
+    private $minOrderSize = array(); //associative, pair->size
+
     protected function getAuthQueryUrl(){
         return 'https://btc-e.com/tapi/';
     }
 
     public function Name(){
         return "Btce";
+    }
+
+    function init()
+    {
+        $marketsInfo = curl_query('https://btc-e.com/api/3/info');
+        foreach($marketsInfo['pairs'] as $pair => $info){
+            $pairName = strtoupper(str_replace('_', '', $pair));
+            $this->supportedPairs[] = $pairName;
+            $this->minOrderSize[$pairName] = $info['min_amount'];
+        }
     }
 
     public function balances()
@@ -28,6 +42,15 @@ class BtceExchange extends BtceStyleExchange
 
     public function supportedCurrencyPairs(){
         return array(CurrencyPair::BTCUSD, CurrencyPair::LTCBTC, CurrencyPair::LTCUSD);
+    }
+
+    /**
+     * @param $pair The pair we want to get minimum order size for
+     * @return mixed The minimum order size
+     */
+    public function minimumOrderSize($pair, $pairRate)
+    {
+        return $this->minOrderSize[$pair];
     }
 
     private function getCurrencyPairName($pair)

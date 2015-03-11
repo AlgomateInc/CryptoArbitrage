@@ -5,17 +5,33 @@ require_once('BaseExchange.php');
 require_once('NonceFactory.php');
 require_once('IMarginExchange.php');
 
-class Bitfinex extends BaseExchange implements IMarginExchange{
+class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandler{
 
     private $key;
     private $secret;
     private $nonceFactory;
+
+    private $supportedPairs = array();
+    private $minOrderSizes = array(); //assoc array pair->minordersize
 
     public function __construct($key, $secret){
         $this->key = $key;
         $this->secret = $secret;
 
         $this->nonceFactory = new NonceFactory();
+    }
+
+    function init()
+    {
+        $pairs = curl_query($this->getApiUrl() . 'symbols');
+        foreach($pairs as $pair){
+            $this->supportedPairs[] = strtoupper($pair);
+        }
+
+        $minOrderSizes = curl_query($this->getApiUrl() . 'symbols_details');
+        foreach($minOrderSizes as $symbolDetail){
+            $this->minOrderSizes[strtoupper($symbolDetail['pair'])] = $symbolDetail['minimum_order_size'];
+        }
     }
 
     public function Name()
@@ -194,8 +210,16 @@ class Bitfinex extends BaseExchange implements IMarginExchange{
      */
     public function supportedCurrencyPairs()
     {
-        return array(CurrencyPair::BTCUSD, CurrencyPair::LTCBTC,
-            CurrencyPair::LTCUSD, CurrencyPair::DRKUSD, CurrencyPair::DRKBTC);
+        return $this->supportedPairs;
+    }
+
+    /**
+     * @param $pair The pair we want to get minimum order size for
+     * @return mixed The minimum order size
+     */
+    public function minimumOrderSize($pair, $pairRate)
+    {
+        return $this->minOrderSizes[$pair];
     }
 
     protected function authQuery($method, array $req = array()) {

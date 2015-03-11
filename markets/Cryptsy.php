@@ -60,6 +60,16 @@ class Cryptsy extends BtceStyleExchange implements ILifecycleHandler{
         return array(CurrencyPair::FTCBTC, CurrencyPair::LTCBTC, CurrencyPair::NXTBTC, CurrencyPair::DRKBTC);
     }
 
+    /**
+     * @param $pair The pair we want to get minimum ordver size for
+     * @return mixed The minimum order size
+     */
+    public function minimumOrderSize($pair, $pairRate)
+    {
+        //TODO: assumed 10 satoshi minimum order. need to check if true
+        return 0.00000010;
+    }
+
     public function ticker($pair)
     {
         $mktResponse = curl_query("http://pubapi.cryptsy.com/api.php?method=singlemarketdata&marketid="

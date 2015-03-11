@@ -29,6 +29,15 @@ class BitstampExchange extends BaseExchange
         return array(CurrencyPair::BTCUSD);
     }
 
+    /**
+     * @param $pair The pair we want to get minimum order size for
+     * @return mixed The minimum order size
+     */
+    public function minimumOrderSize($pair, $pairRate)
+    {
+        return 5.0/$pairRate; //minimum is $5
+    }
+
     public function balances()
     {
         $bstamp_info = $this->assertSuccessResponse($this->authQuery('balance'));
