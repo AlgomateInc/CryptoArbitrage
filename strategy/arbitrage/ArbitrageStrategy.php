@@ -114,16 +114,19 @@ class ArbitrageStrategy implements IStrategy {
                 $ior = $ao;
         }
 
-        if(!$ior instanceof ArbitrageOrder)
-            throw new Exception('Arbitrage strategy produced invalid ArbitrageOrder');
+        if($ior != null)
+        {
+            if(!$ior instanceof ArbitrageOrder)
+                throw new Exception('Arbitrage strategy produced invalid ArbitrageOrder');
 
-        //get the min order size on the exchanges for this pair
-        $minSize = max($buyMarket->minimumOrderSize($inst->currencyPair, $ior->buyLimit),
-            $sellMarket->minimumOrderSize($inst->currencyPair, $ior->sellLimit));
+            //get the min order size on the exchanges for this pair
+            $minSize = max($buyMarket->minimumOrderSize($inst->currencyPair, $ior->buyLimit),
+                $sellMarket->minimumOrderSize($inst->currencyPair, $ior->sellLimit));
 
-        //send the order for execution on the market if it meets minimum size
-        if($ior instanceof ArbitrageOrder && $ior->executionQuantity >= $minSize)
-            return $ior;
+            //send the order for execution on the market if it meets minimum size
+            if($ior->executionQuantity >= $minSize)
+                return $ior;
+        }
 
         return null;
     }
