@@ -131,6 +131,11 @@ class ArbitrageStrategy implements IStrategy {
         return null;
     }
 
+    public function update(ActiveOrder $activeOrder)
+    {
+        // TODO: Implement update() method.
+    }
+
     function getOptimalMakerOrder($buyDepth, $sellDepth, $targetSpreadPct)
     {
         $order = new ArbitrageOrder();

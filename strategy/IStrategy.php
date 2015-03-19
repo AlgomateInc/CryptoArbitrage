@@ -8,4 +8,5 @@
 
 interface IStrategy {
     public function run($instructions, $markets, $balances);
+    public function update(ActiveOrder $activeOrder);
 } 

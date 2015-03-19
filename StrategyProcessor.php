@@ -135,7 +135,7 @@ class StrategyProcessor extends ActionProcess {
             // Execute the order(s) returned
             //////////////////////////////////////////
             if($iso instanceof IStrategyOrder){
-                $this->executeStrategy($iso);
+                $this->executeStrategy($s, $iso);
             }
 
         }
@@ -204,7 +204,13 @@ class StrategyProcessor extends ActionProcess {
                 continue;
 
             //check if the order is done
-            if(!$market->isOrderOpen($marketResponse))
+            if($market->isOrderOpen($marketResponse))
+            {
+                //order is still active. our strategy may want to adjust it
+                if($ao->strategyObj instanceof IStrategy)
+                    $ao->strategyObj->update($ao);
+            }
+            else
             {
                 //order complete. remove from list and do post-processing
                 unset($this->activeOrders[$i]);
@@ -230,7 +236,7 @@ class StrategyProcessor extends ActionProcess {
         $this->saveActiveOrders();
     }
 
-    function execute(Order $o, $strategyId)
+    function execute(Order $o, IStrategy $strategy, $strategyId)
     {
         $market = $this->exchanges[$o->exchange];
 
@@ -261,6 +267,7 @@ class StrategyProcessor extends ActionProcess {
             $ao->marketResponse = $marketResponse;
             $ao->order = $o;
             $ao->strategyId = $strategyId;
+            $ao->strategyObj = $strategy;
 
             $this->activeOrders[] = $ao;
             $this->saveActiveOrders();
@@ -272,7 +279,7 @@ class StrategyProcessor extends ActionProcess {
         return $orderAccepted;
     }
 
-    function executeStrategy(IStrategyOrder $iso)
+    function executeStrategy(IStrategy $strategy, IStrategyOrder $iso)
     {
         if(!$this->reporter instanceof IReporter)
             throw new Exception('Invalid reporter was passed!');
@@ -293,7 +300,7 @@ class StrategyProcessor extends ActionProcess {
             if(!$o instanceof Order)
                 throw new Exception('Strategy returned invalid order');
 
-            $orderAcceptState[] = $this->execute($o, $strategyId);
+            $orderAcceptState[] = $this->execute($o, $strategy, $strategyId);
         }
 
         //if orders failed, we need to take evasive action

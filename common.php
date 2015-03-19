@@ -75,6 +75,12 @@ class ActiveOrder{
     public $strategyId;
 
     public $marketObj;
+    public $strategyObj;
+
+    function __sleep()
+    {
+        return array('order','marketResponse','strategyId');
+    }
 }
 
 class TradingRole{
@@ -149,6 +155,28 @@ class OrderBook{
                 $bookSideItem[1][] = $b;
             }
         }
+    }
+
+    public function volumeToPrice($px){
+        $volume = 0;
+
+        foreach($this->bids as $item){
+            if(!($item instanceof DepthItem))
+                break;
+            if($px > $item->price)
+                break;
+            $volume += $item->quantity;
+        }
+
+        foreach($this->asks as $item){
+            if(!($item instanceof DepthItem))
+                break;
+            if($px < $item->price)
+                break;
+            $volume += $item->quantity;
+        }
+
+        return $volume;
     }
 }
 

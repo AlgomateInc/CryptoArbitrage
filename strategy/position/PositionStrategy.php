@@ -21,4 +21,9 @@ class PositionStrategy implements IStrategy {
 
         return null;
     }
+
+    public function update(ActiveOrder $activeOrder)
+    {
+        // TODO: Implement update() method.
+    }
 }
