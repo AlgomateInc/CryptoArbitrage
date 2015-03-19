@@ -45,6 +45,7 @@ class StrategyProcessor extends ActionProcess {
         // Fetch the account balances and transaction history
         //////////////////////////////////////////
         static $balances = array();
+        static $positions = array();
         $depth = array();
 
         foreach($this->exchanges as $mkt)
@@ -78,7 +79,8 @@ class StrategyProcessor extends ActionProcess {
                 if($mkt instanceof IMarginExchange){
                     $posList = $mkt->positions();
                     foreach($posList as $pos){
-                        if($pos instanceof Trade){
+                        if($pos instanceof Trade && !in_array($pos, $positions)){
+                            $positions[] = $pos;
                             $this->reporter->position(
                                 $pos->exchange,
                                 $pos->currencyPair,
