@@ -7,7 +7,7 @@
  */
 
 require_once(__DIR__ . '/../IStrategyInstructions.php');
-require_once('SimpleOrderInstructions.php');
+require_once('LimitOrderInstructions.php');
 require_once('FragmentOrderInstructions.php');
 
 class PositionInstructionLoader {

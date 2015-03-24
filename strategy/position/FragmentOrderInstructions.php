@@ -6,9 +6,9 @@
  * Time: 11:55 PM
  */
 
-require_once('SimpleOrderInstructions.php');
+require_once('LimitOrderInstructions.php');
 
-class FragmentOrderInstructions extends SimpleOrderInstructions {
+class FragmentOrderInstructions extends LimitOrderInstructions {
     public $priceRangePct;
     public $sizeRangePct;
     public $orderCount;

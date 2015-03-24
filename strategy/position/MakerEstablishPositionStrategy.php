@@ -7,7 +7,8 @@
  */
 
 require_once(__DIR__ . '/../BaseStrategy.php');
-require_once('SimpleOrderInstructions.php');
+require_once('MarketOrderInstructions.php');
+require_once('LimitOrderInstructions.php');
 
 /**
  * Class MakerEstablishPositionInstructions
@@ -19,7 +20,7 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
 
     public function run($instructions, $markets, $balances)
     {
-        $soi = new SimpleOrderInstructions();
+        $soi = new MarketOrderInstructions();
         $soi->load($instructions);
 
         $market = $this->findMarket($markets, $soi->exchange, $soi->currencyPair);
@@ -35,11 +36,15 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
             $insideAsk = $depth->asks[0];
 
             if ($insideBid instanceof DepthItem && $insideAsk instanceof DepthItem) {
-                $soi->price = Currency::FloorValue(($insideAsk->price + $insideBid->price) / 2.0,
+                $tgtPrice = Currency::FloorValue(($insideAsk->price + $insideBid->price) / 2.0,
                     CurrencyPair::Quote($soi->currencyPair));
 
-                if($soi->price > $insideBid->price && $soi->price < $insideAsk->price)
-                    return $soi;
+                if($tgtPrice > $insideBid->price && $tgtPrice < $insideAsk->price){
+                    $instructions['Price'] = $tgtPrice;
+                    $ret = new LimitOrderInstructions();
+                    $ret->load($instructions);
+                    return $ret;
+                }
             }
         }
 

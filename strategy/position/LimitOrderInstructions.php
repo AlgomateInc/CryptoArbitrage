@@ -6,22 +6,16 @@
  * Time: 11:55 PM
  */
 
-class SimpleOrderInstructions implements IStrategyInstructions, IStrategyOrder {
-    public $exchange;
-    public $currencyPair;
-    public $type;
+require_once('MarketOrderInstructions.php');
+
+class LimitOrderInstructions extends MarketOrderInstructions {
     public $price;
-    public $size;
 
     public function load($data)
     {
-        if(isset($data['Exchange']))
-            $this->exchange = $data['Exchange'];
+        parent::load($data);
 
-        $this->currencyPair = $data['CurrencyPair'];
-        $this->type = strtoupper($data['Type']);
         $this->price = $data['Price'];
-        $this->size = $data['Size'];
     }
 
     public function getOrders()
@@ -38,6 +32,5 @@ class SimpleOrderInstructions implements IStrategyInstructions, IStrategyOrder {
         $orders[] = $s;
 
         return $orders;
-
     }
 }
