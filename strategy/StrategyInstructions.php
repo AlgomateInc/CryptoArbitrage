@@ -7,6 +7,7 @@
  */
 
 class StrategyInstructions {
+    public $strategyId;
     public $strategyName;
     public $isActive;
     public $data;

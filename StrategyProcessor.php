@@ -128,6 +128,7 @@ class StrategyProcessor extends ActionProcess {
             $s = new $inst->strategyName;
             if(!$s instanceof IStrategy)
                 continue;
+            $s->setStrategyId($inst->strategyId);
 
             $iso = $s->run($inst->data, $this->exchanges, $balances);
 
@@ -236,7 +237,7 @@ class StrategyProcessor extends ActionProcess {
         $this->saveActiveOrders();
     }
 
-    function execute(Order $o, IStrategy $strategy, $strategyId)
+    function execute(Order $o, IStrategy $strategy, $strategyOrderId)
     {
         $market = $this->exchanges[$o->exchange];
 
@@ -266,7 +267,7 @@ class StrategyProcessor extends ActionProcess {
             $ao->marketObj = $market;
             $ao->marketResponse = $marketResponse;
             $ao->order = $o;
-            $ao->strategyId = $strategyId;
+            $ao->strategyId = $strategyOrderId;
             $ao->strategyObj = $strategy;
 
             $this->activeOrders[] = $ao;
@@ -274,7 +275,7 @@ class StrategyProcessor extends ActionProcess {
         }
 
         //record the order and market response
-        $this->reporter->order($o->exchange, $o->orderType, $o->quantity, $o->limit, $oid, $marketResponse, $strategyId);
+        $this->reporter->order($o->exchange, $o->orderType, $o->quantity, $o->limit, $oid, $marketResponse, $strategyOrderId);
 
         return $orderAccepted;
     }
@@ -284,12 +285,14 @@ class StrategyProcessor extends ActionProcess {
         if(!$this->reporter instanceof IReporter)
             throw new Exception('Invalid reporter was passed!');
 
-        $strategyId = null;
+        $strategyOrderId = null;
 
         //TODO: total hack on strategy-specific reporting. needs revisiting
         if($iso instanceof ArbitrageOrder)
-            $strategyId = $this->reporter->arbitrage($iso->quantity, $iso->currencyPair,$iso->buyExchange,
+            $strategyOrderId = $this->reporter->arbitrage($iso->quantity, $iso->currencyPair,$iso->buyExchange,
                 $iso->buyLimit,$iso->sellExchange, $iso->sellLimit);
+        else
+            $strategyOrderId = $this->reporter->strategyOrder($strategy->getStrategyId(),$iso);
 
         //submit orders to the exchanges
         //and report them as we go
@@ -300,7 +303,7 @@ class StrategyProcessor extends ActionProcess {
             if(!$o instanceof Order)
                 throw new Exception('Strategy returned invalid order');
 
-            $orderAcceptState[] = $this->execute($o, $strategy, $strategyId);
+            $orderAcceptState[] = $this->execute($o, $strategy, $strategyOrderId);
         }
 
         //if orders failed, we need to take evasive action
@@ -314,7 +317,7 @@ class StrategyProcessor extends ActionProcess {
         //if all orders failed, simply throw an exception
         //no damage was done as we are still position-neutral
         if($allOrdersFailed)
-            throw new Exception("Order entry failed for strategy: $strategyId");
+            throw new Exception("Order entry failed for strategy: $strategyOrderId");
 
         //TODO:if just some of the orders failed, we need to correct our position
         //TODO:right now, stop trading

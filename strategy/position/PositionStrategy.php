@@ -9,7 +9,7 @@
 require_once(__DIR__ . '/../IStrategy.php');
 require_once('PositionInstructionLoader.php');
 
-class PositionStrategy implements IStrategy {
+class PositionStrategy extends BaseStrategy {
 
     public function run($instructions, $markets, $balances)
     {

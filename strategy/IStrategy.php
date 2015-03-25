@@ -7,6 +7,9 @@
  */
 
 interface IStrategy {
+    public function getStrategyId();
+    public function setStrategyId($id);
+
     public function run($instructions, $markets, $balances);
     public function update(ActiveOrder $activeOrder);
 } 

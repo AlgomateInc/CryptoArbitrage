@@ -26,22 +26,26 @@ class MongoStrategyLoader implements IStrategyLoader{
         $strategyList = $strategyCollection->find();
         foreach($strategyList as $dbStrategy){
             $s = new StrategyInstructions();
+            $s->strategyId = $dbStrategy['_id'];
             $s->strategyName = $dbStrategy['Name'];
             $s->isActive = true;
             $s->data = $dbStrategy['Data'];
 
-            $retArray[] = $s;
+            if($s->isActive === true)
+                $retArray[] = $s;
         }
 
         $arbCollection = $this->mdb->arbs;
         $arbList = $arbCollection->find();
         foreach($arbList as $arbStrategy){
             $s = new StrategyInstructions();
+            $s->strategyId = $arbStrategy['_id'];
             $s->strategyName = 'ArbitrageStrategy';
             $s->isActive = true;
             $s->data = $arbStrategy;
 
-            $retArray[] = $s;
+            if($s->isActive === true)
+                $retArray[] = $s;
         }
 
         return $retArray;

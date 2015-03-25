@@ -105,6 +105,18 @@ class MongoReporter implements IReporter
         return $arborder_entry['_id'];
     }
 
+    public function strategyOrder($strategyId, $iso)
+    {
+        $strategyOrders = $this->mdb->strategyorder;
+        $strategyOrder_entry = array(
+            'StrategyID' => $strategyId,
+            'Data'=>$iso,
+            'Timestamp'=>new MongoDate());
+
+        $strategyOrders->insert($strategyOrder_entry);
+        return $strategyOrder_entry['_id'];
+    }
+
     public function order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $arbid)
     {
         $order_entry = array(

@@ -19,6 +19,7 @@ class ConfigStrategyLoader implements IStrategyLoader{
         foreach($configStrategyInstructions as $cfg)
         {
             $s = new StrategyInstructions();
+            $s->strategyId = null;
             $s->strategyName = $cfg['name'];
             $s->isActive = $cfg['active'];
             $s->data = $cfg['data'];

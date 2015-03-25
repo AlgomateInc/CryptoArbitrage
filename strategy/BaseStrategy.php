@@ -10,6 +10,17 @@ require_once('IStrategy.php');
 
 abstract class BaseStrategy implements IStrategy {
 
+    protected $strategyId;
+    public function getStrategyId()
+    {
+        return $this->strategyId;
+    }
+
+    public function setStrategyId($id)
+    {
+        $this->strategyId = $id;
+    }
+
     /**
      * Checks if the required market exists and supports trading for pair
      * @param $marketName

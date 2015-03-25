@@ -57,6 +57,12 @@ class ConsoleReporter implements IReporter
         print "Arbitrage - $pair : BUY $buyExchange @ $buyLimit, SELL $sellExchange @ $sellLimit, SIZE $quantity\n";
     }
 
+    public function strategyOrder($strategyId, $iso)
+    {
+        $data_json = json_encode($iso);
+        print "Strategy Order: STRATEGY $strategyId, ORDER $data_json\n";
+    }
+
     public function order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $arbid)
     {
         if($orderId != null)

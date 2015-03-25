@@ -7,10 +7,10 @@
  */
 
 require_once('ArbitrageOrder.php');
-require_once(__DIR__ . '/../IStrategy.php');
+require_once(__DIR__ . '/../BaseStrategy.php');
 require_once(__DIR__ . '/../../arbinstructions/ConfigArbInstructionLoader.php');
 
-class ArbitrageStrategy implements IStrategy {
+class ArbitrageStrategy extends BaseStrategy {
 
     public static $depth;
 
