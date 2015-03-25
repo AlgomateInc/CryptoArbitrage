@@ -127,8 +127,10 @@ class BtceExchange extends BtceStyleExchange implements ILifecycleHandler
             $res = $this->assertSuccessResponse($this->authQuery("TradeHistory", array('from' => "$numFetched")));
             sleep(1);
 
-            foreach ($res as $od) {
+            foreach ($res as $tid => $od) {
                 $td = new Trade();
+                $td->tradeId = $tid;
+                $td->orderId = $od['order_id'];
                 $td->exchange = $this->Name();
                 $td->currencyPair = $od['pair'];
                 $td->orderType = ($od['type'] == 'sell')? OrderType::SELL : OrderType::BUY;
@@ -259,18 +261,19 @@ class BtceExchange extends BtceStyleExchange implements ILifecycleHandler
             return $execList;
 
         $history = $this->tradeHistory(100);
-        foreach($history as $key => $item){
-            if($item['order_id'] == $orderId)
-            {
-                $oe = new OrderExecution();
-                $oe->txid = $key;
-                $oe->orderId = $orderId;
-                $oe->quantity = $item['amount'];
-                $oe->price = $item['rate'];
-                $oe->timestamp = $item['timestamp'];
+        foreach($history as $td){
+            if($td instanceof Trade)
+                if($td->orderId == $orderId)
+                {
+                    $oe = new OrderExecution();
+                    $oe->txid = $td->tradeId;
+                    $oe->orderId = $orderId;
+                    $oe->quantity = $td->quantity;
+                    $oe->price = $td->price;
+                    $oe->timestamp = $td->timestamp;
 
-                $execList[] = $oe;
-            }
+                    $execList[] = $oe;
+                }
         }
 
         return $execList;

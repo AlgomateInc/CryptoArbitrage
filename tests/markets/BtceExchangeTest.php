@@ -17,7 +17,7 @@ class BtceExchangeTest extends PHPUnit_Framework_TestCase {
 
         $cal = new ConfigAccountLoader();
         $exchanges = $cal->getAccounts(array(Exchange::Btce));
-        $this->bf = $exchanges[Exchange::Btce];
+        $this->mkt = $exchanges[Exchange::Btce];
     }
 
     public function testOrderSubmitAndCancel()
@@ -34,5 +34,15 @@ class BtceExchangeTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testTradeHistory()
+    {
+        if($this->mkt instanceof BtceExchange)
+        {
+            $res = $this->mkt->tradeHistory(5);
+
+            $this->assertTrue(is_array($res));
+            $this->assertCount(5, $res);
+        }
+    }
 }
  

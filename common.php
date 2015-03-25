@@ -103,6 +103,8 @@ class Transaction{
 }
 
 class Trade {
+    public $tradeId;
+    public $orderId;
     public $exchange;
     public $currencyPair;
     public $orderType;
