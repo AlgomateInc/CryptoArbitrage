@@ -285,14 +285,7 @@ class StrategyProcessor extends ActionProcess {
         if(!$this->reporter instanceof IReporter)
             throw new Exception('Invalid reporter was passed!');
 
-        $strategyOrderId = null;
-
-        //TODO: total hack on strategy-specific reporting. needs revisiting
-        if($iso instanceof ArbitrageOrder)
-            $strategyOrderId = $this->reporter->arbitrage($iso->quantity, $iso->currencyPair,$iso->buyExchange,
-                $iso->buyLimit,$iso->sellExchange, $iso->sellLimit);
-        else
-            $strategyOrderId = $this->reporter->strategyOrder($strategy->getStrategyId(),$iso);
+        $strategyOrderId = $this->reporter->strategyOrder($strategy->getStrategyId(),$iso);
 
         //submit orders to the exchanges
         //and report them as we go

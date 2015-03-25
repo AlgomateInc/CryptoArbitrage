@@ -89,24 +89,10 @@ class MongoReporter implements IReporter
         );
     }
 
-    public function arbitrage($quantity, $pair, $buyExchange, $buyLimit, $sellExchange, $sellLimit)
-    {
-        $arborders = $this->mdb->arborder;
-        $arborder_entry = array(
-            'Quantity'=>$quantity,
-            'CurrencyPair'=>"$pair",
-            'BuyExchange'=>"$buyExchange",
-            'BuyLimit'=>$buyLimit,
-            'SellExchange'=>"$sellExchange",
-            'SellLimit'=>$sellLimit,
-            'Timestamp'=>new MongoDate());
-
-        $arborders->insert($arborder_entry);
-        return $arborder_entry['_id'];
-    }
-
     public function strategyOrder($strategyId, $iso)
     {
+        $iso->_t = get_class($iso);
+
         $strategyOrders = $this->mdb->strategyorder;
         $strategyOrder_entry = array(
             'StrategyID' => $strategyId,
@@ -128,7 +114,7 @@ class MongoReporter implements IReporter
             'ExchangeResponse'=>$orderResponse,
             'Timestamp'=>new MongoDate());
 
-        $arborders = $this->mdb->arborder;
+        $arborders = $this->mdb->strategyorder;
         $arborders->update(
             array('_id'=>$arbid),
             array('$push' => array("Orders" => $order_entry))
@@ -144,7 +130,7 @@ class MongoReporter implements IReporter
             'Timestamp'=>"$timestamp"
         );
 
-        $arborders = $this->mdb->arborder;
+        $arborders = $this->mdb->strategyorder;
         $arborders->update(
             array('_id' => $arbId, "Orders.OrderID" => $orderId),
             array('$push' => array("Orders.$.Executions" => $exec_entry))
