@@ -91,8 +91,6 @@ class MongoReporter implements IReporter
 
     public function strategyOrder($strategyId, $iso)
     {
-        $iso->_t = get_class($iso);
-
         $strategyOrders = $this->mdb->strategyorder;
         $strategyOrder_entry = array(
             'StrategyID' => $strategyId,
