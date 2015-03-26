@@ -13,9 +13,18 @@ class Cryptsy extends BtceStyleExchange implements ILifecycleHandler{
         $markets = $this->assertSuccessResponse($this->authQuery('getmarkets'));
         foreach($this->supportedCurrencyPairs() as $pair)
         {
+            $baseCurrency = CurrencyPair::Base($pair);
+            $quoteCurrency = CurrencyPair::Quote($pair);
+
+            //quick fix for drk/dash debacle
+            if($baseCurrency == Currency::DRK)
+                $baseCurrency = "DASH";
+            if($quoteCurrency == Currency::DRK)
+                $quoteCurrency = "DASH";
+
             foreach($markets as $mkt){
-                if($mkt['primary_currency_code'] == CurrencyPair::Base($pair) &&
-                    $mkt['secondary_currency_code'] == CurrencyPair::Quote($pair)){
+                if($mkt['primary_currency_code'] == $baseCurrency &&
+                    $mkt['secondary_currency_code'] == $quoteCurrency){
                     $this->marketIdMapping[$pair] = $mkt['marketid'];
                 }
             }
@@ -41,7 +50,13 @@ class Cryptsy extends BtceStyleExchange implements ILifecycleHandler{
 
         $balances = array();
         foreach($this->supportedCurrencies() as $curr){
-            $balances[$curr] = $bal[$curr];
+
+            //quick patch for DRK/DASH
+            $currency = $curr;
+            if($curr == Currency::DRK)
+                $currency = "DASH";
+            
+            $balances[$curr] = $bal[$currency];
         }
 
         return $balances;
