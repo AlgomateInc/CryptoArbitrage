@@ -28,7 +28,7 @@ class MongoStrategyLoader implements IStrategyLoader{
             $s = new StrategyInstructions();
             $s->strategyId = $dbStrategy['_id'];
             $s->strategyName = $dbStrategy['Name'];
-            $s->isActive = true;
+            $s->isActive = $dbStrategy['Active'];
             $s->data = $dbStrategy['Data'];
 
             if($s->isActive === true)
