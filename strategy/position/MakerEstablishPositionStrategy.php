@@ -7,7 +7,7 @@
  */
 
 require_once(__DIR__ . '/../BaseStrategy.php');
-require_once('MarketOrderInstructions.php');
+require_once('InsideOrderInstructions.php');
 require_once('LimitOrderInstructions.php');
 
 /**
@@ -20,7 +20,7 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
 
     public function run($instructions, $markets, $balances)
     {
-        $soi = new MarketOrderInstructions();
+        $soi = new InsideOrderInstructions();
         $soi->load($instructions);
 
         $market = $this->findMarket($markets, $soi->exchange, $soi->currencyPair);
@@ -43,6 +43,13 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
                     $instructions['Price'] = $tgtPrice;
                     $ret = new LimitOrderInstructions();
                     $ret->load($instructions);
+
+                    //adjust the size based on our target window
+                    //this is so we don't keep putting the same size orders on the book
+                    $windowSize = $soi->sizeRangePct / 100.0 * $soi->size;
+                    $sizeAdjustment = lcg_value() * $windowSize - $windowSize / 2.0;
+                    $ret->size = Currency::FloorValue($ret->size + $sizeAdjustment, CurrencyPair::Base($soi->currencyPair));
+
                     return $ret;
                 }
             }
