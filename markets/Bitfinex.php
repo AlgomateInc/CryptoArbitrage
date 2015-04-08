@@ -234,9 +234,9 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
 
         // generate the extra headers
         $headers = array(
-            'X-BFX-APIKEY : '.$this->key,
-            'X-BFX-PAYLOAD : '.$payload,
-            'X-BFX-SIGNATURE : '.$sign
+            'X-BFX-APIKEY: '.$this->key,
+            'X-BFX-PAYLOAD: '.$payload,
+            'X-BFX-SIGNATURE: '.$sign
         );
 
         return curl_query($this->getApiUrl() . $method, $payload, $headers);
