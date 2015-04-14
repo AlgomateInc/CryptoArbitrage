@@ -1,8 +1,9 @@
 <?php
 
 require_once('IReporter.php');
+require_once('IStatisticsGenerator.php');
 
-class MongoReporter implements IReporter
+class MongoReporter implements IReporter, IStatisticsGenerator
 {
     private $mongo;
     private $mdb;
@@ -39,6 +40,71 @@ class MongoReporter implements IReporter
         
         $markets->insert($market_entry);
         return $market_entry['_id'];
+    }
+
+    function computeMarketStats()
+    {
+        $this->computeCandle(60);//1min
+        $this->computeCandle(60*5);//5min
+        $this->computeCandle(60*15);//15min
+        $this->computeCandle(60*60);//1hr
+        $this->computeCandle(60*60*4);//4hr
+        $this->computeCandle(60*60*24);//24hr
+    }
+
+    private function computeCandle($intervalSecs)
+    {
+        $mdDb = $this->mdb->market;
+
+        $now = time();
+
+        $ops = array(
+            array(
+                '$match' => array(
+                    'Timestamp' => array(
+                        '$gte' => new MongoDate(floor($now/$intervalSecs)*$intervalSecs),
+                        '$lt' => new MongoDate(floor($now/$intervalSecs)*$intervalSecs + $intervalSecs)
+                    )
+                )
+            ),
+            array(
+                '$group' => array(
+                    '_id' => array(
+                        'market' => '$Exchange',
+                        'pair' => '$CurrencyPair'
+                    ),
+                    'Open' => array('$first' => '$Last'),
+                    'High' => array('$max' => '$Last'),
+                    'Low' => array('$min' => '$Last'),
+                    'Close' => array('$last' => '$Last')
+                )
+            ),
+            array(
+                '$project' => array(
+                    '_id'=>0,
+                    'Exchange' => '$_id.market',
+                    'CurrencyPair' => '$_id.pair',
+                    'Timestamp' => array('$literal' => new MongoDate(floor($now/$intervalSecs)*$intervalSecs)),
+                    'Open'=>1, 'High'=>1, 'Low'=>1, 'Close'=>1
+                )
+            )
+        );
+
+        $res = $mdDb->aggregate($ops);
+
+        if($res['ok'] === 0)
+            throw new Exception("Aggregation didnt work");
+
+        ////////////////////////////////
+        $candleData = $this->mdb->candles;
+        foreach ($res['result'] as $item)
+        {
+            $candleData->update(
+                array('Timestamp' => $item['Timestamp'], 'Exchange' => $item['Exchange'],'CurrencyPair' => $item['CurrencyPair']),
+                $item,
+                array('upsert' => true)
+            );
+        }
     }
 
     public function depth($exchange_name, $currencyPair, OrderBook $depth){

@@ -7,8 +7,9 @@
  */
 
 require_once('IReporter.php');
+require_once('IStatisticsGenerator.php');
 
-class MultiReporter implements IReporter {
+class MultiReporter implements IReporter, IStatisticsGenerator {
 
     private $rptList = array();
 
@@ -144,6 +145,22 @@ class MultiReporter implements IReporter {
 
             $rpt->position($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp);
         }
+    }
+
+    public function computeMarketStats()
+    {
+        $ret = null;
+
+        foreach($this->rptList as $rpt){
+            if(!$rpt instanceof IStatisticsGenerator)
+                continue;
+
+            $r = $rpt->computeMarketStats();
+            if($ret === null)
+                $ret = $r;
+        }
+
+        return $ret;
     }
 
 

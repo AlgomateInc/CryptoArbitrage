@@ -48,6 +48,10 @@ class MarketDataMonitor extends ActionProcess {
                 syslog(LOG_WARNING, get_class($this) . ' could not get market data for: ' . $mkt->Name() . "\n$e");
             }
         }
+
+        //compute stats, if supported by reporter
+        if($this->reporter instanceof IStatisticsGenerator)
+            $this->reporter->computeMarketStats();
     }
 
     public function shutdown()
