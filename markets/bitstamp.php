@@ -76,6 +76,11 @@ class BitstampExchange extends BaseExchange
         return $t;
     }
 
+    public function trades($pair, $sinceDate)
+    {
+        return array();
+    }
+
     private function assertValidCurrencyPair($pair){
         if($pair != CurrencyPair::BTCUSD)
             throw new UnexpectedValueException("Currency pair not supported");

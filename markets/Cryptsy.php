@@ -104,6 +104,11 @@ class Cryptsy extends BtceStyleExchange implements ILifecycleHandler{
         return $t;
     }
 
+    public function trades($pair, $sinceDate)
+    {
+        return array();
+    }
+
     public function depth($currencyPair)
     {
         $depth = $this->assertSuccessResponse(

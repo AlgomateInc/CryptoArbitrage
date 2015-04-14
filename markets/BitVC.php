@@ -192,4 +192,9 @@ class BitVC extends BaseExchange implements IMarginExchange{
     {
         // TODO: Implement tradeHistory() method.
     }
+
+    public function trades($pair, $sinceDate)
+    {
+        return array();
+    }
 }

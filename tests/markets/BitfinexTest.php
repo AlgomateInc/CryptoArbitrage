@@ -57,6 +57,15 @@ class BitfinexTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testPublicTrades()
+    {
+        if($this->bf instanceof Bitfinex)
+        {
+            $res = $this->bf->trades(CurrencyPair::BTCUSD, time()-60);
+            $this->assertNotNull($res);
+        }
+    }
+
     private function checkAndCancelOrder($response)
     {
         $this->assertNotNull($response);

@@ -84,6 +84,11 @@ class BtceExchange extends BtceStyleExchange implements ILifecycleHandler
         return $t;
     }
 
+    public function trades($pair, $sinceDate)
+    {
+        return array();
+    }
+
     public function buy($pair, $quantity, $price)
     {
         $btcePairName = $this->getCurrencyPairName($pair);

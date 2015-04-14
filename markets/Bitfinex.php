@@ -73,6 +73,28 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
         return $t;
     }
 
+    public function trades($pair, $sinceDate)
+    {
+        $tradeList = curl_query($this->getApiUrl() . 'trades' . '/' . $pair . "?timestamp=$sinceDate");
+
+        $ret = array();
+
+        foreach($tradeList as $raw) {
+            $t = new Trade();
+            $t->currencyPair = $pair;
+            $t->exchange = $this->Name();
+            $t->tradeId = $raw['tid'];
+            $t->price = $raw['price'];
+            $t->quantity = $raw['amount'];
+            $t->timestamp = $raw['timestamp'];
+            $t->orderType = strtoupper($raw['type']);
+
+            $ret[] = $t;
+        }
+
+        return $ret;
+    }
+
     public function depth($currencyPair)
     {
         $raw = curl_query($this->getApiUrl() . 'book' . '/' . $currencyPair .
