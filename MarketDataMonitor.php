@@ -54,8 +54,8 @@ class MarketDataMonitor extends ActionProcess {
                     $trades = $mkt->trades($pair, $this->lastMktTradeDate[$mkt->Name()]);
                     if(count($trades) > 0) {
                         $latestTrade = $trades[0];
-                        if($latestTrade instanceof Trade)
-                            $this->lastMktTradeDate[$mkt->Name()] = $latestTrade->timestamp + 1;
+                        if($latestTrade instanceof Trade && $latestTrade->timestamp instanceof MongoDate)
+                            $this->lastMktTradeDate[$mkt->Name()] = $latestTrade->timestamp->sec + 1;
                         $this->reporter->trades($mkt->Name(), $pair, $trades);
                     }
                 }
@@ -71,6 +71,7 @@ class MarketDataMonitor extends ActionProcess {
 
     public function shutdown()
     {
+
     }
 }
 

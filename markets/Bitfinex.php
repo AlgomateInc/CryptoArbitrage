@@ -84,9 +84,9 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
             $t->currencyPair = $pair;
             $t->exchange = $this->Name();
             $t->tradeId = $raw['tid'];
-            $t->price = $raw['price'];
-            $t->quantity = $raw['amount'];
-            $t->timestamp = $raw['timestamp'];
+            $t->price = (float) $raw['price'];
+            $t->quantity = (float) $raw['amount'];
+            $t->timestamp = new MongoDate($raw['timestamp']);
             $t->orderType = strtoupper($raw['type']);
 
             $ret[] = $t;

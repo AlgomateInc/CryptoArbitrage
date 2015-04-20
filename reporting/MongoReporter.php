@@ -44,39 +44,47 @@ class MongoReporter implements IReporter, IStatisticsGenerator
 
     function computeMarketStats()
     {
-        $this->computeCandle(60);//1min
-        $this->computeCandle(60*5);//5min
-        $this->computeCandle(60*15);//15min
-        $this->computeCandle(60*60);//1hr
-        $this->computeCandle(60*60*4);//4hr
-        $this->computeCandle(60*60*24);//24hr
+        //1min, 5min, 15min, 1hr, 4hr, 24hr
+        $intervals = array(60, 60*5, 60*15, 60*60, 60*60*4, 60*60*24);
+
+        //compute this candle for each interval plus previous candle
+        //just in case we missed a few trades before the cutoff
+        //(ie computing candle at 11:01, trade came in at 10:59, last update 10:58)
+        $now = time();
+        foreach($intervals as $iVal)
+        {
+            $this->computeCandle($now - $iVal, $iVal);
+            $this->computeCandle($now, $iVal);
+        }
     }
 
-    private function computeCandle($intervalSecs)
+    private function computeCandle($time, $intervalSecs)
     {
-        $mdDb = $this->mdb->market;
-
-        $now = time();
+        $mdDb = $this->mdb->trades;
 
         $ops = array(
             array(
                 '$match' => array(
-                    'Timestamp' => array(
-                        '$gte' => new MongoDate(floor($now/$intervalSecs)*$intervalSecs),
-                        '$lt' => new MongoDate(floor($now/$intervalSecs)*$intervalSecs + $intervalSecs)
+                    'timestamp' => array(
+                        '$gte' => new MongoDate(floor($time/$intervalSecs)*$intervalSecs),
+                        '$lt' => new MongoDate(floor($time/$intervalSecs)*$intervalSecs + $intervalSecs)
                     )
                 )
             ),
             array(
                 '$group' => array(
                     '_id' => array(
-                        'market' => '$Exchange',
-                        'pair' => '$CurrencyPair'
+                        'market' => '$exchange',
+                        'pair' => '$currencyPair'
                     ),
-                    'Open' => array('$first' => '$Last'),
-                    'High' => array('$max' => '$Last'),
-                    'Low' => array('$min' => '$Last'),
-                    'Close' => array('$last' => '$Last')
+                    'Open' => array('$first' => '$price'),
+                    'High' => array('$max' => '$price'),
+                    'Low' => array('$min' => '$price'),
+                    'Close' => array('$last' => '$price'),
+                    'Volume' => array('$sum' => '$quantity'),
+                    'TradeCount' => array('$sum' => 1),
+                    'Buys' => array('$sum' => array('$cond' => array(array('$eq' => array('$orderType', 'BUY')), 1, 0))),
+                    'Sells' => array('$sum' => array('$cond' => array(array('$eq' => array('$orderType', 'SELL')), 1, 0)))
                 )
             ),
             array(
@@ -84,8 +92,10 @@ class MongoReporter implements IReporter, IStatisticsGenerator
                     '_id'=>0,
                     'Exchange' => '$_id.market',
                     'CurrencyPair' => '$_id.pair',
-                    'Timestamp' => array('$literal' => new MongoDate(floor($now/$intervalSecs)*$intervalSecs)),
-                    'Open'=>1, 'High'=>1, 'Low'=>1, 'Close'=>1
+                    'Timestamp' => array('$literal' => new MongoDate(floor($time/$intervalSecs)*$intervalSecs)),
+                    'Interval' => array('$literal' => $intervalSecs),
+                    'Open'=>1, 'High'=>1, 'Low'=>1, 'Close'=>1, 'Volume'=>1,
+                    'TradeCount'=>1, 'Buys'=>1, 'Sells'=>1
                 )
             )
         );
@@ -95,16 +105,24 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         if($res['ok'] === 0)
             throw new Exception("Aggregation didnt work");
 
+        if(count($res['result']) == 0)
+            return;
+
         ////////////////////////////////
         $candleData = $this->mdb->candles;
-        foreach ($res['result'] as $item)
-        {
-            $candleData->update(
-                array('Timestamp' => $item['Timestamp'], 'Exchange' => $item['Exchange'],'CurrencyPair' => $item['CurrencyPair']),
-                $item,
-                array('upsert' => true)
-            );
+        $candleData->ensureIndex(array('Timestamp' => -1, 'Exchange' => 1,
+            'CurrencyPair' => 1, 'Interval' => 1), array('unique' => true));
+
+        $batch = new MongoUpdateBatch($candleData);
+        foreach($res['result'] as $item){
+            $batch->add(array(
+                'q' => array('Timestamp' => $item['Timestamp'], 'Exchange' => $item['Exchange'],
+                    'CurrencyPair' => $item['CurrencyPair'], 'Interval' => $item['Interval']),
+                'u' => $item,
+                'upsert' => true
+            ));
         }
+        $batch->execute();
     }
 
     public function depth($exchange_name, $currencyPair, OrderBook $depth){
@@ -121,8 +139,22 @@ class MongoReporter implements IReporter, IStatisticsGenerator
     
     public function trades($exchange_name, $currencyPair, $trades){
         $tradeCollection = $this->mdb->trades;
+        $tradeCollection->ensureIndex(array('timestamp' => -1, 'exchange' => 1,
+            'currencyPair' => 1, 'tradeId' => -1), array('unique' => true));
 
-        $tradeCollection->ensureIndex(array('Timestamp' => -1));
+//        $batch = new MongoUpdateBatch($tradeCollection);
+//        foreach($trades as $t){
+//            if(!$t instanceof Trade)
+//                throw new Exception('Non-trade passed for reporting!!');
+//
+//            $batch->add(array(
+//                'q' => array('timestamp' => $t->timestamp, 'exchange' => $t->exchange,'currencyPair'=>$t->currencyPair,
+//                    'tradeId'=> $t->tradeId),
+//                'u' => $t,
+//                'upsert'=>true
+//            ));
+//        }
+//        $batch->execute();
 
         $tradeCollection->batchInsert($trades);
     }

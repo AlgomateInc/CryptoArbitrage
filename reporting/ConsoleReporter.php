@@ -38,8 +38,7 @@ class ConsoleReporter implements IReporter
     }
     
     public function trades($exchange_name, $currencyPair, $trades){
-        print "$exchange_name - $currencyPair\n";
-        var_dump($trades);
+        print "$exchange_name - $currencyPair - " . json_encode($trades) . "\n";
     }
 
     public function trade($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp)
