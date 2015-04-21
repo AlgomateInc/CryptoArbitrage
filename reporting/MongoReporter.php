@@ -84,7 +84,10 @@ class MongoReporter implements IReporter, IStatisticsGenerator
                     'Volume' => array('$sum' => '$quantity'),
                     'TradeCount' => array('$sum' => 1),
                     'Buys' => array('$sum' => array('$cond' => array(array('$eq' => array('$orderType', 'BUY')), 1, 0))),
-                    'Sells' => array('$sum' => array('$cond' => array(array('$eq' => array('$orderType', 'SELL')), 1, 0)))
+                    'Sells' => array('$sum' => array('$cond' => array(array('$eq' => array('$orderType', 'SELL')), 1, 0))),
+                    'BuyVolume' => array('$sum' => array('$cond' => array(array('$eq' => array('$orderType', 'BUY')), '$quantity', 0))),
+                    'SellVolume' => array('$sum' => array('$cond' => array(array('$eq' => array('$orderType', 'SELL')), '$quantity', 0))),
+                    'PxTimesVol' => array('$sum' => array('$multiply' => array('$price', '$quantity')))
                 )
             ),
             array(
@@ -95,7 +98,8 @@ class MongoReporter implements IReporter, IStatisticsGenerator
                     'Timestamp' => array('$literal' => new MongoDate(floor($time/$intervalSecs)*$intervalSecs)),
                     'Interval' => array('$literal' => $intervalSecs),
                     'Open'=>1, 'High'=>1, 'Low'=>1, 'Close'=>1, 'Volume'=>1,
-                    'TradeCount'=>1, 'Buys'=>1, 'Sells'=>1
+                    'TradeCount'=>1, 'Buys'=>1, 'Sells'=>1, 'BuyVolume'=>1, 'SellVolume'=>1,
+                    'TradeVWAP' => array('$divide' => array('$PxTimesVol', '$Volume'))
                 )
             )
         );

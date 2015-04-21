@@ -47,8 +47,8 @@ class MongoReporterTest extends PHPUnit_Framework_TestCase {
             if($c['TradeCount'] != count(iterator_to_array($trades)))
                 print "count mismatch: " . $c['TradeCount'] .'!='. count(iterator_to_array($trades));
             print "\n";
-//            $this->assertCount($c['TradeCount'], $trades);
-            continue;
+            $this->assertCount($c['TradeCount'], $trades);
+            //continue;
 
             ////////////////////////////////
             // check aggregated columns
@@ -57,6 +57,7 @@ class MongoReporterTest extends PHPUnit_Framework_TestCase {
             $volume = 0;
             $buys = 0;
             $sells = 0;
+            $pxTimesVol = 0;
             foreach($trades as $t)
             {
                 if($t['price'] > $highPx)
@@ -65,6 +66,7 @@ class MongoReporterTest extends PHPUnit_Framework_TestCase {
                     $lowPx = $t['price'];
 
                 $volume += $t['quantity'];
+                $pxTimesVol += $t['quantity'] * $t['price'];
                 $buys += ($t['orderType'] == OrderType::BUY)? 1 : 0;
                 $sells += ($t['orderType'] == OrderType::SELL)? 1 : 0;
             }
@@ -73,6 +75,11 @@ class MongoReporterTest extends PHPUnit_Framework_TestCase {
             $this->assertEquals($c['Volume'], $volume);
             $this->assertEquals($c['Buys'], $buys);
             $this->assertEquals($c['Sells'], $sells);
+
+            if($volume > 0){
+                $tradeVwap = $pxTimesVol / $volume;
+                $this->assertEquals($c['TradeVWAP'], $tradeVwap);
+            }
         }
     }
 }
