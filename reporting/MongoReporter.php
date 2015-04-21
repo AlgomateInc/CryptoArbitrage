@@ -142,21 +142,21 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         $tradeCollection->ensureIndex(array('timestamp' => -1, 'exchange' => 1,
             'currencyPair' => 1, 'tradeId' => -1), array('unique' => true));
 
-//        $batch = new MongoUpdateBatch($tradeCollection);
-//        foreach($trades as $t){
-//            if(!$t instanceof Trade)
-//                throw new Exception('Non-trade passed for reporting!!');
-//
-//            $batch->add(array(
-//                'q' => array('timestamp' => $t->timestamp, 'exchange' => $t->exchange,'currencyPair'=>$t->currencyPair,
-//                    'tradeId'=> $t->tradeId),
-//                'u' => $t,
-//                'upsert'=>true
-//            ));
-//        }
-//        $batch->execute();
+        $batch = new MongoUpdateBatch($tradeCollection);
+        foreach($trades as $t){
+            if(!$t instanceof Trade)
+                throw new Exception('Non-trade passed for reporting!!');
 
-        $tradeCollection->batchInsert($trades);
+            $batch->add(array(
+                'q' => array('timestamp' => $t->timestamp, 'exchange' => $t->exchange,'currencyPair'=>$t->currencyPair,
+                    'tradeId'=> $t->tradeId),
+                'u' => $t,
+                'upsert'=>true
+            ));
+        }
+        $batch->execute();
+
+//        $tradeCollection->batchInsert($trades);
     }
 
     public function trade($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp)
