@@ -72,15 +72,18 @@ class MongoReporter implements IReporter, IStatisticsGenerator
                 )
             ),
             array(
+                '$sort' => array('timestamp' => -1) //should be sorted same as index
+            ),
+            array(
                 '$group' => array(
                     '_id' => array(
                         'market' => '$exchange',
                         'pair' => '$currencyPair'
                     ),
-                    'Open' => array('$first' => '$price'),
+                    'Open' => array('$last' => '$price'),
                     'High' => array('$max' => '$price'),
                     'Low' => array('$min' => '$price'),
-                    'Close' => array('$last' => '$price'),
+                    'Close' => array('$first' => '$price'),
                     'Volume' => array('$sum' => '$quantity'),
                     'TradeCount' => array('$sum' => 1),
                     'Buys' => array('$sum' => array('$cond' => array(array('$eq' => array('$orderType', 'BUY')), 1, 0))),

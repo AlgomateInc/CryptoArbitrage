@@ -42,7 +42,7 @@ class MongoReporterTest extends PHPUnit_Framework_TestCase {
                         '$gte' => $date,
                         '$lt' => $endDate
                     )
-            ));
+            ))->sort(array('timestamp' => 1));
 
             if($c['TradeCount'] != count(iterator_to_array($trades)))
                 print "count mismatch: " . $c['TradeCount'] .'!='. count(iterator_to_array($trades));
@@ -58,18 +58,25 @@ class MongoReporterTest extends PHPUnit_Framework_TestCase {
             $buys = 0;
             $sells = 0;
             $pxTimesVol = 0;
+            $openPx = null;
+            $closePx = 0;
             foreach($trades as $t)
             {
                 if($t['price'] > $highPx)
                     $highPx = $t['price'];
                 if($t['price'] < $lowPx)
                     $lowPx = $t['price'];
+                if($openPx == null)
+                    $openPx = $t['price'];
+                $closePx = $t['price'];
 
                 $volume += $t['quantity'];
                 $pxTimesVol += $t['quantity'] * $t['price'];
                 $buys += ($t['orderType'] == OrderType::BUY)? 1 : 0;
                 $sells += ($t['orderType'] == OrderType::SELL)? 1 : 0;
             }
+            $this->assertEquals($c['Open'], $openPx);
+            $this->assertEquals($c['Close'], $closePx);
             $this->assertEquals($c['High'], $highPx);
             $this->assertEquals($c['Low'], $lowPx);
             $this->assertEquals($c['Volume'], $volume);
