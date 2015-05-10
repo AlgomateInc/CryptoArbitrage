@@ -12,10 +12,14 @@ class MarketOrderInstructions implements IStrategyInstructions, IStrategyOrder {
     public $type;
     public $size;
 
+    public $triggerPrice;
+
     public function load($data)
     {
         if(isset($data['Exchange']))
             $this->exchange = $data['Exchange'];
+        if(isset($data['TriggerPrice']))
+            $this->triggerPrice = $data['TriggerPrice'];
 
         $this->currencyPair = $data['CurrencyPair'];
         $this->type = strtoupper($data['Type']);
