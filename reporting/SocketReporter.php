@@ -91,7 +91,13 @@ class SocketReporter implements IReporter {
 
     public function trades($exchange_name, $currencyPair, $trades)
     {
-        // TODO: Implement trades() method.
+        $data = array(
+            'MessageType' => 'Trade',
+            'Exchange' => $exchange_name,
+            'CurrencyPair' => $currencyPair,
+            'Trades' => $trades
+        );
+        $this->send($data);
     }
 
     public function transaction($exchange_name, $id, $type, $currency, $amount, $timestamp)
