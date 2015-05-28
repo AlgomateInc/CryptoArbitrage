@@ -36,8 +36,7 @@ abstract class ActionProcess {
             "file:",
             "monitor::",
             "fork",
-            'host:',
-            'port:'
+            'socket:'
         );
         if(is_array($objOptions))
             $longopts = array_merge($longopts, $objOptions);
@@ -56,11 +55,14 @@ abstract class ActionProcess {
         if(array_key_exists("file", $options) && isset($options['file']))
             $this->reporter->add(new FileReporter($options['file']));
 
-        if(array_key_exists("host", $options) &&
-            isset($options['host']) &&
-            array_key_exists("port", $options) &&
-            isset($options['port']))
-            $this->reporter->add(new SocketReporter($options['host'], $options['port']));
+        if(array_key_exists('socket', $options) && isset($options['socket']))
+        {
+            $host = parse_url($options['socket'], PHP_URL_HOST);
+            $port = parse_url($options['socket'], PHP_URL_PORT);
+
+            if($host != null && $port != null)
+                $this->reporter->add(new SocketReporter($host, $port));
+        }
 
         if(array_key_exists('console', $options) || $this->reporter->count() == 0)
             $this->reporter->add(new ConsoleReporter());
