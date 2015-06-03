@@ -122,16 +122,13 @@ class Ticker{
 }
 
 class OrderBook{
-    public $bids;
-    public $asks;
+    public $bids = array();
+    public $asks = array();
 
     public function __construct($rawBook = null)
     {
         if($rawBook == null)
             return;
-
-        $this->asks = array();
-        $this->bids = array();
 
         $bookSides = array(
             array($rawBook['bids'], & $this->bids),

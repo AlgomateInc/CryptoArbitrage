@@ -8,6 +8,7 @@ require_once('reporting/ConsoleReporter.php');
 require_once('reporting/MongoReporter.php');
 require_once('reporting/FileReporter.php');
 require_once('reporting/SocketReporter.php');
+require_once('markets/TestMarket.php');
 
 abstract class ActionProcess {
 
@@ -37,7 +38,8 @@ abstract class ActionProcess {
             "file:",
             "monitor::",
             "fork",
-            'socket:'
+            'socket:',
+            'testmarket'
         );
         if(is_array($objOptions))
             $longopts = array_merge($longopts, $objOptions);
@@ -73,13 +75,18 @@ abstract class ActionProcess {
 
         ////////////////////////////////
         // Load all the accounts data
-        $accountLoader = null;
-        if(array_key_exists("mongodb", $options))
-            $accountLoader = new MongoAccountLoader();
+        if(array_key_exists('testmarket', $options))
+            $this->exchanges = array('TestMarket' => new TestMarket());
         else
-            $accountLoader = new ConfigAccountLoader();
+        {
+            $accountLoader = null;
+            if(array_key_exists("mongodb", $options))
+                $accountLoader = new MongoAccountLoader();
+            else
+                $accountLoader = new ConfigAccountLoader();
 
-        $this->exchanges = $accountLoader->getAccounts();
+            $this->exchanges = $accountLoader->getAccounts();
+        }
 
         ////////////////////////////////
         if(array_key_exists("monitor", $options)){
