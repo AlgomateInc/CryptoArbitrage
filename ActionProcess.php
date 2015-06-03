@@ -12,6 +12,7 @@ require_once('reporting/SocketReporter.php');
 abstract class ActionProcess {
 
     protected $reporter;
+    protected $listener;
     private $monitor = false;
     private $monitor_timeout = 20;
     private $fork = false;
@@ -60,8 +61,11 @@ abstract class ActionProcess {
             $host = parse_url($options['socket'], PHP_URL_HOST);
             $port = parse_url($options['socket'], PHP_URL_PORT);
 
-            if($host != null && $port != null)
-                $this->reporter->add(new SocketReporter($host, $port));
+            if($host != null && $port != null) {
+                $sr = new SocketReporter($host, $port);
+                $this->reporter->add($sr);
+                $this->listener = $sr;
+            }
         }
 
         if(array_key_exists('console', $options) || $this->reporter->count() == 0)

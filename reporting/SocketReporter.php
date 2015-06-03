@@ -6,7 +6,9 @@
  * Time: 14:19
  */
 
-class SocketReporter implements IReporter {
+require_once(__DIR__ . '/../listener/IListener.php');
+
+class SocketReporter implements IReporter, IListener {
 
     private $socket = null;
     private $host = null;
@@ -51,6 +53,20 @@ class SocketReporter implements IReporter {
             $errStr = socket_strerror($err);
             throw new Exception("Socket write failed with code $err: $errStr");
         }
+    }
+
+    public function receive()
+    {
+        $data = socket_read($this->socket, 4096, PHP_NORMAL_READ);
+
+        if($data === FALSE){
+            $err = socket_last_error($this->socket);
+            $errStr = socket_strerror($err);
+            throw new Exception("Socket write failed with code $err: $errStr");
+        }
+
+        $msg = json_decode($data, true);
+        return $msg;
     }
 
     public function balance($exchange_name, $currency, $balance)
