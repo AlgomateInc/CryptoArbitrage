@@ -133,7 +133,17 @@ class SocketReporter implements IReporter, IListener {
 
     public function order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $arbid)
     {
-        // TODO: Implement order() method.
+        $data = array(
+            'MessageType' => 'Order',
+            'Exchange' => $exchange,
+            'OrderType' => $type,
+            'Quantity' => $quantity,
+            'Price' => $price,
+            'OrderId' => $orderId,
+            'MarketResponse' => $orderResponse,
+            'StrategyId' => $arbid
+        );
+        $this->send($data);
     }
 
     public function execution($arbId, $orderId, $market, $txid, $quantity, $price, $timestamp)

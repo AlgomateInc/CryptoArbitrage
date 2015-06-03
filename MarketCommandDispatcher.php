@@ -1,22 +1,34 @@
 <?php
 
 require_once('ActionProcess.php');
+require_once('strategy/MarketCommandStrategy.php');
+require_once('trading/ActiveOrderManager.php');
+require_once('trading/ExecutionManager.php');
 
 class MarketCommandDispatcher extends ActionProcess {
 
+    private $liveTrade = false;
+
+    private $activeOrderManager;
+    private $executionManager;
+
     public function getProgramOptions()
     {
-
+        return array('live');
     }
 
     public function processOptions($options)
     {
-
+        if(array_key_exists("live", $options))
+            $this->liveTrade = true;
     }
 
     public function init()
     {
+        $this->activeOrderManager = new ActiveOrderManager('activeOrders.json', $this->exchanges, $this->reporter);
+        $this->executionManager = new ExecutionManager($this->activeOrderManager, $this->exchanges, $this->reporter);
 
+        $this->executionManager->setLiveTrade($this->liveTrade);
     }
 
     public function run()
@@ -24,9 +36,11 @@ class MarketCommandDispatcher extends ActionProcess {
         if(!$this->listener instanceof IListener)
             throw new Exception('Listener is not the right type!');
 
+        if(!$this->executionManager instanceof ExecutionManager)
+            throw new Exception('Wrong execution manager type!');
+
         //get the command from the server
         $command = $this->listener->receive();
-        var_dump($command);
         $cmdName = $command['Name'];
         $cmdData = $command['Data'];
 
@@ -34,12 +48,11 @@ class MarketCommandDispatcher extends ActionProcess {
         switch($cmdName)
         {
             case 'NewOrder': {
-                $o = new Order();
-                $o->currencyPair = $cmdData['CurrencyPair'];
-                $o->exchange = $cmdData['Market'];
-                $o->limit = $cmdData['Price'];
-                $o->quantity = $cmdData['Quantity'];
-                $o->orderType = $cmdData['OrderType'];
+                $strategy = new MarketCommandStrategy();
+                $strategyOrder = $strategy->run($cmdData, $this->exchanges, null);
+
+                if($strategyOrder instanceof IStrategyOrder)
+                    $this->executionManager->executeStrategy($strategy, $strategyOrder);
 
                 break;
             }
