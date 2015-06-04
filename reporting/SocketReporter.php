@@ -150,9 +150,20 @@ class SocketReporter implements IReporter, IListener {
         $this->send($data);
     }
 
-    public function execution($arbId, $orderId, $market, $txid, $quantity, $price, $timestamp)
+    public function execution($strategyId, $orderId, $market, $txId, $quantity, $price, $timestamp)
     {
-        // TODO: Implement execution() method.
+        $data = array(
+            'MessageType' => 'Execution',
+            'StrategyId' => $strategyId,
+            'OrderId' => $orderId,
+            'Exchange' => $market,
+            'ExecutionId' => $txId,
+            'Quantity' => $quantity,
+            'Price' => $price,
+            'Timestamp' => $timestamp
+        );
+
+        $this->send($data);
     }
 
     public function trade($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp)
