@@ -98,11 +98,6 @@ class ExecutionManager {
             $someOrdersFailed = $someOrdersFailed || !$orderAccepted;
         }
 
-        //if all orders failed, simply throw an exception
-        //no damage was done as we are still position-neutral
-        if($allOrdersFailed)
-            throw new Exception("Order entry failed for strategy: $strategyOrderId");
-
         //TODO:if just some of the orders failed, we need to correct our position
         //TODO:right now, stop trading
         if($someOrdersFailed){

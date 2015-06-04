@@ -62,7 +62,20 @@ class TestMarket extends BaseExchange
 
     public function trades($pair, $sinceDate)
     {
-        // TODO: Implement trades() method.
+        $ret = array();
+
+        $t = new Trade();
+        $t->currencyPair = $pair;
+        $t->exchange = $this->Name();
+        $t->tradeId = '234923';
+        $t->price = 15.5;
+        $t->quantity = 28;
+        $t->timestamp = new MongoDate();
+        $t->orderType = OrderType::SELL;
+
+        $ret[] = $t;
+
+        return $ret;
     }
 
     public function depth($currencyPair)

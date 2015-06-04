@@ -128,7 +128,7 @@ class SocketReporter implements IReporter, IListener {
 
     public function strategyOrder($strategyId, $iso)
     {
-        // TODO: Implement strategy() method.
+        return $strategyId;
     }
 
     public function order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $arbid)
@@ -139,10 +139,14 @@ class SocketReporter implements IReporter, IListener {
             'OrderType' => $type,
             'Quantity' => $quantity,
             'Price' => $price,
-            'OrderId' => $orderId,
             'MarketResponse' => $orderResponse,
             'StrategyId' => $arbid
         );
+
+        if($orderId != null){
+            $data['OrderId'] = $orderId;
+        }
+
         $this->send($data);
     }
 

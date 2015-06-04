@@ -93,27 +93,36 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
 
     public function strategyOrder($strategyId, $iso)
     {
-        $ret = null;
+        $ret = array();
 
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
                 throw new Exception('Invalid reporter in multi-reporter');
 
-            $r = $rpt->strategyOrder($strategyId, $iso);
-            if($ret === null)
-                $ret = $r;
+            $ret[] = array(
+                'IReporter' => $rpt,
+                'StrategyId' => $rpt->strategyOrder($strategyId, $iso));
         }
 
         return $ret;
     }
 
-    public function order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $arbid)
+    public function order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $strategyIdList)
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
                 throw new Exception('Invalid reporter in multi-reporter');
 
-            $rpt->order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $arbid);
+            //find the right strategyid for this reporter (previous call to strategyOrder
+            //gave a list, per each reporter)
+            $strategyId = null;
+            if(is_array($strategyIdList))
+                foreach($strategyIdList as $rptStrategyInfo){
+                    if($rptStrategyInfo['IReporter'] == $rpt)
+                        $strategyId = $rptStrategyInfo['StrategyId'];
+                }
+
+            $rpt->order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $strategyId);
         }
     }
 
