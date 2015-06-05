@@ -14,8 +14,13 @@ class SocketReporter implements IReporter, IListener {
     private $host = null;
     private $port = null;
 
-    public function __construct($host, $port)
+    private $canListen;
+
+    public function __construct($host, $port, $listen = false)
     {
+        $this->canListen = $listen;
+
+        ///////////////////
         $sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         if($sock === false){
             $err = socket_last_error();
@@ -34,13 +39,35 @@ class SocketReporter implements IReporter, IListener {
             $errStr = socket_strerror($err);
             throw new Exception("Socket connection failed with code $err: $errStr");
         }
-
+        $this->sendLoginMessage();
     }
 
     function __destruct()
     {
-        if($this->socket != null)
+        if($this->socket != null){
+            $this->sendLogoffMessage();
+            sleep(1); //massive hack...gives server time to process logoff message
+            //before we kill socket...ideally we wait for response from server...oh well
             socket_close($this->socket);
+        }
+    }
+
+    private function sendLoginMessage()
+    {
+        $data = array(
+            'MessageType' => 'Login',
+            'Identifier' => gethostname(),
+            'Listener' => $this->canListen
+        );
+        $this->send($data);
+    }
+
+    private function sendLogoffMessage()
+    {
+        $data = array(
+            'MessageType' => 'Logoff'
+        );
+        $this->send($data);
     }
 
     private function send($data)

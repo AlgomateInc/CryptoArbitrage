@@ -14,6 +14,7 @@ abstract class ActionProcess {
 
     protected $reporter;
     protected $listener;
+    protected $requiresListener = false;
     private $monitor = false;
     private $monitor_timeout = 20;
     private $fork = false;
@@ -64,9 +65,11 @@ abstract class ActionProcess {
             $port = parse_url($options['socket'], PHP_URL_PORT);
 
             if($host != null && $port != null) {
-                $sr = new SocketReporter($host, $port);
+                $sr = new SocketReporter($host, $port, $this->requiresListener);
                 $this->reporter->add($sr);
-                $this->listener = $sr;
+
+                if($this->requiresListener)
+                    $this->listener = $sr;
             }
         }
 
