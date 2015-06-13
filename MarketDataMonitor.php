@@ -32,6 +32,8 @@ class MarketDataMonitor extends ActionProcess {
             if(!$mkt instanceof IExchange)
                 continue;
 
+            $logger = Logger::getLogger(get_class($this));
+
             try {
                 foreach ($mkt->supportedCurrencyPairs() as $pair) {
                     $tickData = $mkt->ticker($pair);
@@ -60,7 +62,7 @@ class MarketDataMonitor extends ActionProcess {
                     }
                 }
             }catch(Exception $e){
-                syslog(LOG_WARNING, get_class($this) . ' could not get market data for: ' . $mkt->Name() . "\n$e");
+                $logger->warn('Could not get market data for: ' . $mkt->Name(), $e);
             }
         }
 

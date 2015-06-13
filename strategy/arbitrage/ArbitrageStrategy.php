@@ -21,6 +21,8 @@ class ArbitrageStrategy extends BaseStrategy {
 
     public function run($instructions, $markets, $balances)
     {
+        $logger = Logger::getLogger(get_class($this));
+
         $arbLoader = new SingleArbInstructionLoader($instructions);
         $inst = $arbLoader->load();
 
@@ -28,7 +30,7 @@ class ArbitrageStrategy extends BaseStrategy {
         // Check the necessary markets exist and support trading for pair
         //////////////////////////////////////////
         if(!array_key_exists($inst->buyExchange, $markets) || !array_key_exists($inst->sellExchange, $markets)){
-            syslog(LOG_WARNING, 'Markets in arbitrage instructions not supported');
+            $logger->warn('Markets in arbitrage instructions not supported');
             return null;
         }
 
@@ -38,7 +40,7 @@ class ArbitrageStrategy extends BaseStrategy {
             return null;
 
         if(!($buyMarket->supports($inst->currencyPair) && $sellMarket->supports($inst->currencyPair))){
-            syslog(LOG_WARNING, 'Markets in arbitrage instructions do not support pair: ' . $inst->currencyPair);
+            $logger->warn('Markets in arbitrage instructions do not support pair: ' . $inst->currencyPair);
             return null;
         }
 
@@ -59,7 +61,7 @@ class ArbitrageStrategy extends BaseStrategy {
         $buyDepth = static::$depth[$inst->buyExchange][$inst->currencyPair];
         $sellDepth = static::$depth[$inst->sellExchange][$inst->currencyPair];
         if(!($buyDepth instanceof OrderBook && $sellDepth instanceof OrderBook)){
-            syslog(LOG_WARNING, 'Markets returned depth in wrong format: ' .
+            $logger->warn('Markets returned depth in wrong format: ' .
                 $inst->buyExchange . ',' . $inst->sellExchange);
             return null;
         }

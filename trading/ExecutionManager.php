@@ -101,7 +101,7 @@ class ExecutionManager {
         //TODO:if just some of the orders failed, we need to correct our position
         //TODO:right now, stop trading
         if($someOrdersFailed){
-            syslog(LOG_CRIT, 'Position imbalance! Strategy order entry failed.');
+            Logger::getLogger(get_class($this))->error('Position imbalance! Strategy order entry failed.');
             $this->liveTrade = false;
         }
     }

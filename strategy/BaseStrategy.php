@@ -30,8 +30,10 @@ abstract class BaseStrategy implements IStrategy {
      */
     protected function findMarket($markets, $marketName, $pair)
     {
+        $logger = Logger::getLogger(get_class($this));
+
         if(!array_key_exists($marketName, $markets)){
-            syslog(LOG_WARNING, 'Market in strategy instructions not supported');
+            $logger->warn('Market in strategy instructions not supported');
             return null;
         }
 
@@ -40,7 +42,7 @@ abstract class BaseStrategy implements IStrategy {
             return null;
 
         if(!($market->supports($pair))){
-            syslog(LOG_WARNING, 'Market in strategy instructions does not support pair: ' . $pair);
+            $logger->warn('Market in strategy instructions does not support pair: ' . $pair);
             return null;
         }
 

@@ -1,5 +1,10 @@
 <?php
 
+require_once('config.php');
+
+include_once('log4php/Logger.php');
+Logger::configure($log4phpConfig);
+
 require_once('common.php');
 require_once('ConfigAccountLoader.php');
 require_once('MongoAccountLoader.php');
@@ -118,14 +123,15 @@ abstract class ActionProcess {
 
     public function start()
     {
-        syslog(LOG_INFO, get_class($this) . ' is starting');
+        date_default_timezone_set('UTC');
+
+        $logger = Logger::getLogger(get_class($this));
+        $logger->info(get_class($this) . ' is starting');
 
         try{
-            date_default_timezone_set('UTC');
-
             $this->processCommandLine();
         }catch(Exception $e){
-            syslog(LOG_ERR, $e);
+            $logger->error('Preparation error', $e);
             exit(1);
         }
 
@@ -138,7 +144,7 @@ abstract class ActionProcess {
                 $this->run();
                 $this->shutdown();
             }catch(Exception $e){
-                syslog(LOG_ERR, $e);
+                $logger->error('Execution error', $e);
                 exit(1);
             }
             exit;
@@ -159,7 +165,7 @@ abstract class ActionProcess {
 
         //perform the monitoring loop
         try{
-            syslog(LOG_INFO, get_class($this) . ' - monitoring starting');
+            $logger->info(get_class($this) . ' - monitoring starting');
             $this->initialize();
 
             do {
@@ -168,9 +174,9 @@ abstract class ActionProcess {
             }while($this->monitor);
 
             $this->shutdown();
-            syslog(LOG_INFO, get_class($this) . ' - monitoring finished');
+            $logger->info(get_class($this) . ' - monitoring finished');
         }catch(Exception $e){
-            syslog(LOG_ERR, $e);
+            $logger->error('Execution error', $e);
             exit(1);
         }
 

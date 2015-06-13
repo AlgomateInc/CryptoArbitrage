@@ -41,6 +41,8 @@ class StrategyProcessor extends ActionProcess {
 
     public function run()
     {
+        $logger = Logger::getLogger(get_class($this));
+
         //////////////////////////////////////////
         // Fetch the account balances and transaction history
         //////////////////////////////////////////
@@ -63,7 +65,7 @@ class StrategyProcessor extends ActionProcess {
                 try{
                     $balList = $mkt->balances();
                 }catch(Exception $e){
-                    syslog(LOG_WARNING, $e->getTraceAsString());
+                    $logger->warn('Problem getting balances for market: ' . $mkt->Name(), $e);
                     unset($balances[$mkt->Name()]);
                 }
 
@@ -315,7 +317,7 @@ class StrategyProcessor extends ActionProcess {
         //TODO:if just some of the orders failed, we need to correct our position
         //TODO:right now, stop trading
         if($someOrdersFailed){
-            syslog(LOG_CRIT, 'Position imbalance! Strategy order entry failed.');
+            Logger::getLogger(get_class($this))->error('Position imbalance! Strategy order entry failed.');
             $this->liveTrade = false;
         }
     }

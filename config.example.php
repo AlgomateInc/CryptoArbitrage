@@ -3,6 +3,23 @@
 $mongodb_uri = 'mongodb://localhost';
 $mongodb_db = 'coindata';
 
+$log4phpConfig = array(
+    'rootLogger' => array(
+        'appenders' => array('default'),
+    ),
+    'appenders' => array(
+        'default' => array(
+            'class' => 'LoggerAppenderConsole',
+            'layout' => array(
+                'class' => 'LoggerLayoutPattern',
+                'params' => array(
+                    'conversionPattern' => '%date %logger %-5level %msg%n'
+                )
+            )
+        )
+    )
+);
+
 $accountsConfig = array(
     'Btce' => array(
         'key' => 'BTCEKEY',
