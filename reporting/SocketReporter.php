@@ -89,7 +89,7 @@ class SocketReporter implements IReporter, IListener {
         if($data === FALSE){
             $err = socket_last_error($this->socket);
             $errStr = socket_strerror($err);
-            throw new Exception("Socket write failed with code $err: $errStr");
+            throw new Exception("Socket read failed with code $err: $errStr");
         }
 
         $msg = json_decode($data, true);
