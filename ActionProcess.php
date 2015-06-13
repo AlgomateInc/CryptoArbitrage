@@ -124,6 +124,7 @@ abstract class ActionProcess {
     public function start()
     {
         date_default_timezone_set('UTC');
+        error_reporting(E_ALL);
 
         $logger = Logger::getLogger(get_class($this));
         $logger->info(get_class($this) . ' is starting');

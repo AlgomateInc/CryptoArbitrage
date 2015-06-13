@@ -33,7 +33,7 @@ class SocketReporter implements IReporter, IListener {
 
         //connect to the destination server
         $address = gethostbyname($host);
-        $result = socket_connect($sock, $address, $port);
+        $result = @socket_connect($sock, $address, $port);
         if($result === false){
             $err = socket_last_error($sock);
             $errStr = socket_strerror($err);
@@ -74,7 +74,7 @@ class SocketReporter implements IReporter, IListener {
     {
         $msg = json_encode($data) . "\n";
 
-        $res = socket_write($this->socket, $msg);
+        $res = @socket_write($this->socket, $msg);
         if($res === FALSE){
             $err = socket_last_error($this->socket);
             $errStr = socket_strerror($err);
@@ -84,7 +84,7 @@ class SocketReporter implements IReporter, IListener {
 
     public function receive()
     {
-        $data = socket_read($this->socket, 4096, PHP_NORMAL_READ);
+        $data = @socket_read($this->socket, 4096, PHP_NORMAL_READ);
 
         if($data === FALSE){
             $err = socket_last_error($this->socket);
