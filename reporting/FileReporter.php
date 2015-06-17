@@ -60,6 +60,11 @@ class FileReporter implements IReporter {
         // TODO: Implement order() method.
     }
 
+    public function cancel($strategyId, $orderId, $cancelQuantity, $cancelResponse)
+    {
+
+    }
+
     public function execution($arbId, $orderId, $market, $txid, $quantity, $price, $timestamp)
     {
         // TODO: Implement execution() method.

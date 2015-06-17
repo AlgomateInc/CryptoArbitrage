@@ -72,6 +72,12 @@ class ConsoleReporter implements IReporter
         }
     }
 
+    public function cancel($strategyId, $orderId, $cancelQuantity, $cancelResponse)
+    {
+        print "Order ($orderId) quantity cancelled: $cancelQuantity\n";
+        var_dump($cancelResponse);
+    }
+
     public function execution($arbId, $orderId, $market, $txid, $quantity, $price, $timestamp)
     {
         print "Execution ($txid) for order $orderId: $market, $quantity @ $price; $timestamp\n";

@@ -202,4 +202,17 @@ class SocketReporter implements IReporter, IListener {
     {
         // TODO: Implement position() method.
     }
+
+    public function cancel($strategyId, $orderId, $cancelQuantity, $cancelResponse)
+    {
+        $data = array(
+            'MessageType' => 'Cancel',
+            'StrategyId' => $strategyId,
+            'OrderId' => $orderId,
+            'CancelQuantity' => $cancelQuantity,
+            'CancelResponse' => $cancelResponse
+        );
+
+        $this->send($data);
+    }
 }

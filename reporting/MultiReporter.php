@@ -126,6 +126,16 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
         }
     }
 
+    public function cancel($strategyId, $orderId, $cancelQuantity, $cancelResponse)
+    {
+        foreach($this->rptList as $rpt){
+            if(!$rpt instanceof IReporter)
+                throw new Exception('Invalid reporter in multi-reporter');
+
+            $rpt->cancel($strategyId, $orderId, $cancelQuantity, $cancelResponse);
+        }
+   }
+
     public function execution($arbId, $orderId, $market, $txid, $quantity, $price, $timestamp)
     {
         foreach($this->rptList as $rpt){

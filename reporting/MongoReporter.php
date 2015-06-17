@@ -254,6 +254,21 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             array('upsert'=>true)
         );
     }
+
+    public function cancel($strategyId, $orderId, $cancelQuantity, $cancelResponse)
+    {
+        $cancelInfo = array(
+            'CancelQuantity'=>$cancelQuantity,
+            'CancelResponse'=>$cancelResponse,
+            'Timestamp'=>time()
+        );
+
+        $strategies = $this->mdb->strategyorder;
+        $strategies->update(
+            array('_id' => $strategyId, "Orders.OrderID" => $orderId),
+            array('$set' => array("Orders.$.CancelInfo" => $cancelInfo))
+        );
+    }
 }
 
 ?>

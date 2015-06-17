@@ -59,6 +59,11 @@ class MarketCommandDispatcher extends ActionProcess {
                 break;
             }
 
+            case 'CancelOrder': {
+
+                break;
+            }
+
             default:
                 break;
         }
