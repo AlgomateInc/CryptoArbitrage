@@ -209,8 +209,8 @@ class SocketReporter implements IReporter, IListener {
             'MessageType' => 'Cancel',
             'StrategyId' => $strategyId,
             'OrderId' => $orderId,
-            'CancelQuantity' => $cancelQuantity,
-            'CancelResponse' => $cancelResponse
+            'Quantity' => $cancelQuantity,
+            'MarketResponse' => $cancelResponse
         );
 
         $this->send($data);

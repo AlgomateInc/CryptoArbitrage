@@ -139,7 +139,10 @@ class TestMarket extends BaseExchange
 
     public function cancel($orderId)
     {
-        // TODO: Implement cancel() method.
+        return array(
+            'orderId' => $orderId,
+            'cancelled' => true
+        );
     }
 
     public function isOrderAccepted($orderResponse)

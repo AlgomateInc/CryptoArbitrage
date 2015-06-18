@@ -71,6 +71,21 @@ class ExecutionManager {
         return $orderAccepted;
     }
 
+    function cancel($marketName, $orderId, $strategyId)
+    {
+        if(!$this->reporter instanceof IReporter)
+            throw new Exception('Invalid reporter was passed!');
+
+        $market = $this->exchanges[$marketName];
+
+        if($market instanceof IExchange){
+            $marketResponse = $market->cancel($orderId);
+
+            $this->reporter->cancel($strategyId, $orderId, 0, $marketResponse);
+        }
+
+    }
+
     function executeStrategy(IStrategy $strategy, IStrategyOrder $iso)
     {
         if(!$this->reporter instanceof IReporter)

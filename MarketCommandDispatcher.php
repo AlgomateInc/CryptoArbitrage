@@ -38,6 +38,9 @@ class MarketCommandDispatcher extends ActionProcess {
         if(!$this->listener instanceof IListener)
             throw new Exception('Listener is not the right type!');
 
+        if(!$this->activeOrderManager instanceof ActiveOrderManager)
+            throw new Exception('Wrong active order manager!');
+
         if(!$this->executionManager instanceof ExecutionManager)
             throw new Exception('Wrong execution manager type!');
 
@@ -60,7 +63,7 @@ class MarketCommandDispatcher extends ActionProcess {
             }
 
             case 'CancelOrder': {
-
+                $this->executionManager->cancel($cmdData['Exchange'], $cmdData['OrderId'], $cmdData['StrategyId']);
                 break;
             }
 
