@@ -6,9 +6,83 @@
  * Time: 10:12 PM
  */
 
+require_once('BaseExchange.php');
+require_once('NonceFactory.php');
+
 class TestMarket extends BaseExchange
 {
+    private $tradeList = array();
+    private $book;
     private $validOrderIdList = array();
+    private $sharedFile;
+
+    function __construct($clearBook = true)
+    {
+        $this->book = new OrderBook();
+
+        $sharedFileName = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'TestMarketOrderBook';
+        $this->sharedFile = fopen($sharedFileName, 'c+');
+        if($this->sharedFile === FALSE)
+            throw new Exception();
+
+        //initialize the file or ourselves
+        flock($this->sharedFile, LOCK_EX);
+        try{
+            if($clearBook == true)
+                $this->writeData();
+            else
+                $this->readData();
+        }catch(Exception $e){
+
+        }
+        flock($this->sharedFile, LOCK_UN);
+    }
+
+    function __destruct()
+    {
+        fclose($this->sharedFile);
+    }
+
+    function readData()
+    {
+        $str = fread($this->sharedFile, 1000000);
+        if($str == FALSE)
+            return;
+
+        $data = unserialize(trim($str));
+        $this->book = $data[0];
+        $this->validOrderIdList = $data[1];
+        $this->tradeList = $data[2];
+    }
+
+    function writeData()
+    {
+        $data = array($this->book, $this->validOrderIdList, $this->tradeList);
+        $strData = serialize($data);
+        ftruncate($this->sharedFile, 0);
+        $ret = fwrite($this->sharedFile, $strData);
+        if($ret == FALSE)
+            throw new Exception();
+        fflush($this->sharedFile);
+    }
+
+    function performSafeOperation($operation, $arguments)
+    {
+        $ret = null;
+        flock($this->sharedFile, LOCK_EX);
+        try{
+            $this->readData();
+
+            $ret = call_user_func_array($operation, $arguments);
+
+            $this->writeData();
+        } catch(Exception $e) {
+
+        }
+        flock($this->sharedFile, LOCK_UN);
+
+        return $ret;
+    }
 
     public function Name()
     {
@@ -64,48 +138,122 @@ class TestMarket extends BaseExchange
     {
         $ret = array();
 
-        $t = new Trade();
-        $t->currencyPair = $pair;
-        $t->exchange = $this->Name();
-        $t->tradeId = '234923';
-        $t->price = 15.5;
-        $t->quantity = 28;
-        $t->timestamp = new MongoDate();
-        $t->orderType = OrderType::SELL;
+        flock($this->sharedFile, LOCK_SH);
+        $this->readData();
+        flock($this->sharedFile, LOCK_UN);
 
-        $ret[] = $t;
+        foreach($this->tradeList as $item)
+        {
+            if(!$item instanceof Trade)
+                throw new Exception();
+
+            if(!$item->timestamp instanceof MongoDate)
+                throw new Exception();
+
+            if($item->timestamp->sec > $sinceDate)
+                $ret[] = $item;
+        }
 
         return $ret;
     }
 
     public function depth($currencyPair)
     {
-        $ob = new OrderBook();
-
-        for($i = 0; $i < 5; $i++)
-        {
-            $b = new DepthItem();
-            $b->price = 15 - $i;
-            $b->quantity = $i * 10 + 10;
-            $ob->bids[] = $b;
-
-            $a = new DepthItem();
-            $a->price = 16 + $i;
-            $a->quantity = $i * 10 + 10;
-            $ob->asks[] = $a;
-        }
-
-        return $ob;
+        flock($this->sharedFile, LOCK_SH);
+        $this->readData();
+        flock($this->sharedFile, LOCK_UN);
+        return $this->book;
     }
 
     public function buy($pair, $quantity, $price)
     {
-        return $this->createOrderResponse($pair, $quantity, $price, OrderType::BUY);
+        $args = func_get_args();
+        $args[] = OrderType::BUY;
+        return $this->performSafeOperation(array($this, 'submitOrder'), $args);
     }
 
     public function sell($pair, $quantity, $price)
     {
-        return $this->createOrderResponse($pair, $quantity, $price, OrderType::SELL);
+        $args = func_get_args();
+        $args[] = OrderType::SELL;
+        return $this->performSafeOperation(array($this, 'submitOrder'), $args);
+    }
+
+    public function submitOrder($pair, $quantity, $price, $side)
+    {
+        $nf = new NonceFactory();
+
+        $crossSide = &$this->book->asks;
+        $priceComparison = function($a, $b){return $a < $b;};
+        $placeSide = &$this->book->bids;
+
+        if($side == OrderType::SELL){
+            $crossSide = &$this->book->bids;
+            $placeSide = &$this->book->asks;
+
+            $priceComparison = function($a, $b){return $a > $b;};
+        }
+
+        $remainingQuantity = $quantity;
+        $crossSideCount = count($crossSide);
+        for($i = 0; $i < $crossSideCount; $i++)
+        {
+            $item = $crossSide[$i];
+            if(!$item instanceof DepthItem)
+                throw new Exception();
+
+            if($priceComparison($price, $item->price))
+                break;
+
+            $execQty = min($remainingQuantity, $item->quantity);
+
+            $t = new Trade();
+            $t->currencyPair = $pair;
+            $t->exchange = $this->Name();
+            $t->tradeId = $nf->get();
+            $t->price = $item->price;
+            $t->quantity = $execQty;
+            $t->timestamp = new MongoDate();
+            $t->orderType = $side;
+            $this->tradeList[] = $t;
+
+            $item->quantity -= $execQty;
+            if($item->quantity <= 0)
+                unset($crossSide[$i]);
+
+            $remainingQuantity -= $execQty;
+            if($remainingQuantity <= 0)
+                break;
+        }
+
+        $crossSide = array_values($crossSide);
+
+        if($remainingQuantity > 0){
+            $di = new DepthItem();
+            $di->price = $price;
+            $di->quantity = $remainingQuantity;
+            $di->timestamp = time();
+
+            $inserted = false;
+            for ($i = 0; $i < count($placeSide); $i++) {
+                $item = $placeSide[$i];
+                if (!$item instanceof DepthItem)
+                    throw new Exception();
+
+                if ($priceComparison($price, $item->price))
+                    continue;
+
+                array_splice($placeSide, $i, 0, array($di));
+                $placeSide = array_values($placeSide);
+                $inserted = true;
+                break;
+            }
+
+            if($inserted == false)
+                $placeSide[] = $di;
+        }
+
+        return $this->createOrderResponse($pair, $quantity, $price, $side);
     }
 
     private function createOrderResponse($pair, $quantity, $price, $side)
