@@ -41,14 +41,9 @@ class TestMarket extends BaseExchange
             $this->load();
     }
 
-    function load($lock = true)
+    function load()
     {
-        $data = null;
-        if($lock)
-            $data = $this->dataStore->readLocked();
-        else
-            $data = $this->dataStore->read();
-
+        $data = $this->dataStore->read();
         if($data == null)
             return;
 
@@ -57,13 +52,10 @@ class TestMarket extends BaseExchange
         $this->tradeList = $data[2];
     }
 
-    function save($lock = true)
+    function save()
     {
         $data = array($this->book, $this->orderExecutionLookup, $this->tradeList);
-        if($lock)
-            $this->dataStore->writeLocked($data);
-        else
-            $this->dataStore->write($data);
+        $this->dataStore->write($data);
     }
 
     function performSafeOperation($operation, $arguments)
@@ -71,11 +63,11 @@ class TestMarket extends BaseExchange
         $ret = null;
         $this->dataStore->lock(false);
         try{
-            $this->load(false);
+            $this->load();
 
             $ret = call_user_func_array($operation, $arguments);
 
-            $this->save(false);
+            $this->save();
         } catch(Exception $e) {
             $this->logger->error('Exception operating on shared file', $e);
         }
@@ -346,8 +338,10 @@ class TestMarket extends BaseExchange
     {
         $orderId = $this->getOrderID($orderResponse);
 
-        $executions = $this->orderExecutionLookup[$orderId];
-        return $executions;
+        if(array_key_exists($orderId, $this->orderExecutionLookup))
+            return $this->orderExecutionLookup[$orderId];
+
+        return array();
     }
 
     public function tradeHistory($desiredCount)

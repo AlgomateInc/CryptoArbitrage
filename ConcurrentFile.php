@@ -10,6 +10,7 @@ class ConcurrentFile {
     private $logger;
 
     private $sharedFile;
+    private $isLocked = false;
 
     function __construct($fileName)
     {
@@ -27,46 +28,35 @@ class ConcurrentFile {
 
     function read()
     {
-        rewind($this->sharedFile);
-        $fileInfo = fstat($this->sharedFile);
-        $str = fread($this->sharedFile, $fileInfo['size']);
-        if($str == FALSE)
-            return null;
-
-        $data = unserialize(trim($str));
-        return $data;
-    }
-
-    function readLocked()
-    {
-        $ret = null;
+        $data = null;
 
         $this->lock();
         try{
-            $ret = $this->read();
+
+            rewind($this->sharedFile);
+            $fileInfo = fstat($this->sharedFile);
+            $str = fread($this->sharedFile, $fileInfo['size']);
+            if($str != FALSE)
+                $data = unserialize(trim($str));
+
         }catch (Exception $e){
             $this->logger->error('Exception reading trade data from shared file', $e);
         }
         $this->unlock();
 
-        return $ret;
+        return $data;
     }
 
     function write($data)
     {
-        $strData = serialize($data);
-        ftruncate($this->sharedFile, 0);
-        $ret = fwrite($this->sharedFile, $strData);
-        if($ret == FALSE)
-            throw new Exception();
-        fflush($this->sharedFile);
-    }
-
-    function writeLocked($data)
-    {
         $this->lock(false);
         try{
-            $this->write($data);
+            $strData = serialize($data);
+            ftruncate($this->sharedFile, 0);
+            $ret = fwrite($this->sharedFile, $strData);
+            if($ret == FALSE)
+                throw new Exception();
+            fflush($this->sharedFile);
         }catch (Exception $e){
             $this->logger->error('Exception writing trade data to shared file', $e);
         }
@@ -75,11 +65,19 @@ class ConcurrentFile {
 
     function lock($shared = true)
     {
+        if($this->isLocked)
+            return;
+
         flock($this->sharedFile, ($shared)? LOCK_SH : LOCK_EX);
+        $this->isLocked = true;
     }
 
     function unlock()
     {
+        if(!$this->isLocked)
+            return;
+
         flock($this->sharedFile, LOCK_UN);
+        $this->isLocked = false;
     }
 }
