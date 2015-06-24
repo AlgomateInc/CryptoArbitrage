@@ -8,6 +8,8 @@
 
 require_once('BaseExchange.php');
 require_once('NonceFactory.php');
+require_once(__DIR__ . '/../OrderExecution.php');
+require_once(__DIR__ . '/../ConcurrentFile.php');
 
 class OrderDepthItem extends DepthItem
 {
@@ -21,7 +23,8 @@ class TestMarket extends BaseExchange
     private $tradeList = array();
     private $book;
     private $orderExecutionLookup = array();
-    private $sharedFile;
+
+    private $dataStore;
 
     function __construct($clearBook = true)
     {
@@ -29,76 +32,54 @@ class TestMarket extends BaseExchange
         $this->book = new OrderBook();
 
         $sharedFileName = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'TestMarketOrderBook';
-        $this->sharedFile = fopen($sharedFileName, 'c+');
-        if($this->sharedFile === FALSE)
-            throw new Exception();
+        $this->dataStore = new ConcurrentFile($sharedFileName);
 
         //initialize the file or ourselves
-        flock($this->sharedFile, LOCK_EX);
-        try{
-            if($clearBook == true)
-                $this->writeData();
-            else
-                $this->readData();
-        }catch(Exception $e){
-
-        }
-        flock($this->sharedFile, LOCK_UN);
+        if($clearBook == true)
+            $this->save();
+        else
+            $this->load();
     }
 
-    function __destruct()
+    function load($lock = true)
     {
-        fclose($this->sharedFile);
-    }
+        $data = null;
+        if($lock)
+            $data = $this->dataStore->readLocked();
+        else
+            $data = $this->dataStore->read();
 
-    function readData()
-    {
-        $str = fread($this->sharedFile, 1000000);
-        if($str == FALSE)
+        if($data == null)
             return;
 
-        $data = unserialize(trim($str));
         $this->book = $data[0];
         $this->orderExecutionLookup = $data[1];
         $this->tradeList = $data[2];
     }
 
-    function readLocked()
-    {
-        flock($this->sharedFile, LOCK_SH);
-        try{
-            $this->readData();
-        }catch (Exception $e){
-            $this->logger->error('Exception reading trade data from shared file', $e);
-        }
-        flock($this->sharedFile, LOCK_UN);
-    }
-
-    function writeData()
+    function save($lock = true)
     {
         $data = array($this->book, $this->orderExecutionLookup, $this->tradeList);
-        $strData = serialize($data);
-        ftruncate($this->sharedFile, 0);
-        $ret = fwrite($this->sharedFile, $strData);
-        if($ret == FALSE)
-            throw new Exception();
-        fflush($this->sharedFile);
+        if($lock)
+            $this->dataStore->writeLocked($data);
+        else
+            $this->dataStore->write($data);
     }
 
     function performSafeOperation($operation, $arguments)
     {
         $ret = null;
-        flock($this->sharedFile, LOCK_EX);
+        $this->dataStore->lock(false);
         try{
-            $this->readData();
+            $this->load(false);
 
             $ret = call_user_func_array($operation, $arguments);
 
-            $this->writeData();
+            $this->save(false);
         } catch(Exception $e) {
-
+            $this->logger->error('Exception operating on shared file', $e);
         }
-        flock($this->sharedFile, LOCK_UN);
+        $this->dataStore->unlock();
 
         return $ret;
     }
@@ -157,7 +138,7 @@ class TestMarket extends BaseExchange
     {
         $ret = array();
 
-        $this->readLocked();
+        $this->load();
 
         foreach($this->tradeList as $item)
         {
@@ -176,7 +157,7 @@ class TestMarket extends BaseExchange
 
     public function depth($currencyPair)
     {
-        $this->readLocked();
+        $this->load();
         return $this->book;
     }
 

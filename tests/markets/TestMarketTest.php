@@ -6,8 +6,13 @@
  * Time: 3:11 PM
  */
 
-require_once(__DIR__ . '/../../markets/TestMarket.php');
+require_once(__DIR__ . '/../../config.php');
+
+include_once('log4php/Logger.php');
+Logger::configure($log4phpConfig);
+
 require_once(__DIR__ . '/../../common.php');
+require_once(__DIR__ . '/../../markets/TestMarket.php');
 
 class TestMarketTest extends PHPUnit_Framework_TestCase {
 
