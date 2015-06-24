@@ -27,7 +27,9 @@ class ConcurrentFile {
 
     function read()
     {
-        $str = fread($this->sharedFile, 1000000);
+        rewind($this->sharedFile);
+        $fileInfo = fstat($this->sharedFile);
+        $str = fread($this->sharedFile, $fileInfo['size']);
         if($str == FALSE)
             return null;
 
