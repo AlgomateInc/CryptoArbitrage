@@ -84,7 +84,7 @@ abstract class ActionProcess {
         ////////////////////////////////
         // Load all the accounts data
         if(array_key_exists('testmarket', $options))
-            $this->exchanges = array('TestMarket' => new TestMarket());
+            $this->exchanges = array('TestMarket' => new TestMarket($this->requiresListener));
         else
         {
             $accountLoader = null;
@@ -177,7 +177,7 @@ abstract class ActionProcess {
             $this->shutdown();
             $logger->info(get_class($this) . ' - monitoring finished');
         }catch(Exception $e){
-            $logger->error('Execution error', $e);
+            $logger->error('ActionProcess runtime error', $e);
             exit(1);
         }
 
