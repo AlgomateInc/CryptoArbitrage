@@ -1,18 +1,24 @@
 <?php
 
 require_once('ActionProcess.php');
+require_once('trading/ActiveOrderManager.php');
 
 class MarketDataMonitor extends ActionProcess {
+
+    private $activeOrderManager;
 
     //stores market -> last received trade date
     private $lastMktTradeDate = array();
 
     public function getProgramOptions()
     {
+        return array('activeorders');
     }
 
     public function processOptions($options)
     {
+        if(array_key_exists("activeorders", $options))
+            $this->activeOrderManager = new ActiveOrderManager('activeOrders.json', $this->exchanges, $this->reporter);
     }
 
     public function init()
@@ -60,6 +66,10 @@ class MarketDataMonitor extends ActionProcess {
                             $this->lastMktTradeDate[$mkt->Name()] = $latestTrade->timestamp->sec + 1;
                         $this->reporter->trades($mkt->Name(), $pair, $trades);
                     }
+
+                    //process active orders and report executions
+                    if($this->activeOrderManager instanceof ActiveOrderManager)
+                        $this->activeOrderManager->processActiveOrders();
                 }
             }catch(Exception $e){
                 $logger->warn('Could not get market data for: ' . $mkt->Name(), $e);
