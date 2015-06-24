@@ -7,17 +7,22 @@
  */
 
 class ActiveOrderManager {
+    private $logger;
 
-    private $fileName;
+    private $dataStore;
+
     private $activeOrders = array();
     private $exchanges;
     private $reporter;
 
     function __construct($fileName, $exchanges, $reporter)
     {
-        $this->fileName = $fileName;
+        $this->logger = Logger::getLogger(get_class($this));
+
         $this->exchanges = $exchanges;
         $this->reporter = $reporter;
+
+        $this->dataStore = new ConcurrentFile($fileName);
 
         $this->loadActiveOrders();
     }
@@ -30,19 +35,12 @@ class ActiveOrderManager {
 
     function saveActiveOrders()
     {
-        file_put_contents($this->fileName, serialize($this->activeOrders));
+        $this->dataStore->write($this->activeOrders);
     }
 
     function loadActiveOrders()
     {
-        if(!file_exists($this->fileName))
-            return;
-
-        $aoFileStr = file_get_contents($this->fileName);
-        if($aoFileStr === false)
-            return;
-
-        $aoJson = unserialize($aoFileStr);
+        $aoJson = $this->dataStore->read();
         if($aoJson === null)
             return;
 
@@ -60,6 +58,21 @@ class ActiveOrderManager {
     }
 
     function processActiveOrders()
+    {
+        $this->dataStore->lock(false);
+        try{
+            $this->loadActiveOrders();
+
+            $this->process();
+
+            $this->saveActiveOrders();
+        }catch (Exception $e){
+            $this->logger->error('Problem processing active orders!', $e);
+        }
+        $this->dataStore->unlock();
+    }
+
+    private function process()
     {
         $aoCount = count($this->activeOrders);
         for($i = 0;$i < $aoCount;$i++)
@@ -108,7 +121,6 @@ class ActiveOrderManager {
         }
         //we may have removed some orders with unset(). fix indices
         $this->activeOrders = array_values($this->activeOrders);
-        $this->saveActiveOrders();
     }
 
 }
