@@ -9,15 +9,23 @@
 require_once('BaseExchange.php');
 require_once('NonceFactory.php');
 
+class OrderDepthItem extends DepthItem
+{
+    public $orderId;
+}
+
 class TestMarket extends BaseExchange
 {
+    private $logger;
+
     private $tradeList = array();
     private $book;
-    private $validOrderIdList = array();
+    private $orderExecutionLookup = array();
     private $sharedFile;
 
     function __construct($clearBook = true)
     {
+        $this->logger = Logger::getLogger(get_class($this));
         $this->book = new OrderBook();
 
         $sharedFileName = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'TestMarketOrderBook';
@@ -51,13 +59,24 @@ class TestMarket extends BaseExchange
 
         $data = unserialize(trim($str));
         $this->book = $data[0];
-        $this->validOrderIdList = $data[1];
+        $this->orderExecutionLookup = $data[1];
         $this->tradeList = $data[2];
+    }
+
+    function readLocked()
+    {
+        flock($this->sharedFile, LOCK_SH);
+        try{
+            $this->readData();
+        }catch (Exception $e){
+            $this->logger->error('Exception reading trade data from shared file', $e);
+        }
+        flock($this->sharedFile, LOCK_UN);
     }
 
     function writeData()
     {
-        $data = array($this->book, $this->validOrderIdList, $this->tradeList);
+        $data = array($this->book, $this->orderExecutionLookup, $this->tradeList);
         $strData = serialize($data);
         ftruncate($this->sharedFile, 0);
         $ret = fwrite($this->sharedFile, $strData);
@@ -138,9 +157,7 @@ class TestMarket extends BaseExchange
     {
         $ret = array();
 
-        flock($this->sharedFile, LOCK_SH);
-        $this->readData();
-        flock($this->sharedFile, LOCK_UN);
+        $this->readLocked();
 
         foreach($this->tradeList as $item)
         {
@@ -159,9 +176,7 @@ class TestMarket extends BaseExchange
 
     public function depth($currencyPair)
     {
-        flock($this->sharedFile, LOCK_SH);
-        $this->readData();
-        flock($this->sharedFile, LOCK_UN);
+        $this->readLocked();
         return $this->book;
     }
 
@@ -181,6 +196,12 @@ class TestMarket extends BaseExchange
 
     public function submitOrder($pair, $quantity, $price, $side)
     {
+        $ret = $this->createOrderResponse($pair, $quantity, $price, $side);
+        if(!$this->isOrderAccepted($ret))
+            return $ret;
+
+        $orderId = $this->getOrderID($ret);
+
         $nf = new NonceFactory();
 
         $crossSide = &$this->book->asks;
@@ -199,7 +220,7 @@ class TestMarket extends BaseExchange
         for($i = 0; $i < $crossSideCount; $i++)
         {
             $item = $crossSide[$i];
-            if(!$item instanceof DepthItem)
+            if(!$item instanceof OrderDepthItem)
                 throw new Exception();
 
             if($priceComparison($price, $item->price))
@@ -207,6 +228,7 @@ class TestMarket extends BaseExchange
 
             $execQty = min($remainingQuantity, $item->quantity);
 
+            //create trades for data feed
             $t = new Trade();
             $t->currencyPair = $pair;
             $t->exchange = $this->Name();
@@ -217,6 +239,24 @@ class TestMarket extends BaseExchange
             $t->orderType = $side;
             $this->tradeList[] = $t;
 
+            //create order executions for the matched orders
+            $itemExecution = new OrderExecution();
+            $itemExecution->orderId = $item->orderId;
+            $itemExecution->price = $item->price;
+            $itemExecution->quantity = $execQty;
+            $itemExecution->timestamp = time();
+            $itemExecution->txid = $t->tradeId;
+            $this->orderExecutionLookup[$item->orderId][] = $itemExecution;
+
+            $incomingExecution = new OrderExecution();
+            $incomingExecution->orderId = $orderId;
+            $incomingExecution->price = $item->price;
+            $incomingExecution->quantity = $execQty;
+            $incomingExecution->timestamp = time();
+            $incomingExecution->txid = $t->tradeId;
+            $this->orderExecutionLookup[$orderId][] = $incomingExecution;
+
+            //update the order book
             $item->quantity -= $execQty;
             if($item->quantity <= 0)
                 unset($crossSide[$i]);
@@ -229,10 +269,11 @@ class TestMarket extends BaseExchange
         $crossSide = array_values($crossSide);
 
         if($remainingQuantity > 0){
-            $di = new DepthItem();
+            $di = new OrderDepthItem();
             $di->price = $price;
             $di->quantity = $remainingQuantity;
             $di->timestamp = time();
+            $di->orderId = $orderId;
 
             $inserted = false;
             for ($i = 0; $i < count($placeSide); $i++) {
@@ -253,7 +294,7 @@ class TestMarket extends BaseExchange
                 $placeSide[] = $di;
         }
 
-        return $this->createOrderResponse($pair, $quantity, $price, $side);
+        return $ret;
     }
 
     private function createOrderResponse($pair, $quantity, $price, $side)
@@ -264,7 +305,7 @@ class TestMarket extends BaseExchange
             );
 
         $oid = uniqid($this->Name(),true);
-        $this->validOrderIdList[] = $oid;
+        $this->orderExecutionLookup[$oid] = array();
 
         return array(
             'orderId' => $oid,
@@ -300,12 +341,32 @@ class TestMarket extends BaseExchange
 
     public function isOrderOpen($orderResponse)
     {
-        // TODO: Implement isOrderOpen() method.
+        $orderId = $this->getOrderID($orderResponse);
+
+        //traverse the books to see if order has leftovers
+        //not the most efficient :-)
+        foreach ($this->book->asks as $item) {
+            if(!$item instanceof OrderDepthItem)
+                throw new Exception();
+            if($item->orderId == $orderId)
+                return true;
+        }
+        foreach ($this->book->bids as $item) {
+            if(!$item instanceof OrderDepthItem)
+                throw new Exception();
+            if($item->orderId == $orderId)
+                return true;
+        }
+
+        return false;
     }
 
     public function getOrderExecutions($orderResponse)
     {
-        // TODO: Implement getOrderExecutions() method.
+        $orderId = $this->getOrderID($orderResponse);
+
+        $executions = $this->orderExecutionLookup[$orderId];
+        return $executions;
     }
 
     public function tradeHistory($desiredCount)
