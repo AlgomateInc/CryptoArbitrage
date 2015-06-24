@@ -136,13 +136,19 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
         }
    }
 
-    public function execution($arbId, $orderId, $market, $txid, $quantity, $price, $timestamp)
+    public function execution($strategyIdList, $orderId, $market, $txid, $quantity, $price, $timestamp)
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
                 throw new Exception('Invalid reporter in multi-reporter');
 
-            $rpt->execution($arbId, $orderId, $market, $txid, $quantity, $price, $timestamp);
+            $strategyId = null;
+            if(is_array($strategyIdList))
+                foreach($strategyIdList as $rptStrategyInfo){
+                    if($rptStrategyInfo['IReporter'] instanceof $rpt)
+                        $strategyId = $rptStrategyInfo['StrategyId'];
+                }
+            $rpt->execution($strategyId, $orderId, $market, $txid, $quantity, $price, $timestamp);
         }
     }
 
