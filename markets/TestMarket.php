@@ -316,6 +316,8 @@ class TestMarket extends BaseExchange
     {
         $orderId = $this->getOrderID($orderResponse);
 
+        $this->load();
+
         //traverse the books to see if order has leftovers
         //not the most efficient :-)
         foreach ($this->book->asks as $item) {
@@ -337,6 +339,8 @@ class TestMarket extends BaseExchange
     public function getOrderExecutions($orderResponse)
     {
         $orderId = $this->getOrderID($orderResponse);
+
+        $this->load();
 
         if(array_key_exists($orderId, $this->orderExecutionLookup))
             return $this->orderExecutionLookup[$orderId];
