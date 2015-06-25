@@ -39,6 +39,30 @@ class TestMarketTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testEnterOrderAndCancel()
+    {
+        if($this->mkt instanceof TestMarket)
+        {
+            $origCount = count($this->mkt->depth(CurrencyPair::BTCUSD)->bids);
+
+            $ret = $this->mkt->buy(CurrencyPair::BTCUSD, 10, 10);
+
+            $finalDepth = $this->mkt->depth(CurrencyPair::BTCUSD);
+
+            $this->assertNotEmpty($ret);
+            $this->assertEquals($origCount + 1, count($finalDepth->bids));
+
+            $this->assertEquals(10, $finalDepth->bids[0]->price);
+            $this->assertEquals(10, $finalDepth->bids[0]->quantity);
+
+            $this->mkt->cancel($this->mkt->getOrderID($ret));
+
+            $finalDepth = $this->mkt->depth(CurrencyPair::BTCUSD);
+
+            $this->assertEquals(0, count($finalDepth->bids));
+        }
+    }
+
     public function testInsertBuyOrder()
     {
         if($this->mkt instanceof TestMarket)
@@ -60,6 +84,40 @@ class TestMarketTest extends PHPUnit_Framework_TestCase {
             $this->assertEquals(20, $finalDepth->bids[0]->price);
             $this->assertEquals(15, $finalDepth->bids[1]->price);
             $this->assertEquals(10, $finalDepth->bids[2]->price);
+        }
+    }
+
+    public function testInsertBuyOrderAndCancel()
+    {
+        if($this->mkt instanceof TestMarket)
+        {
+            $origCount = count($this->mkt->depth(CurrencyPair::BTCUSD)->bids);
+
+            $ret = $this->mkt->buy(CurrencyPair::BTCUSD, 10, 10);
+            $this->assertNotEmpty($ret);
+            $ret1 = $this->mkt->buy(CurrencyPair::BTCUSD, 10, 20);
+            $this->assertNotEmpty($ret1);
+            $ret2 = $this->mkt->buy(CurrencyPair::BTCUSD, 10, 15);
+            $this->assertNotEmpty($ret2);
+
+            $finalDepth = $this->mkt->depth(CurrencyPair::BTCUSD);
+
+            $this->assertNotEmpty($ret);
+            $this->assertEquals($origCount + 3, count($finalDepth->bids));
+
+            $this->assertEquals(20, $finalDepth->bids[0]->price);
+            $this->assertEquals(15, $finalDepth->bids[1]->price);
+            $this->assertEquals(10, $finalDepth->bids[2]->price);
+
+            $this->mkt->cancel($this->mkt->getOrderID($ret2));
+
+            $finalDepth = $this->mkt->depth(CurrencyPair::BTCUSD);
+
+            $this->assertNotEmpty($ret);
+            $this->assertEquals($origCount + 2, count($finalDepth->bids));
+
+            $this->assertEquals(20, $finalDepth->bids[0]->price);
+            $this->assertEquals(10, $finalDepth->bids[1]->price);
         }
     }
 
@@ -189,6 +247,44 @@ class TestMarketTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testSellCrossOrderMultiplePartialFillAndCancel()
+    {
+        if($this->mkt instanceof TestMarket)
+        {
+            $ret = $this->mkt->buy(CurrencyPair::BTCUSD, 10, 10);
+            $this->assertNotEmpty($ret);
+            $ret = $this->mkt->buy(CurrencyPair::BTCUSD, 10, 9);
+            $this->assertNotEmpty($ret);
+            $retLeftover = $this->mkt->buy(CurrencyPair::BTCUSD, 10, 8);
+            $this->assertNotEmpty($retLeftover);
+            $retCross = $this->mkt->sell(CurrencyPair::BTCUSD, 22, 5);
+            $this->assertNotEmpty($retCross);
+
+            $finalDepth = $this->mkt->depth(CurrencyPair::BTCUSD);
+
+            $this->assertNotEmpty($ret);
+            $this->assertEquals(1, count($finalDepth->bids) + count($finalDepth->asks));
+
+            $this->assertEquals(8, $finalDepth->bids[0]->price);
+            $this->assertEquals(8, $finalDepth->bids[0]->quantity);
+
+            $trades = $this->mkt->trades(CurrencyPair::BTCUSD, 0);
+
+            $this->assertEquals(3, count($trades));
+            $this->assertEquals(10, $trades[0]->price);
+            $this->assertEquals(10, $trades[0]->quantity);
+            $this->assertEquals(9, $trades[1]->price);
+            $this->assertEquals(10, $trades[1]->quantity);
+            $this->assertEquals(8, $trades[2]->price);
+            $this->assertEquals(2, $trades[2]->quantity);
+
+            $this->mkt->cancel($this->mkt->getOrderID($retLeftover));
+
+            $finalDepth = $this->mkt->depth(CurrencyPair::BTCUSD);
+            $this->assertEquals(0, count($finalDepth->bids) + count($finalDepth->asks));
+        }
+    }
+
     public function testBuyCrossOrderMultiplePartialFill()
     {
         if($this->mkt instanceof TestMarket)
@@ -252,6 +348,47 @@ class TestMarketTest extends PHPUnit_Framework_TestCase {
             $this->assertEquals(10, $trades[0]->quantity);
             $this->assertEquals(11, $trades[1]->price);
             $this->assertEquals(10, $trades[1]->quantity);
+        }
+    }
+
+    public function testBuyCrossOrderPartialFillWithLeftoverAndCancel()
+    {
+        if($this->mkt instanceof TestMarket)
+        {
+            $ret = $this->mkt->sell(CurrencyPair::BTCUSD, 10, 15);
+            $this->assertNotEmpty($ret);
+            $ret = $this->mkt->sell(CurrencyPair::BTCUSD, 10, 11);
+            $this->assertNotEmpty($ret);
+            $ret = $this->mkt->sell(CurrencyPair::BTCUSD, 10, 10);
+            $this->assertNotEmpty($ret);
+            $retCross = $this->mkt->buy(CurrencyPair::BTCUSD, 22, 12);
+            $this->assertNotEmpty($retCross);
+
+            $finalDepth = $this->mkt->depth(CurrencyPair::BTCUSD);
+
+            $this->assertNotEmpty($ret);
+            $this->assertEquals(2, count($finalDepth->bids) + count($finalDepth->asks));
+
+            $this->assertEquals(12, $finalDepth->bids[0]->price);
+            $this->assertEquals(2, $finalDepth->bids[0]->quantity);
+            $this->assertEquals(15, $finalDepth->asks[0]->price);
+            $this->assertEquals(10, $finalDepth->asks[0]->quantity);
+
+            $trades = $this->mkt->trades(CurrencyPair::BTCUSD, 0);
+
+            $this->assertEquals(2, count($trades));
+            $this->assertEquals(10, $trades[0]->price);
+            $this->assertEquals(10, $trades[0]->quantity);
+            $this->assertEquals(11, $trades[1]->price);
+            $this->assertEquals(10, $trades[1]->quantity);
+
+            $this->mkt->cancel($this->mkt->getOrderID($retCross));
+
+            $finalDepth = $this->mkt->depth(CurrencyPair::BTCUSD);
+            $this->assertEquals(1, count($finalDepth->bids) + count($finalDepth->asks));
+
+            $this->assertEquals(15, $finalDepth->asks[0]->price);
+            $this->assertEquals(10, $finalDepth->asks[0]->quantity);
         }
     }
 

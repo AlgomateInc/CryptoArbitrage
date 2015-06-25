@@ -299,8 +299,34 @@ class TestMarket extends BaseExchange
         // TODO: Implement hasActiveOrders() method.
     }
 
+    function cancelOrder($orderId)
+    {
+        //traverse the books to see if order has leftovers
+        //and remove them
+        $askCount = count($this->book->asks);
+        for ($i = 0; $i < $askCount; $i++) {
+            $item = $this->book->asks[$i];
+            if(!$item instanceof OrderDepthItem)
+                throw new Exception();
+            if($item->orderId == $orderId)
+                unset($this->book->asks[$i]);
+        }
+        $this->book->asks = array_values($this->book->asks);
+
+        $bidCount = count($this->book->bids);
+        for ($i = 0; $i < $bidCount; $i++) {
+            $item = $this->book->bids[$i];
+            if(!$item instanceof OrderDepthItem)
+                throw new Exception();
+            if($item->orderId == $orderId)
+                unset($this->book->bids[$i]);
+        }
+        $this->book->bids = array_values($this->book->bids);
+    }
+
     public function cancel($orderId)
     {
+        $this->performSafeOperation(array($this, 'cancelOrder'), func_get_args());
         return array(
             'orderId' => $orderId,
             'cancelled' => true
