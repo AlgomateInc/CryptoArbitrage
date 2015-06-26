@@ -73,13 +73,15 @@ class ActiveOrder{
     public $order;
     public $marketResponse;
     public $strategyId;
+    public $orderId;
+    public $executions = array();
 
     public $marketObj;
     public $strategyObj;
 
     function __sleep()
     {
-        return array('order','marketResponse','strategyId');
+        return array('order','marketResponse','strategyId', 'orderId', 'executions');
     }
 }
 

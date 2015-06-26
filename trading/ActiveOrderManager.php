@@ -86,9 +86,35 @@ class ActiveOrderManager {
             $market = $ao->marketObj;
             $marketResponse = $ao->marketResponse;
             $strategyId = $ao->strategyId;
+            $orderId = $ao->orderId;
 
             if(!$market instanceof IExchange)
                 continue;
+
+            //get the executions on this order and report them
+            $execs = $market->getOrderExecutions($marketResponse);
+            foreach($execs as $execItem){
+                if(!$execItem instanceof OrderExecution){
+                    $this->logger->warn('Execution returned from market, wrong type.');
+                    continue;
+                }
+
+                if(!array_key_exists($execItem->txid, $ao->executions)) {
+
+                    $ao->executions[$execItem->txid] = $execItem;
+
+                    if ($this->reporter instanceof IReporter)
+                        $this->reporter->execution(
+                            $strategyId,
+                            $orderId,
+                            $market->Name(),
+                            $execItem->txid,
+                            $execItem->quantity,
+                            $execItem->price,
+                            $execItem->timestamp
+                        );
+                }
+            }
 
             //check if the order is done
             if($market->isOrderOpen($marketResponse))
@@ -101,24 +127,9 @@ class ActiveOrderManager {
             {
                 //order complete. remove from list and do post-processing
                 unset($this->activeOrders[$i]);
-
-                //get the executions on this order and report them
-                $execs = $market->getOrderExecutions($marketResponse);
-                $oid = $market->getOrderID($marketResponse);
-                foreach($execs as $execItem){
-                    if($this->reporter instanceof IReporter)
-                        $this->reporter->execution(
-                            $strategyId,
-                            $oid,
-                            $market->Name(),
-                            $execItem->txid,
-                            $execItem->quantity,
-                            $execItem->price,
-                            $execItem->timestamp
-                        );
-                }
             }
         }
+
         //we may have removed some orders with unset(). fix indices
         $this->activeOrders = array_values($this->activeOrders);
     }
