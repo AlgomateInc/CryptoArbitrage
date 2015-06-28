@@ -10,7 +10,7 @@ require_once('markets/jpmchase.php');
 require_once('markets/Cryptsy.php');
 require_once('markets/Bitfinex.php');
 require_once('markets/BitVC.php');
-
+require_once('markets/TestMarket.php');
 
 class ConfigAccountLoader implements IAccountLoader{
 

@@ -27,6 +27,11 @@ class ActiveOrderManager {
         $this->loadActiveOrders();
     }
 
+    function getCount()
+    {
+        return count($this->activeOrders);
+    }
+
     function add(ActiveOrder $ao)
     {
         $this->activeOrders[] = $ao;
