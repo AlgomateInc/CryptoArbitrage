@@ -43,6 +43,8 @@ class StrategyProcessor extends ActionProcess {
     {
         $this->activeOrderManager = new ActiveOrderManager('activeOrders.json', $this->exchanges, $this->reporter);
         $this->executionManager = new ExecutionManager($this->activeOrderManager, $this->exchanges, $this->reporter);
+
+        $this->executionManager->setLiveTrade($this->liveTrade);
     }
 
     public function run()
