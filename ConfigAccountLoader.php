@@ -11,6 +11,7 @@ require_once('markets/Cryptsy.php');
 require_once('markets/Bitfinex.php');
 require_once('markets/BitVC.php');
 require_once('markets/TestMarket.php');
+require_once('markets/Poloniex.php');
 
 class ConfigAccountLoader implements IAccountLoader{
 
@@ -66,14 +67,21 @@ class ConfigAccountLoader implements IAccountLoader{
                     break;
 
                 case Exchange::Bitfinex:
-                    $accounts[Exchange::Bitfinex] = new Bitfinex(
+//                    $accounts[Exchange::Bitfinex] = new Bitfinex(
+//                        $mktConfig['key'],
+//                        $mktConfig['secret']
+//                    );
+                    break;
+
+                case Exchange::BitVC:
+                    $accounts[Exchange::BitVC] = new BitVC(
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );
                     break;
 
-                case Exchange::BitVC:
-                    $accounts[Exchange::BitVC] = new BitVC(
+                case Exchange::Poloniex:
+                    $accounts[Exchange::Poloniex] = new Poloniex(
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );
