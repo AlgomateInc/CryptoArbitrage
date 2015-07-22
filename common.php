@@ -18,6 +18,8 @@ class Currency{
     const DRK = 'DRK';
     const NXT = 'NXT';
     const CNY = 'CNY';
+    const XMR = 'XMR';
+    const XCP = 'XCP';
 
     public static function FloorValue($value, $currency)
     {
@@ -29,6 +31,8 @@ class Currency{
             static::DRK => 8,
             static::NXT => 8,
             static::CNY => 2,
+            static::XMR => 8,
+            static::XCP => 8
         );
 
         $p = $precision[$currency];
@@ -47,6 +51,8 @@ class CurrencyPair{
     const NXTBTC = 'NXTBTC';
     const BTCCNY = 'BTCCNY';
     const DRKBTC = 'DRKBTC';
+    const XMRBTC = 'XMRBTC';
+    const XCPBTC = 'XCPBTC';
 
     public static function Base($strPair){
         return substr($strPair, 0, 3);
