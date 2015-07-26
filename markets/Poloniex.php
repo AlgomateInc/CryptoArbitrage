@@ -53,7 +53,7 @@ class Poloniex extends BaseExchange {
      */
     public function supportedCurrencyPairs()
     {
-        return array(CurrencyPair::LTCBTC, CurrencyPair::XMRBTC, CurrencyPair::XCPBTC);
+        return array(CurrencyPair::LTCBTC, CurrencyPair::XMRBTC, CurrencyPair::XCPBTC, CurrencyPair::MAIDBTC);
     }
 
     /**

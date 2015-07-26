@@ -67,10 +67,10 @@ class ConfigAccountLoader implements IAccountLoader{
                     break;
 
                 case Exchange::Bitfinex:
-//                    $accounts[Exchange::Bitfinex] = new Bitfinex(
-//                        $mktConfig['key'],
-//                        $mktConfig['secret']
-//                    );
+                    $accounts[Exchange::Bitfinex] = new Bitfinex(
+                        $mktConfig['key'],
+                        $mktConfig['secret']
+                    );
                     break;
 
                 case Exchange::BitVC:

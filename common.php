@@ -53,13 +53,28 @@ class CurrencyPair{
     const DRKBTC = 'DRKBTC';
     const XMRBTC = 'XMRBTC';
     const XCPBTC = 'XCPBTC';
+    const MAIDBTC = 'MAID/BTC';
 
     public static function Base($strPair){
-        return substr($strPair, 0, 3);
+        if(strlen($strPair) == 6)
+            return substr($strPair, 0, 3);
+
+        $parts = explode('/', $strPair);
+        if(count($parts) == 2 && strlen($parts[0]) >= 3 && strlen($parts[1]) >= 3)
+            return $parts[0];
+
+        throw new Exception('Unsupported currency pair string');
     }
 
     public static function Quote($strPair){
-        return substr($strPair, 3, 3);
+        if(strlen($strPair) == 6)
+            return substr($strPair, 3, 3);
+
+        $parts = explode('/', $strPair);
+        if(count($parts) == 2 && strlen($parts[0]) >= 3 && strlen($parts[1]) >= 3)
+            return $parts[1];
+
+        throw new Exception('Unsupported currency pair string');
     }
 }
 
