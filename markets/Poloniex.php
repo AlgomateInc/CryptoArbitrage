@@ -76,7 +76,7 @@ class Poloniex extends BaseExchange {
         $t->bid = $prices[$mktPairName]['highestBid'];
         $t->ask = $prices[$mktPairName]['lowestAsk'];
         $t->last = $prices[$mktPairName]['last'];
-        $t->volume = $prices[$mktPairName]['baseVolume'];
+        $t->volume = $prices[$mktPairName]['quoteVolume'];
 
         return $t;
     }
