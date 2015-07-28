@@ -97,8 +97,10 @@ class Poloniex extends BaseExchange {
             $t->tradeId = md5($raw['date'] . $raw['type'] . $raw['rate'] . $raw['amount']);
             $t->price = (float) $raw['rate'];
             $t->quantity = (float) $raw['amount'];
-            $t->timestamp = new MongoDate($raw['date']);
             $t->orderType = strtoupper($raw['type']);
+
+            $dt = new DateTime($raw['date']);
+            $t->timestamp = new MongoDate($dt->getTimestamp());
 
             $ret[] = $t;
         }
