@@ -21,40 +21,40 @@ $log4phpConfig = array(
 );
 
 $accountsConfig = array(
-    'Btce' => array(
-        'key' => 'BTCEKEY',
-        'secret' => 'BTCESECRET'
-    ),
-    'Bitstamp'=> array(
-        'key' => 'STAMPKEY',
-        'secret' => 'STAMPSECRET',
-        'custid' => 'STAMPCUSTID'
-    ),
-    'Cryptsy' => array(
-        'key' => 'CRYPTSYKEY',
-        'secret' => 'CRYPTSYSECRET'
-    ),
-    'JPMChase' => array(
-        'name' => 'imapmailbox',
-        'username' => 'username',
-        'password' => 'password'
-    )
+//    'Btce' => array(
+//        'key' => 'BTCEKEY',
+//        'secret' => 'BTCESECRET'
+//    ),
+//    'Bitstamp'=> array(
+//        'key' => 'STAMPKEY',
+//        'secret' => 'STAMPSECRET',
+//        'custid' => 'STAMPCUSTID'
+//    ),
+//    'Cryptsy' => array(
+//        'key' => 'CRYPTSYKEY',
+//        'secret' => 'CRYPTSYSECRET'
+//    ),
+//    'JPMChase' => array(
+//        'name' => 'imapmailbox',
+//        'username' => 'username',
+//        'password' => 'password'
+//    )
 );
 
 $strategyInstructions = array(
-    array(
-        'name' => 'strategyclassname',
-        'active' => true,
-        'data' => array(
-            'CurrencyPair'=>'BTCUSD',
-            'BuyExchange'=>'fromexchangename',
-            'BuySideRole'=>'Taker',
-            'SellExchange'=>'toexchangename',
-            'SellSideRole'=>'Taker',
-            'Factors'=>array(
-                array('TargetSpreadPct'=>INF, 'MaxUsdOrderSize'=>50, 'OrderSizeScaling'=> 1)
-            )
-        )
-    )
+//    array(
+//        'name' => 'strategyclassname',
+//        'active' => true,
+//        'data' => array(
+//            'CurrencyPair'=>'BTCUSD',
+//            'BuyExchange'=>'fromexchangename',
+//            'BuySideRole'=>'Taker',
+//            'SellExchange'=>'toexchangename',
+//            'SellSideRole'=>'Taker',
+//            'Factors'=>array(
+//                array('TargetSpreadPct'=>INF, 'MaxUsdOrderSize'=>50, 'OrderSizeScaling'=> 1)
+//            )
+//        )
+//    )
 );
 ?>
