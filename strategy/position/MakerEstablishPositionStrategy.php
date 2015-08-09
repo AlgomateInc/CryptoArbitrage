@@ -73,6 +73,10 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
         if(!($market instanceof IExchange && $order instanceof Order))
             return;
 
+        //check if the order is still open. if not, we're done
+        if(!$market->isOrderOpen($ao->orderId))
+            return;
+
         //get the depth to see if we are still inside the bid/ask
         $depth = $market->depth($order->currencyPair);
         if (!($depth instanceof OrderBook))

@@ -121,14 +121,12 @@ class ActiveOrderManager {
                 }
             }
 
+            //order is still active. our strategy may want to adjust it
+            if($ao->strategyObj instanceof IStrategy)
+                $ao->strategyObj->update($ao);
+
             //check if the order is done
-            if($market->isOrderOpen($marketResponse))
-            {
-                //order is still active. our strategy may want to adjust it
-                if($ao->strategyObj instanceof IStrategy)
-                    $ao->strategyObj->update($ao);
-            }
-            else
+            if(!$market->isOrderOpen($marketResponse))
             {
                 //order complete. remove from list and do post-processing
                 unset($this->activeOrders[$i]);
