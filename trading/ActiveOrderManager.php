@@ -32,6 +32,17 @@ class ActiveOrderManager {
         return count($this->activeOrders);
     }
 
+    function isStrategyActive($strategyId)
+    {
+        for($i = 0;$i < count($this->activeOrders);$i++) {
+            $ao = $this->activeOrders[$i];
+            if ($ao instanceof ActiveOrder && $ao->strategyId == $strategyId)
+                return true;
+        }
+
+        return false;
+    }
+
     function add(ActiveOrder $ao)
     {
         $this->activeOrders[] = $ao;

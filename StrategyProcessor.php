@@ -121,10 +121,6 @@ class StrategyProcessor extends ActionProcess {
 
         $this->activeOrderManager->processActiveOrders();
 
-        //abort further processing if any active orders exist
-        if($this->activeOrderManager->getCount() > 0)
-            return;
-
         //abort processing if active order count has changed
         //this avoids a race condition where the balances fetched
         //would not be correct and subsequent code tries to make orders too large
@@ -139,6 +135,11 @@ class StrategyProcessor extends ActionProcess {
         foreach($instructions as $inst)
         {
             if(!$inst instanceof StrategyInstructions)
+                continue;
+
+            //abort further processing if any active orders exist
+            //for this strategy
+            if($this->activeOrderManager->isStrategyActive($inst->strategyId))
                 continue;
 
             //////////////////////////////////////////
