@@ -9,21 +9,23 @@ class MongoAccountLoader extends ConfigAccountLoader{
     private $mongo;
     private $mdb;
 
-    public function __construct(){
+    public function __construct($serverName = null){
         global $mongodb_uri, $mongodb_db;
 
         $this->mongo = new MongoClient($mongodb_uri);
         $this->mdb = $this->mongo->selectDB($mongodb_db);
 
-        $this->loadAccountConfig();
+        if($serverName == null)
+            $serverName = gethostname();
+        $this->loadAccountConfig($serverName);
     }
 
-    function loadAccountConfig()
+    function loadAccountConfig($serverName)
     {
         $serverAccounts = $this->mdb->servers;
 
         //get the name of this server
-        $machineName = gethostname();
+        $machineName = $serverName;
 
         //find the config for this server
         $acc = $serverAccounts->findOne(array('ServerName' => $machineName));

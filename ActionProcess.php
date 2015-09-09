@@ -45,7 +45,8 @@ abstract class ActionProcess {
             "monitor::",
             "fork",
             'socket:',
-            'testmarket'
+            'testmarket',
+            'servername:'
         );
         if(is_array($objOptions))
             $longopts = array_merge($longopts, $objOptions);
@@ -88,8 +89,12 @@ abstract class ActionProcess {
         else
         {
             $accountLoader = null;
-            if(array_key_exists("mongodb", $options))
-                $accountLoader = new MongoAccountLoader();
+            if(array_key_exists("mongodb", $options)) {
+                if(array_key_exists('servername', $options) && isset($options['servername']))
+                    $accountLoader = new MongoAccountLoader($options['servername']);
+                else
+                    $accountLoader = new MongoAccountLoader();
+            }
             else
                 $accountLoader = new ConfigAccountLoader();
 
