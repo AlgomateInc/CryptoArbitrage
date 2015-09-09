@@ -54,8 +54,8 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
                     $neededCurrency = ($ret->type == OrderType::BUY)? CurrencyPair::Quote($soi->currencyPair) :
                         CurrencyPair::Base($soi->currencyPair);
                     $neededCurrencyBalance = 0;
-                    if(isset($balances[$neededCurrency]))
-                        $neededCurrencyBalance = $balances[$neededCurrency];
+                    if(isset($balances[$soi->exchange][$neededCurrency]))
+                        $neededCurrencyBalance = $balances[$soi->exchange][$neededCurrency];
                     if($neededCurrencyBalance <= 0)
                         return null;
                     $ret->size = min($ret->size, $neededCurrencyBalance);
