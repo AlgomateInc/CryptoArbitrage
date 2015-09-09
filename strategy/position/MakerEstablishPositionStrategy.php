@@ -50,6 +50,16 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
                     $sizeAdjustment = lcg_value() * $windowSize - $windowSize / 2.0;
                     $ret->size = Currency::FloorValue($ret->size + $sizeAdjustment, CurrencyPair::Base($soi->currencyPair));
 
+                    //check the size against current balance
+                    $neededCurrency = ($ret->type == OrderType::BUY)? CurrencyPair::Quote($soi->currencyPair) :
+                        CurrencyPair::Base($soi->currencyPair);
+                    $neededCurrencyBalance = 0;
+                    if(isset($balances[$neededCurrency]))
+                        $neededCurrencyBalance = $balances[$neededCurrency];
+                    if($neededCurrencyBalance <= 0)
+                        return null;
+                    $ret->size = min($ret->size, $neededCurrencyBalance);
+
                     //check our order against any trigger price
                     if(isset($ret->triggerPrice)){
                         if($ret->type == OrderType::BUY && $ret->price > $ret->triggerPrice)
