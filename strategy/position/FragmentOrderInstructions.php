@@ -11,7 +11,6 @@ require_once('LimitOrderInstructions.php');
 class FragmentOrderInstructions extends LimitOrderInstructions {
     public $priceRangePct;
     public $sizeRangePct;
-    public $orderCount;
 
     public function load($data)
     {
@@ -19,7 +18,6 @@ class FragmentOrderInstructions extends LimitOrderInstructions {
 
         $this->priceRangePct = $data['PriceRangePct'];
         $this->sizeRangePct = $data['SizeRangePct'];
-        $this->orderCount = $data['OrderCount'];
     }
 
     public function getOrders()
