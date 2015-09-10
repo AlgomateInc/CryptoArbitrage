@@ -37,7 +37,8 @@ class Poloniex extends BaseExchange {
 
         $balances = array();
         foreach($this->supportedCurrencies() as $curr){
-            $balances[$curr] = $bal[strtoupper($curr)];
+            if(isset($bal[strtoupper($curr)]))
+                $balances[$curr] = $bal[strtoupper($curr)];
         }
 
         return $balances;
