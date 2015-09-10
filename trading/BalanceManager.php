@@ -50,5 +50,15 @@ class BalanceManager {
 
             $this->balances[$mkt->Name()][$cur] = $bal;
         }
+
+        //check to see if there are old balances that don't exist anymore
+        //happens if a balance becomes zero after a sale. we need to report this
+        foreach($this->balances[$mkt->Name()] as $cur => $bal){
+            if(!array_key_exists($cur, $balList))
+            {
+                unset($this->balances[$mkt->Name()][$cur]);
+                $this->reporter->balance($mkt->Name(), $cur, 0);
+            }
+        }
     }
 }
