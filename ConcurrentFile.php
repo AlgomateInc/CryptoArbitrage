@@ -53,6 +53,7 @@ class ConcurrentFile {
         try{
             $strData = serialize($data);
             ftruncate($this->sharedFile, 0);
+            rewind($this->sharedFile);
             $ret = fwrite($this->sharedFile, $strData);
             if($ret == FALSE)
                 throw new Exception();
