@@ -118,17 +118,36 @@ class Poloniex extends BaseExchange {
 
     public function buy($pair, $quantity, $price)
     {
-        // TODO: Implement buy() method.
+        return $this->query(
+            array(
+                'command' => 'buy',
+                'currencyPair' => strtoupper($this->getCurrencyPairName($pair)),
+                'rate' => $price,
+                'amount' => $quantity
+            )
+        );
     }
 
     public function sell($pair, $quantity, $price)
     {
-        // TODO: Implement sell() method.
+        return $this->query(
+            array(
+                'command' => 'sell',
+                'currencyPair' => strtoupper($this->getCurrencyPairName($pair)),
+                'rate' => $price,
+                'amount' => $quantity
+            )
+        );
     }
 
     public function activeOrders()
     {
-        // TODO: Implement activeOrders() method.
+        return $this->query(
+            array(
+                'command' => 'returnOpenOrders',
+                'currencyPair' => 'all'
+            )
+        );
     }
 
     public function hasActiveOrders()
@@ -138,32 +157,107 @@ class Poloniex extends BaseExchange {
 
     public function cancel($orderId)
     {
-        // TODO: Implement cancel() method.
+        return $this->query(
+            array(
+                'command' => 'cancelOrder',
+                'orderNumber' => $orderId
+            )
+        );
     }
 
     public function isOrderAccepted($orderResponse)
     {
-        // TODO: Implement isOrderAccepted() method.
+        if(isset($orderResponse['error']))
+            return false;
+
+        return true;
     }
 
     public function isOrderOpen($orderResponse)
     {
-        // TODO: Implement isOrderOpen() method.
+        if(!$this->isOrderAccepted($orderResponse))
+            return false;
+
+        $ao = $this->activeOrders();
+
+        foreach($ao as $pairOrders)
+        {
+            if(count($pairOrders) > 0)
+            {
+                foreach($pairOrders as $orderStatus)
+                {
+                    if($orderStatus['orderNumber'] == $this->getOrderID($orderResponse))
+                        return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public function getOrderExecutions($orderResponse)
     {
-        // TODO: Implement getOrderExecutions() method.
+        $trades = $this->tradeHistory(500);
+
+        $orderTx = array();
+
+        foreach($trades as $t){
+
+            if($t['orderNumber'] == $this->getOrderID($orderResponse)){
+                $exec = new OrderExecution();
+                $exec->txid = $t['tradeID'];
+                $exec->orderId = $t['orderNumber'];
+                $exec->quantity = $t['amount'];
+                $exec->price = $t['rate'];
+                $exec->timestamp = $t['date'];
+
+                $orderTx[] = $exec;
+            }
+        }
+
+        return $orderTx;
     }
 
     public function tradeHistory($desiredCount)
     {
-        // TODO: Implement tradeHistory() method.
+        $ret = array();
+
+        //get the last trades for all supported pairs
+        foreach($this->supportedCurrencyPairs() as $pair){
+            $th = $this->query(
+                array(
+                    'command' => 'returnTradeHistory',
+                    'currencyPair' => strtoupper($this->getCurrencyPairName($pair))
+                )
+            );
+
+            //make a note of the currency pair on each returned item
+            for($i = 0; $i < count($th); $i++){
+                $th[$i]['pair'] = $pair;
+            }
+
+            //merge with the rest of the history
+            $ret = array_merge($ret, $th);
+        }
+
+        //sort history descending by timestamp (latest trade first)
+        usort($ret, function($a, $b){
+            $aTime = strtotime($a['date']);
+            $bTime = strtotime($b['date']);
+
+            if($aTime == $bTime)
+                return 0;
+            return ($aTime > $bTime)? -1 : 1;
+        });
+
+        //cut down to desired size and return
+        $ret = array_slice($ret, 0, $desiredCount);
+        return $ret;
     }
 
     public function getOrderID($orderResponse)
     {
-        // TODO: Implement getOrderID() method.
+        return $orderResponse['orderNumber'];
     }
 
     private function query(array $req = array()) {
