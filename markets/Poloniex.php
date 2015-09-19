@@ -54,7 +54,8 @@ class Poloniex extends BaseExchange {
      */
     public function supportedCurrencyPairs()
     {
-        return array(CurrencyPair::LTCBTC, CurrencyPair::XMRBTC, CurrencyPair::XCPBTC, CurrencyPair::MAIDBTC);
+        return array(CurrencyPair::LTCBTC, CurrencyPair::XMRBTC, CurrencyPair::BTCUSD,
+            CurrencyPair::XCPBTC, CurrencyPair::MAIDBTC, CurrencyPair::ETHBTC,);
     }
 
     /**
@@ -287,6 +288,11 @@ class Poloniex extends BaseExchange {
         $base = CurrencyPair::Base($pair);
         $quote = CurrencyPair::Quote($pair);
 
+        //return USD market as tether
+        if($pair == CurrencyPair::BTCUSD)
+            return 'USDT_BTC';
+
+        //make the pair in the wacky poloniex way
         if($base == Currency::BTC)
             return $base . '_' . $quote;
 

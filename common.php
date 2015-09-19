@@ -20,6 +20,7 @@ class Currency{
     const CNY = 'CNY';
     const XMR = 'XMR';
     const XCP = 'XCP';
+    const ETH = 'ETH';
 
     public static function FloorValue($value, $currency)
     {
@@ -32,7 +33,8 @@ class Currency{
             static::NXT => 8,
             static::CNY => 2,
             static::XMR => 8,
-            static::XCP => 8
+            static::XCP => 8,
+            static::ETH => 8
         );
 
         $p = $precision[$currency];
@@ -54,6 +56,7 @@ class CurrencyPair{
     const XMRBTC = 'XMRBTC';
     const XCPBTC = 'XCPBTC';
     const MAIDBTC = 'MAID/BTC';
+    const ETHBTC = 'ETHBTC';
 
     public static function Base($strPair){
         if(strlen($strPair) == 6)
