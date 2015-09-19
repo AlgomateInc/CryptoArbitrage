@@ -50,6 +50,18 @@ class PoloniexTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testOrderExecutions()
+    {
+        if($this->bf instanceof Poloniex)
+        {
+            $response = $this->bf->buy(CurrencyPair::XCPBTC, 1, 1);
+            $oe = $this->bf->getOrderExecutions($response);
+
+            $this->assertNotNull($oe);
+            $this->assertTrue(count($oe) > 0);
+        }
+    }
+
     public function testMyTrades()
     {
         if($this->bf instanceof Poloniex)
