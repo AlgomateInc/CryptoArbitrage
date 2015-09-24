@@ -32,6 +32,7 @@ class BulkPriceQuoter extends ActionProcess
         $currencyPair = CurrencyPair::BTCUSD;
         $orderType = OrderType::BUY;
         $premium = 0.0225;
+        $valueRequired = 6934.40;
 
         //get the pricing
         $averagePrice = 0;
@@ -65,14 +66,18 @@ class BulkPriceQuoter extends ActionProcess
         //display all the stats
         print "Average Price: $averagePrice\n";
         print "Max Price: $maxPrice\n";
-        print "Min Price: $minPrice\n";
+        print "Min Price: $minPrice\n\n";
 
-        $priceTarget = $averagePrice * (1 + $premium);
-        print "Average Price Target: $priceTarget\n";
-        $priceTarget = $maxPrice * (1 + $premium);
-        print "Max Price Target: $priceTarget\n";
-        $priceTarget = $minPrice * (1 + $premium);
-        print "Min Price Target: $priceTarget\n";
+        $this->printPricingInfo($averagePrice, $premium, $valueRequired);
+    }
+
+    function printPricingInfo($price, $premium, $valueRequired)
+    {
+        $priceTarget = round($price * (1 + $premium), 2);
+        $sizeTarget = round($valueRequired / $priceTarget, 8, PHP_ROUND_HALF_DOWN);
+        $value = $priceTarget * $sizeTarget;
+        $profit = $sizeTarget * ($priceTarget - $price);
+        print "Price: $priceTarget\nSize: $sizeTarget\nTotal: $value\nExpected: $valueRequired\nProfit: $profit\n";
     }
 
     public function shutdown()
