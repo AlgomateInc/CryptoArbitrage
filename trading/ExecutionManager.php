@@ -56,7 +56,8 @@ class ExecutionManager {
             $ao->marketObj = $market;
             $ao->marketResponse = $marketResponse;
             $ao->order = $o;
-            $ao->strategyId = $strategyOrderId;
+            $ao->strategyId = $strategy->getStrategyId();
+            $ao->strategyOrderId = $strategyOrderId;
             $ao->strategyObj = $strategy;
             $ao->orderId = $oid;
 
