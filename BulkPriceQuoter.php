@@ -32,7 +32,16 @@ class BulkPriceQuoter extends ActionProcess
         $currencyPair = CurrencyPair::BTCUSD;
         $orderType = OrderType::BUY;
         $premium = 0.0225;
-        $valueRequired = 6934.40;
+        $valueRequired = 1000;
+
+        //get the quantity from user
+        print "Please enter the required USD amount: ";
+        $inputValue = fgets(STDIN);
+        if($inputValue !== false) {
+            $inputValue = trim($inputValue);
+            if(strlen($inputValue) > 0)
+                $valueRequired = $inputValue;
+        }
 
         //get the pricing
         $averagePrice = 0;
