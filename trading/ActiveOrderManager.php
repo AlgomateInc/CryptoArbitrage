@@ -101,7 +101,7 @@ class ActiveOrderManager {
 
             $market = $ao->marketObj;
             $marketResponse = $ao->marketResponse;
-            $strategyId = $ao->strategyId;
+            $strategyOrderId = $ao->strategyOrderId;
             $orderId = $ao->orderId;
 
             if(!$market instanceof IExchange)
@@ -121,7 +121,7 @@ class ActiveOrderManager {
 
                     if ($this->reporter instanceof IReporter)
                         $this->reporter->execution(
-                            $strategyId,
+                            $strategyOrderId,
                             $orderId,
                             $market->Name(),
                             $execItem->txid,
