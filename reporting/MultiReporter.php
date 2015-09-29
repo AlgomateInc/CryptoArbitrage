@@ -100,11 +100,24 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
                 throw new Exception('Invalid reporter in multi-reporter');
 
             $ret[] = array(
-                'IReporter' => $rpt,
+                'IReporter' => get_class($rpt),
                 'StrategyId' => $rpt->strategyOrder($strategyId, $iso));
         }
 
         return $ret;
+    }
+
+    private function getStrategyOrderIdForReporter($rpt, $strategyIdList)
+    {
+        //find the right strategyorderid for this reporter (previous call to strategyOrder
+        //gave a list, per each reporter)
+        if(is_array($strategyIdList))
+            foreach($strategyIdList as $rptStrategyInfo){
+                if($rptStrategyInfo['IReporter'] == get_class($rpt))
+                    return $rptStrategyInfo['StrategyId'];
+            }
+
+        return null;
     }
 
     public function order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $strategyIdList)
@@ -113,16 +126,9 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
             if(!$rpt instanceof IReporter)
                 throw new Exception('Invalid reporter in multi-reporter');
 
-            //find the right strategyid for this reporter (previous call to strategyOrder
-            //gave a list, per each reporter)
-            $strategyId = null;
-            if(is_array($strategyIdList))
-                foreach($strategyIdList as $rptStrategyInfo){
-                    if($rptStrategyInfo['IReporter'] == $rpt)
-                        $strategyId = $rptStrategyInfo['StrategyId'];
-                }
+            $strategyOrderId = $this->getStrategyOrderIdForReporter($rpt, $strategyIdList);
 
-            $rpt->order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $strategyId);
+            $rpt->order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $strategyOrderId);
         }
     }
 
@@ -142,13 +148,9 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
             if(!$rpt instanceof IReporter)
                 throw new Exception('Invalid reporter in multi-reporter');
 
-            $strategyId = null;
-            if(is_array($strategyIdList))
-                foreach($strategyIdList as $rptStrategyInfo){
-                    if($rptStrategyInfo['IReporter'] instanceof $rpt)
-                        $strategyId = $rptStrategyInfo['StrategyId'];
-                }
-            $rpt->execution($strategyId, $orderId, $market, $txid, $quantity, $price, $timestamp);
+            $strategyOrderId = $this->getStrategyOrderIdForReporter($rpt, $strategyIdList);
+
+            $rpt->execution($strategyOrderId, $orderId, $market, $txid, $quantity, $price, $timestamp);
         }
     }
 
