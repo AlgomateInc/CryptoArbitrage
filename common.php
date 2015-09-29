@@ -107,7 +107,7 @@ class ActiveOrder{
 
     function __sleep()
     {
-        return array('order','marketResponse','strategyId', '$strategyOrderId', 'orderId', 'executions');
+        return array('order','marketResponse','strategyId', 'strategyOrderId', 'orderId', 'executions');
     }
 }
 
