@@ -70,7 +70,7 @@ class BulkPriceQuoter extends ActionProcess
             $maxPrice = max($maxPrice, $price);
             $minPrice = min($minPrice, $price);
         }
-        $averagePrice /= count($targetMarkets);
+        $averagePrice /= round(count($targetMarkets), 2);
 
         //display all the stats
         print "Average Price: $averagePrice\n";
