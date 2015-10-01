@@ -96,7 +96,13 @@ class StrategyProcessor extends ActionProcess {
                 }
 
                 if($mkt instanceof IMarginExchange){
-                    $posList = $mkt->positions();
+                    $posList = array();
+                    try{
+                        $posList = $mkt->positions();
+                    }catch(Exception $e){
+                        $logger->warn('Problem getting positions for market: ' . $mkt->Name(), $e);
+                    }
+
                     foreach($posList as $pos){
                         if($pos instanceof Trade && !in_array($pos, $positions)){
                             $positions[] = $pos;
