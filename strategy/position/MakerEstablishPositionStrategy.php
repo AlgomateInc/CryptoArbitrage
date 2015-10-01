@@ -101,7 +101,7 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
             return;
 
         //check if the order is still open. if not, we're done
-        if(!$market->isOrderOpen($ao->orderId))
+        if(!$market->isOrderOpen($ao->marketResponse))
             return;
 
         //get the depth to see if we are still inside the bid/ask

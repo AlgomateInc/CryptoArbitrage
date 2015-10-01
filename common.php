@@ -103,7 +103,6 @@ class ActiveOrder{
     public $executions = array();
 
     public $marketObj;
-    public $strategyObj;
 
     function __sleep()
     {

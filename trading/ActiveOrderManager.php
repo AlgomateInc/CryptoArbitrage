@@ -43,6 +43,22 @@ class ActiveOrderManager {
         return false;
     }
 
+    function updateActiveStrategy(IStrategy $strategy)
+    {
+        $updated = false;
+
+        for($i = 0;$i < count($this->activeOrders);$i++) {
+            $ao = $this->activeOrders[$i];
+            if ($ao instanceof ActiveOrder && $ao->strategyId == $strategy->getStrategyId())
+            {
+                $strategy->update($ao);
+                $updated = true;
+            }
+        }
+
+        return $updated;
+    }
+
     function add(ActiveOrder $ao)
     {
         $this->activeOrders[] = $ao;
@@ -131,10 +147,6 @@ class ActiveOrderManager {
                         );
                 }
             }
-
-            //order is still active. our strategy may want to adjust it
-            if($ao->strategyObj instanceof IStrategy)
-                $ao->strategyObj->update($ao);
 
             //check if the order is done
             if(!$market->isOrderOpen($marketResponse))

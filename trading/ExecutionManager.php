@@ -58,7 +58,6 @@ class ExecutionManager {
             $ao->order = $o;
             $ao->strategyId = $strategy->getStrategyId();
             $ao->strategyOrderId = $strategyOrderId;
-            $ao->strategyObj = $strategy;
             $ao->orderId = $oid;
 
             if($this->activeOrderManager instanceof ActiveOrderManager)

@@ -137,11 +137,6 @@ class StrategyProcessor extends ActionProcess {
             if(!$inst instanceof StrategyInstructions)
                 continue;
 
-            //abort further processing if any active orders exist
-            //for this strategy
-            if($this->activeOrderManager->isStrategyActive($inst->strategyId))
-                continue;
-
             //////////////////////////////////////////
             // Instantiate named strategy and run
             //////////////////////////////////////////
@@ -149,6 +144,11 @@ class StrategyProcessor extends ActionProcess {
             if(!$s instanceof IStrategy)
                 continue;
             $s->setStrategyId($inst->strategyId);
+
+            //let the strategy update itself if it is already active
+            //otherwise, run the new strategy
+            if($this->activeOrderManager->updateActiveStrategy($s))
+                continue;
 
             $iso = $s->run($inst->data, $this->exchanges, $balances);
 
