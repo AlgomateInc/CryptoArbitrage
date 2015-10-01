@@ -11,6 +11,7 @@ require_once('MarketOrderInstructions.php');
 class InsideOrderInstructions extends MarketOrderInstructions{
 
     public $sizeRangePct = 0;
+    public $pegOrder = false;
 
     public function load($data)
     {
@@ -18,6 +19,8 @@ class InsideOrderInstructions extends MarketOrderInstructions{
 
         if(isset($data['SizeRangePct']))
             $this->sizeRangePct = $data['SizeRangePct'];
+        if(isset($data['IsPegged']))
+            $this->pegOrder = $data['IsPegged'];
     }
 
     public function getOrders()

@@ -36,9 +36,24 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
             $insideAsk = $depth->asks[0];
 
             if ($insideBid instanceof DepthItem && $insideAsk instanceof DepthItem) {
+                //default to midpoint price
                 $tgtPrice = Currency::FloorValue(($insideAsk->price + $insideBid->price) / 2.0,
                     CurrencyPair::Quote($soi->currencyPair));
 
+                if($soi->pegOrder){
+                    //check to see if we can get a minsize that we could work with to peg the order
+                    $minSize = pow(10, -max($this->numberOfDecimals($insideBid->price),
+                        $this->numberOfDecimals($insideAsk->price)));
+                    if($minSize > 0 && $minSize < $insideAsk->price - $insideBid->price)
+                    {
+                        if($soi->type == OrderType::BUY && $insideBid->price + $minSize < $tgtPrice)
+                            $tgtPrice = $insideBid->price + $minSize;
+                        if($soi->type == OrderType::SELL && $insideAsk->price - $minSize > $tgtPrice)
+                            $tgtPrice = $insideAsk->price - $minSize;
+                    }
+                }
+
+                //proceed forming the order if the calculated price is inside the book
                 if($tgtPrice > $insideBid->price && $tgtPrice < $insideAsk->price){
                     $instructions['Price'] = $tgtPrice;
                     $ret = new LimitOrderInstructions();
@@ -124,5 +139,15 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
         }
 
         return null;
+    }
+
+    function numberOfDecimals($value)
+    {
+        if ((int)$value == $value)
+        {
+            return 0;
+        }
+
+        return strlen($value) - strrpos($value, '.') - 1;
     }
 }
