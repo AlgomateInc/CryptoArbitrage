@@ -42,14 +42,16 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
 
                 if($soi->pegOrder){
                     //check to see if we can get a minsize that we could work with to peg the order
-                    $minSize = Currency::FloorValue((pow(10, -max($this->numberOfDecimals($insideBid->price),
-                        $this->numberOfDecimals($insideAsk->price)))), CurrencyPair::Quote($soi->currencyPair));
+                    $minSize = pow(10, -max($this->numberOfDecimals($insideBid->price),
+                        $this->numberOfDecimals($insideAsk->price)));
                     if($minSize > 0 && $minSize < $insideAsk->price - $insideBid->price)
                     {
                         if($soi->type == OrderType::BUY && $insideBid->price + $minSize < $tgtPrice)
                             $tgtPrice = $insideBid->price + $minSize;
                         if($soi->type == OrderType::SELL && $insideAsk->price - $minSize > $tgtPrice)
                             $tgtPrice = $insideAsk->price - $minSize;
+
+                        $tgtPrice = strval(Currency::FloorValue($tgtPrice, CurrencyPair::Quote($soi->currencyPair)));
                     }
                 }
 
