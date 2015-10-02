@@ -123,6 +123,13 @@ class ActiveOrderManager {
             if(!$market instanceof IExchange)
                 continue;
 
+            //check if the order is done
+            if(!$market->isOrderOpen($marketResponse))
+            {
+                //order complete. remove from list and do post-processing
+                unset($this->activeOrders[$i]);
+            }
+
             //get the executions on this order and report them
             $execs = $market->getOrderExecutions($marketResponse);
             foreach($execs as $execItem){
@@ -146,13 +153,6 @@ class ActiveOrderManager {
                             $execItem->timestamp
                         );
                 }
-            }
-
-            //check if the order is done
-            if(!$market->isOrderOpen($marketResponse))
-            {
-                //order complete. remove from list and do post-processing
-                unset($this->activeOrders[$i]);
             }
         }
 
