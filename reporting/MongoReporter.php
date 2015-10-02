@@ -260,7 +260,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         $cancelInfo = array(
             'CancelQuantity'=>$cancelQuantity,
             'CancelResponse'=>$cancelResponse,
-            'Timestamp'=>time()
+            'Timestamp'=>new MongoDate(time())
         );
 
         $strategies = $this->mdb->strategyorder;

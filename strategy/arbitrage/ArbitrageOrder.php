@@ -44,4 +44,9 @@ class ArbitrageOrder implements IStrategyOrder{
 
         return $orders;
     }
+
+    public function getCancels()
+    {
+        return array();
+    }
 }

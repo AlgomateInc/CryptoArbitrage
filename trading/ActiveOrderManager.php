@@ -43,20 +43,35 @@ class ActiveOrderManager {
         return false;
     }
 
+    /**
+     * Checks if the provided strategy has any active orders. If there are any active orders
+     * then the strategy is asked to update itself.
+     * @param IStrategy $strategy
+     * @return array|null Returns an array of IStrategyOrder updates if the strategy had active orders.
+     * This array may be empty, if the strategy chooses not to update. Returns null when there are
+     * no active orders for the given strategy.
+     */
     function updateActiveStrategy(IStrategy $strategy)
     {
         $updated = false;
+        $newStrategyOrderList = array();
 
         for($i = 0;$i < count($this->activeOrders);$i++) {
             $ao = $this->activeOrders[$i];
             if ($ao instanceof ActiveOrder && $ao->strategyId == $strategy->getStrategyId())
             {
-                $strategy->update($ao);
                 $updated = true;
+
+                $newIso = $strategy->update($ao);
+                if($newIso instanceof IStrategyOrder)
+                    $newStrategyOrderList[] = $newIso;
             }
         }
 
-        return $updated;
+        if(!$updated)
+            return null;
+
+        return $newStrategyOrderList;
     }
 
     function add(ActiveOrder $ao)

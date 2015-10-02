@@ -7,6 +7,7 @@
  */
 
 require_once(__DIR__ . '/../BaseStrategy.php');
+require_once(__DIR__ . '/../GenericStrategyOrder.php');
 require_once('InsideOrderInstructions.php');
 require_once('LimitOrderInstructions.php');
 
@@ -98,31 +99,37 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
         $market = $ao->marketObj;
         $order = $ao->order;
         if(!($market instanceof IExchange && $order instanceof Order))
-            return;
+            return null;
 
         //check if the order is still open. if not, we're done
         if(!$market->isOrderOpen($ao->marketResponse))
-            return;
+            return null;
 
         //get the depth to see if we are still inside the bid/ask
         $depth = $market->depth($order->currencyPair);
         if (!($depth instanceof OrderBook))
-            return;
+            return null;
 
         $bid = $this->getInsideBookPrice($depth, OrderType::BUY);
         $ask = $this->getInsideBookPrice($depth, OrderType::SELL);
         if($bid == null || $ask == null)
-            return;
+            return null;
 
         if($order->limit > $bid && $order->limit < $ask)
-            return;
+            return null;
 
         //if the market moved away from our order far enough then we want to reconsider
         //for now we'll say that the order is far if it has 10 times the quantity in front of it
         $cancelThreshold = 10.0;
         $vol = $depth->volumeToPrice($order->limit);
-        if($order->quantity * $cancelThreshold < $vol)
-            $market->cancel($market->getOrderID($ao->marketResponse));
+        if($order->quantity * $cancelThreshold < $vol){
+            $gso = new GenericStrategyOrder();
+            $gso->addCancel(new OrderCancel($market->getOrderID($ao->marketResponse),
+                $market->Name(), $ao->strategyOrderId));
+            return $gso;
+        }
+
+        return null;
     }
 
     private function getInsideBookPrice(OrderBook $depth, $bookSide){

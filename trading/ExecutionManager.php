@@ -80,9 +80,28 @@ class ExecutionManager {
         $market = $this->exchanges[$marketName];
 
         if($market instanceof IExchange){
+
+            //abort if this is test only
+            if($this->liveTrade != true)
+                return true;
+
             $marketResponse = $market->cancel($orderId);
 
             $this->reporter->cancel($strategyId, $orderId, 0, $marketResponse);
+        }
+
+    }
+
+    function updateStrategy(IStrategyOrder $iso)
+    {
+        //submit any order cancellations as well
+        //TODO: right now we are not checking that the cancels are successful
+        $cancels = $iso->getCancels();
+        foreach($cancels as $oc){
+            if(!$oc instanceof OrderCancel)
+                throw new Exception('Strategy return invalid cancel order');
+
+            $this->cancel($oc->exchange, $oc->orderId, $oc->strategyOrderId);
         }
 
     }

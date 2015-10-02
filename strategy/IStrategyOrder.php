@@ -8,4 +8,5 @@
 
 interface IStrategyOrder {
     public function getOrders();
+    public function getCancels();
 } 

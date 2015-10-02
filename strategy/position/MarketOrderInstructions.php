@@ -51,4 +51,8 @@ class MarketOrderInstructions implements IStrategyInstructions, IStrategyOrder {
 
     }
 
+    public function getCancels()
+    {
+        return array();
+    }
 }
