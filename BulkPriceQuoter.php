@@ -86,8 +86,10 @@ class BulkPriceQuoter extends ActionProcess
         $sizeTarget = round($valueRequired / $priceTarget, 8, PHP_ROUND_HALF_DOWN);
         $value = $priceTarget * $sizeTarget;
         $profit = round($valueRequired - ($sizeTarget * $price), 2);
-        print "Desired(USD): $valueRequired\nPrice(USD): $price\nSize(BTC): $sizeTarget\nFee(USD): $profit\nTotal: $value\n";
-        print "$valueRequired,$price,$sizeTarget,$profit";
+        print "Desired(USD): $valueRequired\nPrice(USD): $price\nSize(BTC): $sizeTarget\nFee(USD): $profit\n";
+        print "\n";
+        print "Effective Price: $priceTarget\nTotal: $value\n";
+        print "CSV: $valueRequired,$price,$sizeTarget,$profit";
     }
 
     public function shutdown()
