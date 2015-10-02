@@ -119,9 +119,18 @@ abstract class ActionProcess {
 
     private function initialize()
     {
-        foreach($this->exchanges as $mkt)
-            if($mkt instanceof ILifecycleHandler)
-                $mkt->init();
+        $logger = Logger::getLogger(get_class($this));
+
+        foreach($this->exchanges as $name => $mkt)
+            if ($mkt instanceof ILifecycleHandler) {
+                try {
+                    $mkt->init();
+                } catch (Exception $e) {
+                    $logger->error('Error initializing market: ', $e);
+
+                    unset($this->exchanges[$name]);
+                }
+            }
 
         $this->init();
     }
