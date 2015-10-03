@@ -154,7 +154,7 @@ class StrategyProcessor extends ActionProcess {
             //let the strategy update itself if it is already active
             //otherwise, run the new strategy
             $updateIsoList = $this->activeOrderManager->updateActiveStrategy($s);
-            if($updateIsoList != null) {
+            if($updateIsoList !== null) {
                 foreach ($updateIsoList as $iso) {
                     if ($iso instanceof IStrategyOrder)
                         $this->executionManager->updateStrategy($iso);
