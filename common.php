@@ -8,6 +8,7 @@ class Exchange{
     const Bitfinex = 'Bitfinex';
     const BitVC = 'BitVC';
     const Poloniex = 'Poloniex';
+    const Gemini = 'Gemini';
 }
 
 class Currency{

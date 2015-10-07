@@ -11,7 +11,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
     private $secret;
     private $nonceFactory;
 
-    private $supportedPairs = array();
+    protected $supportedPairs = array();
     private $minOrderSizes = array(); //assoc array pair->minordersize
 
     public function __construct($key, $secret){
@@ -127,7 +127,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
             'symbol' => strtolower($pair),
             'amount' => "$quantity",
             'price' => "$price",
-            'exchange' => 'bitfinex',
+            'exchange' => strtolower($this->Name()),
             'side' => "$side",
             'type' => "$type"
         ));
@@ -255,13 +255,18 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
         $sign = hash_hmac('sha384', $payload, $this->secret);
 
         // generate the extra headers
-        $headers = array(
-            'X-BFX-APIKEY: '.$this->key,
-            'X-BFX-PAYLOAD: '.$payload,
-            'X-BFX-SIGNATURE: '.$sign
-        );
+        $headers = $this->generateHeaders($this->key, $payload, $sign);
 
         return curl_query($this->getApiUrl() . $method, $payload, $headers);
+    }
+
+    protected function generateHeaders($key, $payload, $signature)
+    {
+        return array(
+            'X-BFX-APIKEY: '.$key,
+            'X-BFX-PAYLOAD: '.$payload,
+            'X-BFX-SIGNATURE: '.$signature
+        );
     }
 
     public function positions()

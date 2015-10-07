@@ -12,6 +12,7 @@ require_once('markets/Bitfinex.php');
 require_once('markets/BitVC.php');
 require_once('markets/TestMarket.php');
 require_once('markets/Poloniex.php');
+require_once('markets/Gemini.php');
 
 class ConfigAccountLoader implements IAccountLoader{
 
@@ -68,6 +69,13 @@ class ConfigAccountLoader implements IAccountLoader{
 
                 case Exchange::Bitfinex:
                     $accounts[Exchange::Bitfinex] = new Bitfinex(
+                        $mktConfig['key'],
+                        $mktConfig['secret']
+                    );
+                    break;
+
+                case Exchange::Gemini:
+                    $accounts[Exchange::Gemini] = new Gemini(
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );
