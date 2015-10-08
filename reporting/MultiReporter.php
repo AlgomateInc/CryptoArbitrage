@@ -117,7 +117,9 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
                     return $rptStrategyInfo['StrategyId'];
             }
 
-        return null;
+        //return the argument simply. the user may not have used multireporter at time
+        //of generating original strategyorder, so this may be the id itself
+        return $strategyIdList;
     }
 
     public function order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $strategyIdList)
