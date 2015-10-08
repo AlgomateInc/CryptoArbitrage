@@ -15,7 +15,7 @@ class MarketOrderInstructions implements IStrategyInstructions, IStrategyOrder {
 
     public $triggerPrice;
     public $stopPrice;
-    public $useMargin;
+    public $useMargin = false;
 
     public function load($data)
     {
@@ -27,10 +27,11 @@ class MarketOrderInstructions implements IStrategyInstructions, IStrategyOrder {
             $this->stopPrice = $data['StopPrice'];
         if(isset($data['OrderCount']))
             $this->orderCount = $data['OrderCount'];
+        if(isset($data['IsMarginOrder']))
+            $this->useMargin = $data['IsMarginOrder'];
 
         $this->currencyPair = $data['CurrencyPair'];
         $this->type = strtoupper($data['Type']);
-        $this->useMargin = $data['IsMarginOrder'];
         $this->size = $data['Size'];
     }
 
