@@ -11,6 +11,7 @@ require_once('strategy/position/MakerEstablishPositionStrategy.php');
 
 require_once('trading/ActiveOrderManager.php');
 require_once('trading/ExecutionManager.php');
+require_once('trading/BalanceManager.php');
 
 class StrategyProcessor extends ActionProcess {
 
@@ -20,6 +21,7 @@ class StrategyProcessor extends ActionProcess {
 
     private $activeOrderManager;
     private $executionManager;
+    private $balanceManager;
 
     public function getProgramOptions()
     {
@@ -43,6 +45,7 @@ class StrategyProcessor extends ActionProcess {
     {
         $this->activeOrderManager = new ActiveOrderManager('activeOrders.json', $this->exchanges, $this->reporter);
         $this->executionManager = new ExecutionManager($this->activeOrderManager, $this->exchanges, $this->reporter);
+        $this->balanceManager = new BalanceManager($this->reporter);
 
         $this->executionManager->setLiveTrade($this->liveTrade);
     }
@@ -60,10 +63,15 @@ class StrategyProcessor extends ActionProcess {
         if(!$this->executionManager instanceof ExecutionManager)
             throw new Exception();
 
+        if(!$this->balanceManager instanceof BalanceManager)
+            throw new Exception();
+
+        if(!$this->reporter instanceof IReporter)
+            throw new Exception();
+
         //////////////////////////////////////////
         // Fetch the account balances and transaction history
         //////////////////////////////////////////
-        static $balances = array();
         static $positions = array();
         $depth = array();
 
@@ -72,28 +80,11 @@ class StrategyProcessor extends ActionProcess {
             if($mkt instanceof IAccount)
             {
                 //initialize local data structures
-                if(!array_key_exists($mkt->Name(), $balances))
-                    $balances[$mkt->Name()] = array();
                 if(!array_key_exists($mkt->Name(), $depth))
                     $depth[$mkt->Name()] = array();
 
                 //get balances
-                $balList = array();
-                try{
-                    $balList = $mkt->balances();
-                }catch(Exception $e){
-                    $logger->warn('Problem getting balances for market: ' . $mkt->Name(), $e);
-                    unset($balances[$mkt->Name()]);
-                }
-
-                //update our running list of balances
-                foreach($balList as $cur => $bal){
-                    //report balance only on balance change (or first run)
-                    if(!isset($balances[$mkt->Name()][$cur]) || $balances[$mkt->Name()][$cur] != $bal)
-                        $this->reporter->balance($mkt->Name(), $cur, $bal);
-
-                    $balances[$mkt->Name()][$cur] = $bal;
-                }
+                $this->balanceManager->fetch($mkt);
 
                 if($mkt instanceof IMarginExchange){
                     $posList = array();
@@ -165,7 +156,7 @@ class StrategyProcessor extends ActionProcess {
             //////////////////////////////////////////
             // Execute the order(s) returned
             //////////////////////////////////////////
-            $iso = $s->run($inst->data, $this->exchanges, $balances);
+            $iso = $s->run($inst->data, $this->exchanges, $this->balanceManager->getBalances());
             if($iso instanceof IStrategyOrder)
                 $this->executionManager->executeStrategy($s, $iso);
         }

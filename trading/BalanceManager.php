@@ -22,6 +22,11 @@ class BalanceManager {
         return $this->balances[$marketName][$currencyPair];
     }
 
+    function getBalances()
+    {
+        return $this->balances;
+    }
+
     function fetch(IAccount $mkt)
     {
         $logger = Logger::getLogger(get_class($this));
@@ -35,11 +40,12 @@ class BalanceManager {
 
         //get balances
         $balList = array();
+        $removeMarket = false;
         try{
             $balList = $mkt->balances();
         }catch(Exception $e){
             $logger->warn('Problem getting balances for market: ' . $mkt->Name(), $e);
-            unset($this->balances[$mkt->Name()]);
+            $removeMarket = true;
         }
 
         //update our running list of balances
@@ -60,5 +66,9 @@ class BalanceManager {
                 $this->reporter->balance($mkt->Name(), $cur, 0);
             }
         }
+
+        //remove if flagged
+        if($removeMarket)
+            unset($this->balances[$mkt->Name()]);
     }
 }
