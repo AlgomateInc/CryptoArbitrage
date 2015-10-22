@@ -129,6 +129,9 @@ class StrategyProcessor extends ActionProcess {
         //////////////////////////////////////////
         $instructions = $this->instructionLoader->load();
 
+        //track the new active strategies
+        $newActiveStrategies = array();
+
         foreach($instructions as $inst)
         {
             if(!$inst instanceof StrategyInstructions)
@@ -141,6 +144,9 @@ class StrategyProcessor extends ActionProcess {
             if(!$s instanceof IStrategy)
                 continue;
             $s->setStrategyId($inst->strategyId);
+
+            //track active strategies
+            $newActiveStrategies[] = $s->getStrategyId();
 
             //let the strategy update itself if it is already active
             //otherwise, run the new strategy
@@ -161,6 +167,17 @@ class StrategyProcessor extends ActionProcess {
                 $this->executionManager->executeStrategy($s, $iso);
         }
 
+        //get inactive strategies that have active orders. cancel those orders
+        foreach($this->activeOrderManager->getInactiveStrategyOrders($newActiveStrategies) as $ao)
+        {
+            if(!$ao instanceof ActiveOrder)
+                continue;
+
+            if(!$ao->marketObj instanceof IExchange)
+                continue;
+
+            $this->executionManager->cancel($ao->marketObj->Name(), $ao->orderId, $ao->strategyId);
+        }
     }
 
     public function shutdown()

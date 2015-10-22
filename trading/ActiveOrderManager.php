@@ -44,6 +44,24 @@ class ActiveOrderManager {
     }
 
     /**
+     * Returns the list of currently active orders that are associated with inactive strategies
+     * @param array $activeStrategyIdList The list of active strategy IDs
+     * @return array Returns an array of ActiveOrder
+     */
+    function getInactiveStrategyOrders(array $activeStrategyIdList)
+    {
+        $ret = array();
+
+        for($i = 0;$i < count($this->activeOrders);$i++) {
+            $ao = $this->activeOrders[$i];
+            if ($ao instanceof ActiveOrder && !in_array($ao->strategyId, $activeStrategyIdList))
+                $ret[] = $ao;
+        }
+
+        return $ret;
+    }
+
+    /**
      * Checks if the provided strategy has any active orders. If there are any active orders
      * then the strategy is asked to update itself.
      * @param IStrategy $strategy
