@@ -17,7 +17,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
     
     public function balance($exchange_name, $currency, $balance){
         $balances = $this->mdb->balance;
-        $balances->createIndex(array('Timestamp' => -1));
+        $balances->ensureIndex(array('Timestamp' => -1));
 
         $balance_entry = array(
             'Exchange'=>"$exchange_name",
@@ -31,7 +31,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
 
     public function market($exchange_name, $currencyPair, $bid, $ask, $last, $vol){
         $markets = $this->mdb->market;
-        $markets->createIndex(array('Timestamp' => -1));
+        $markets->ensureIndex(array('Timestamp' => -1));
 
         $market_entry = array(
             'Exchange'=>"$exchange_name",
@@ -121,7 +121,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
 
         ////////////////////////////////
         $candleData = $this->mdb->candles;
-        $candleData->createIndex(array('Timestamp' => -1, 'Exchange' => 1,
+        $candleData->ensureIndex(array('Timestamp' => -1, 'Exchange' => 1,
             'CurrencyPair' => 1, 'Interval' => 1), array('unique' => true));
 
         $batch = new MongoUpdateBatch($candleData);
@@ -138,7 +138,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
 
     public function depth($exchange_name, $currencyPair, OrderBook $depth){
         $orderbooks = $this->mdb->orderbook;
-        $orderbooks->createIndex(array('Timestamp' => -1));
+        $orderbooks->ensureIndex(array('Timestamp' => -1));
 
         $book_entry = array(
             'Exchange'=>"$exchange_name",
@@ -152,7 +152,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
     
     public function trades($exchange_name, $currencyPair, $trades){
         $tradeCollection = $this->mdb->trades;
-        $tradeCollection->createIndex(array('timestamp' => -1, 'exchange' => 1,
+        $tradeCollection->ensureIndex(array('timestamp' => -1, 'exchange' => 1,
             'currencyPair' => 1, 'tradeId' => -1), array('unique' => true));
 
         $batch = new MongoUpdateBatch($tradeCollection);
