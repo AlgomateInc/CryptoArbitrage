@@ -176,7 +176,7 @@ class StrategyProcessor extends ActionProcess {
             if(!$ao->marketObj instanceof IExchange)
                 continue;
 
-            $this->executionManager->cancel($ao->marketObj->Name(), $ao->orderId, $ao->strategyId);
+            $this->executionManager->cancel($ao->marketObj->Name(), $ao->orderId, $ao->strategyOrderId);
         }
     }
 
