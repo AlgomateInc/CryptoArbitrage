@@ -91,19 +91,28 @@ class BtceExchange extends BtceStyleExchange implements ILifecycleHandler
 
     public function buy($pair, $quantity, $price)
     {
-        $btcePairName = $this->getCurrencyPairName($pair);
-
-        $btce_result = $this->authQuery("Trade", array("pair" => "$btcePairName", "type" => "buy",
-            "amount" => $quantity, "rate" => $price ));
-        return $btce_result;
+        return $this->executeTrade($pair, $quantity, $price, 'buy');
     }
 
     public function sell($pair, $quantity, $price)
     {
+        return $this->executeTrade($pair, $quantity, $price, 'sell');
+    }
+
+    private function executeTrade($pair, $quantity, $price, $side)
+    {
         $btcePairName = $this->getCurrencyPairName($pair);
 
-        $btce_result = $this->authQuery("Trade", array("pair" => "$btcePairName", "type" => "sell",
+        $btce_result = $this->authQuery("Trade", array("pair" => "$btcePairName", "type" => $side,
             "amount" => $quantity, "rate" => $price ));
+
+        //add custom fields to success response since they are useful in other places
+        //wish btce did this for us...
+        if($this->isOrderAccepted($btce_result)){
+            $btce_result['return']['price'] = $price;
+            $btce_result['return']['timestamp'] = microtime();
+        }
+
         return $btce_result;
     }
 
@@ -259,11 +268,24 @@ class BtceExchange extends BtceStyleExchange implements ILifecycleHandler
     {
         $execList = array();
 
+        if(!$this->isOrderAccepted($orderResponse))
+            return $execList;
+
         $orderId = $orderResponse['return']['order_id'];
 
-        //TODO: figure out how to identify executions when no order id was given by server
-        if($orderId == 0)
+        if($orderId == 0) {
+            //the order fully executed on insert
+            //the orderid will be hash of the returned data since there is no orderid
+            $oe = new OrderExecution();
+            $oe->orderId = 'ExecOnInsertOrderId' . sha1($orderResponse);
+            $oe->txid = 'ExecOnInsertTxId' . sha1($orderResponse);
+            $oe->price = $orderResponse['return']['price']; //our custom added field
+            $oe->quantity = $orderResponse['return']['received'];
+            $oe->timestamp = $orderResponse['return']['timestamp']; //our custom added field
+            $execList[] = $oe;
+
             return $execList;
+        }
 
         $history = $this->tradeHistory(100);
         foreach($history as $td){
