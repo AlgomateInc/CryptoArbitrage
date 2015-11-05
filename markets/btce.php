@@ -111,6 +111,10 @@ class BtceExchange extends BtceStyleExchange implements ILifecycleHandler
         if($this->isOrderAccepted($btce_result)){
             $btce_result['return']['price'] = $price;
             $btce_result['return']['timestamp'] = time();
+
+            //if order_id was not assigned by btce, make our own, deterministically
+            if($btce_result['return']['order_id'] == 0)
+                $btce_result['return']['order_id'] = 'ZeroOrderId' . sha1(json_encode($btce_result));
         }
 
         return $btce_result;
@@ -273,18 +277,15 @@ class BtceExchange extends BtceStyleExchange implements ILifecycleHandler
 
         $orderId = $orderResponse['return']['order_id'];
 
-        if($orderId == 0) {
-            //the order fully executed on insert
-            //the orderid will be hash of the returned data since there is no orderid
+        if($orderResponse['return']['received'] !== 0) {
+            //the order has executions on insert
             $oe = new OrderExecution();
-            $oe->orderId = 'ExecOnInsertOrderId' . sha1(json_encode($orderResponse));
-            $oe->txid = 'ExecOnInsertTxId' . sha1(json_encode($orderResponse));
+            $oe->orderId = $orderId;
+            $oe->txid = 'ExecOnInsertTx';
             $oe->price = $orderResponse['return']['price']; //our custom added field
             $oe->quantity = $orderResponse['return']['received'];
             $oe->timestamp = $orderResponse['return']['timestamp']; //our custom added field
             $execList[] = $oe;
-
-            return $execList;
         }
 
         $history = $this->tradeHistory(100);
