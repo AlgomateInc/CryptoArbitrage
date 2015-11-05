@@ -110,7 +110,7 @@ class BtceExchange extends BtceStyleExchange implements ILifecycleHandler
         //wish btce did this for us...
         if($this->isOrderAccepted($btce_result)){
             $btce_result['return']['price'] = $price;
-            $btce_result['return']['timestamp'] = microtime();
+            $btce_result['return']['timestamp'] = time();
         }
 
         return $btce_result;
