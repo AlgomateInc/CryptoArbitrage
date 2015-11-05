@@ -277,8 +277,8 @@ class BtceExchange extends BtceStyleExchange implements ILifecycleHandler
             //the order fully executed on insert
             //the orderid will be hash of the returned data since there is no orderid
             $oe = new OrderExecution();
-            $oe->orderId = 'ExecOnInsertOrderId' . sha1($orderResponse);
-            $oe->txid = 'ExecOnInsertTxId' . sha1($orderResponse);
+            $oe->orderId = 'ExecOnInsertOrderId' . sha1(json_encode($orderResponse));
+            $oe->txid = 'ExecOnInsertTxId' . sha1(json_encode($orderResponse));
             $oe->price = $orderResponse['return']['price']; //our custom added field
             $oe->quantity = $orderResponse['return']['received'];
             $oe->timestamp = $orderResponse['return']['timestamp']; //our custom added field
