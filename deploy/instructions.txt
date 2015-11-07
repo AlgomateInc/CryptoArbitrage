@@ -1,0 +1,41 @@
+# Ubuntu 14.04 Instructions
+
+# Install mongodb as per the instructions:
+# https://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/
+
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+
+
+# To use wiredTiger storage engine, modify the conf file to specify the engine (engine: wiredTiger):
+sudo service mongod stop
+sudo rm -Rf /var/lib/mongodb/
+sudo vi /etc/mongod.conf
+sudo service mongod start
+
+
+# Install supervisor:
+sudo apt-get install -y supervisor
+
+# Install PHP and dependencies:
+sudo apt-get install -y php5-cli php5-mongo php5-curl
+
+sudo apt-get install -y php-pear
+sudo pear channel-discover pear.apache.org/log4php
+sudo pear install log4php/Apache_log4php
+
+# Get the source code:
+sudo apt-get install -y git
+git clone https://github.com/Cuantile/CryptoArbitrage.git
+cd CryptoArbitrage
+
+# Prepare configuration file for run:
+cp config.example.php config.php
+
+# Install the supervisor configuration files
+cd deploy
+sudo cp crypto_arbitrage.conf /etc/supervisor/conf.d/
+sudo cp market_monitor.conf /etc/supervisor/conf.d/
+sudo supervisorctl reload
