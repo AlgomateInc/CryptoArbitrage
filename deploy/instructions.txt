@@ -20,7 +20,10 @@ sudo service mongod start
 sudo apt-get install -y supervisor
 
 # Install PHP and dependencies:
-sudo apt-get install -y php5-cli php5-mongo php5-curl
+sudo apt-get install -y php5-cli php5-dev php5-curl
+
+sudo pecl install mongo
+echo "extension=mongo.so" | sudo tee -a /etc/php5/cli/php.ini
 
 sudo apt-get install -y php-pear
 sudo pear channel-discover pear.apache.org/log4php
