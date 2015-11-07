@@ -47,7 +47,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
         foreach($this->supportedCurrencies() as $curr){
             $balances[$curr] = 0;
             foreach($balance_info as $balItem)
-                if($balItem['currency'] == strtolower($curr))
+                if(strcasecmp($balItem['currency'], $curr) == 0)
                     $balances[$curr] += $balItem['amount'];
         }
 
