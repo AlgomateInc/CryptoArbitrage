@@ -86,6 +86,14 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
                             return null;
                     }
 
+                    //check for stop price
+                    if(isset($ret->stopPrice)){
+                        if($ret->type == OrderType::BUY && $ret->price < $ret->stopPrice)
+                            return null;
+                        if($ret->type == OrderType::SELL && $ret->price > $ret->stopPrice)
+                            return null;
+                    }
+
                     return $ret;
                 }
             }
