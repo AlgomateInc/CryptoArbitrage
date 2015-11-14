@@ -23,7 +23,7 @@ class Currency{
     const XCP = 'XCP';
     const ETH = 'ETH';
 
-    public static function FloorValue($value, $currency)
+    public static function getPrecision($currency)
     {
         $precision = array(
             static::USD => 2,
@@ -38,10 +38,22 @@ class Currency{
             static::ETH => 8
         );
 
-        $p = $precision[$currency];
+        return $precision[$currency];
+    }
+
+    public static function FloorValue($value, $currency)
+    {
+        $p = self::getPrecision($currency);
 
         $mul = pow(10, $p);
         return floor($value * $mul) / $mul;
+    }
+
+    public static function RoundValue($value, $currency, $roundMode = PHP_ROUND_HALF_UP)
+    {
+        $p =  self::getPrecision($currency);
+
+        return round($value, $p, $roundMode);
     }
 }
 

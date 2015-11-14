@@ -30,12 +30,21 @@ class BulkPriceQuoter extends ActionProcess
     {
         $targetMarkets = array(Exchange::Bitstamp, Exchange::Bitfinex);
         $currencyPair = CurrencyPair::BTCUSD;
-        $orderType = OrderType::BUY;
         $premium = 0.0225;
         $valueRequired = 1000;
 
+        //get buy or sell from user
+        print "Are you looking to buy or sell ($currencyPair)?: ";
+        $inputValue = strtoupper(trim(fgets(STDIN)));
+        if($inputValue !== OrderType::BUY && $inputValue !== OrderType::SELL){
+            print "Error!";
+            return;
+        }
+        $orderType = $inputValue;
+
         //get the quantity from user
-        print "Please enter the required USD amount: ";
+        print "Please enter the required " . (($orderType == OrderType::BUY)? CurrencyPair::Quote($currencyPair)
+            : CurrencyPair::Base($currencyPair)) . " amount: ";
         $inputValue = fgets(STDIN);
         if($inputValue !== false) {
             $inputValue = trim($inputValue);
@@ -77,16 +86,37 @@ class BulkPriceQuoter extends ActionProcess
         print "Max Price: $maxPrice\n";
         print "Min Price: $minPrice\n\n";
 
-        $this->printPricingInfo($averagePrice, $premium, $valueRequired);
+        if($orderType == OrderType::BUY)
+            $this->printBuyPricingInfo($currencyPair, $averagePrice, $premium, $valueRequired);
+        else
+            $this->printSellPricingInfo($currencyPair, $averagePrice, $premium, $valueRequired);
     }
 
-    function printPricingInfo($price, $premium, $valueRequired)
+    function printBuyPricingInfo($currencyPair, $price, $premium, $valueRequired)
     {
-        $priceTarget = round($price * (1 + $premium), 2);
-        $sizeTarget = round($valueRequired / $priceTarget, 8, PHP_ROUND_HALF_DOWN);
+        $base = CurrencyPair::Base($currencyPair);
+        $quote = CurrencyPair::Quote($currencyPair);
+
+        $priceTarget = Currency::RoundValue($price * (1 + $premium), $quote);
+        $sizeTarget = Currency::RoundValue($valueRequired / $priceTarget, $base, PHP_ROUND_HALF_DOWN);
         $value = $priceTarget * $sizeTarget;
-        $profit = round($valueRequired - ($sizeTarget * $price), 2);
-        print "Desired(USD): $valueRequired\nPrice(USD): $price\nSize(BTC): $sizeTarget\nFee(USD): $profit\n";
+        $profit = Currency::RoundValue($valueRequired - ($sizeTarget * $price), $quote);
+        print "Desired($quote): $valueRequired\nPrice($quote): $price\nSize($base): $sizeTarget\nFee($quote): $profit\n";
+        print "\n";
+        print "Effective Price: $priceTarget\nTotal: $value\n";
+        print "CSV: $valueRequired,$price,$sizeTarget,$profit";
+    }
+
+    function printSellPricingInfo($currencyPair, $price, $premium, $valueRequired)
+    {
+        $base = CurrencyPair::Base($currencyPair);
+        $quote = CurrencyPair::Quote($currencyPair);
+
+        $priceTarget = Currency::RoundValue($price * (1 - $premium), $quote);
+        $sizeTarget = Currency::RoundValue($valueRequired * (1 - $premium), $base);
+        $value = $price * $sizeTarget;
+        $profit = $valueRequired - $sizeTarget;
+        print "Desired($base): $valueRequired\nPrice($quote): $price\nSize($base): $sizeTarget\nFee($base): $profit\n";
         print "\n";
         print "Effective Price: $priceTarget\nTotal: $value\n";
         print "CSV: $valueRequired,$price,$sizeTarget,$profit";
