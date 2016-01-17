@@ -13,6 +13,7 @@ require_once('markets/BitVC.php');
 require_once('markets/TestMarket.php');
 require_once('markets/Poloniex.php');
 require_once('markets/Gemini.php');
+require_once('markets/Kraken.php');
 
 class ConfigAccountLoader implements IAccountLoader{
 
@@ -93,6 +94,10 @@ class ConfigAccountLoader implements IAccountLoader{
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );
+                    break;
+
+                case Exchange::Kraken:
+                    $accounts[Exchange::Kraken] = new Kraken();
                     break;
             }
         }

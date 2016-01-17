@@ -9,6 +9,7 @@ class Exchange{
     const BitVC = 'BitVC';
     const Poloniex = 'Poloniex';
     const Gemini = 'Gemini';
+    const Kraken = 'Kraken';
 }
 
 class Currency{
@@ -70,6 +71,7 @@ class CurrencyPair{
     const XCPBTC = 'XCPBTC';
     const MAIDBTC = 'MAID/BTC';
     const ETHBTC = 'ETHBTC';
+    const ETHUSD = 'ETHUSD';
 
     public static function Base($strPair){
         if(strlen($strPair) == 6)
