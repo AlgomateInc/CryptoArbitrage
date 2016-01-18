@@ -12,8 +12,19 @@ require_once('NonceFactory.php');
  */
 class Kraken extends BaseExchange implements ILifecycleHandler
 {
+    private $key;
+    private $secret;
+    private $nonceFactory;
+
     private $currencyMapping = array();
     private $marketMapping = array();
+
+    public function __construct($key, $secret){
+        $this->key = $key;
+        $this->secret = $secret;
+
+        $this->nonceFactory = new NonceFactory();
+    }
 
     function init()
     {
@@ -43,7 +54,17 @@ class Kraken extends BaseExchange implements ILifecycleHandler
 
     public function balances()
     {
-        // TODO: Implement balances() method.
+        $balance_info = $this->privateQuery('Balance');
+
+        $balances = array();
+        foreach($this->supportedCurrencies() as $curr){
+            $balances[$curr] = 0;
+            foreach($balance_info as $krakenCurrencyName => $amount)
+                if(strcasecmp($this->currencyMapping[$curr], $krakenCurrencyName) == 0)
+                    $balances[$curr] += $amount;
+        }
+
+        return $balances;
     }
 
     public function transactions()
@@ -61,9 +82,42 @@ class Kraken extends BaseExchange implements ILifecycleHandler
         // TODO: Implement minimumOrderSize() method.
     }
 
+    private function getApiUrl()
+    {
+        return 'https://api.kraken.com/' . $this->getApiVersion() . '/';
+    }
+
+    private function getApiVersion()
+    {
+        return '0';
+    }
+
     private function publicQuery($endpoint, $post_data = null, $headers = array())
     {
-        $res = curl_query('https://api.kraken.com/0/public/' . $endpoint, $post_data, $headers);
+        $res = curl_query($this->getApiUrl() . 'public/' . $endpoint, $post_data, $headers);
+
+        return $this->assertSuccessResponse($res);
+    }
+
+    private function privateQuery($endpoint, $request = array())
+    {
+        if(!$this->nonceFactory instanceof NonceFactory)
+            throw new Exception('No way to get nonce!');
+
+        $request['nonce'] = strval($this->nonceFactory->get());
+
+        // build the POST data string
+        $postdata = http_build_query($request, '', '&');
+
+        // set API key and sign the message
+        $path = '/' . $this->getApiVersion() . '/private/' . $endpoint;
+        $sign = hash_hmac('sha512', $path . hash('sha256', $request['nonce'] . $postdata, true), base64_decode($this->secret), true);
+        $headers = array(
+            'API-Key: ' . $this->key,
+            'API-Sign: ' . base64_encode($sign)
+        );
+
+        $res = curl_query($this->getApiUrl() . 'private/' . $endpoint, $postdata, $headers);
 
         return $this->assertSuccessResponse($res);
     }

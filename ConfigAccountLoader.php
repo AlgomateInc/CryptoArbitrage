@@ -97,7 +97,10 @@ class ConfigAccountLoader implements IAccountLoader{
                     break;
 
                 case Exchange::Kraken:
-                    $accounts[Exchange::Kraken] = new Kraken();
+                    $accounts[Exchange::Kraken] = new Kraken(
+                        $mktConfig['key'],
+                        $mktConfig['secret']
+                    );
                     break;
             }
         }
