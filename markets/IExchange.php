@@ -47,12 +47,37 @@ interface IExchange extends IAccount
      */
     public function depth($currencyPair);
 
+    /**
+     * @param $pair String The CurrencyPair string we want to trade
+     * @param $quantity float The amount we want to trade
+     * @param $price float The price we want to trade at
+     * @return mixed The response from the exchange (exchange specific format,
+     * use isOrderAccepted/getOrderID/etc. to manipulate)
+     */
     public function buy($pair, $quantity, $price);
+
+    /**
+     * @param $pair String The CurrencyPair string we want to trade
+     * @param $quantity float The amount we want to trade
+     * @param $price float The price we want to trade at
+     * @return mixed The response from the exchange (exchange specific format,
+     * use isOrderAccepted/getOrderID/etc. to manipulate)
+     */
     public function sell($pair, $quantity, $price);
     public function activeOrders();
     public function hasActiveOrders();
+
+    /**
+     * @param $orderId object Exchange-specific order identifier (can be obtained by
+     * calling getOrderID on the original buy/sell exchange response
+     * @return mixed object Exchange-specific response
+     */
     public function cancel($orderId);
 
+    /**
+     * @param $orderResponse object Exchange-specific order response from buy/sell methods
+     * @return boolean True if order accepted by exchange, else false
+     */
     public function isOrderAccepted($orderResponse);
     public function isOrderOpen($orderResponse);
 
@@ -60,6 +85,10 @@ interface IExchange extends IAccount
 
     public function tradeHistory($desiredCount);
 
+    /**
+     * @param $orderResponse object Exchange-specific order response from buy/sell methods
+     * @return mixed Exchange-specific order identifier
+     */
     public function getOrderID($orderResponse);
 }
 

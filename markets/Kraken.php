@@ -79,7 +79,7 @@ class Kraken extends BaseExchange implements ILifecycleHandler
 
     public function minimumOrderSize($pair, $pairRate)
     {
-        // TODO: Implement minimumOrderSize() method.
+        return 0.01;
     }
 
     private function getApiUrl()
@@ -187,12 +187,24 @@ class Kraken extends BaseExchange implements ILifecycleHandler
 
     public function buy($pair, $quantity, $price)
     {
-        // TODO: Implement buy() method.
+        $request['pair'] = $this->marketMapping[$pair];
+        $request['type'] = 'buy';
+        $request['ordertype'] = 'limit';
+        $request['price'] = $price;
+        $request['volume'] = $quantity;
+
+        return $this->privateQuery('AddOrder', $request);
     }
 
     public function sell($pair, $quantity, $price)
     {
-        // TODO: Implement sell() method.
+        $request['pair'] = $this->marketMapping[$pair];
+        $request['type'] = 'sell';
+        $request['ordertype'] = 'limit';
+        $request['price'] = $price;
+        $request['volume'] = $quantity;
+
+        return $this->privateQuery('AddOrder', $request);
     }
 
     public function activeOrders()
@@ -207,12 +219,13 @@ class Kraken extends BaseExchange implements ILifecycleHandler
 
     public function cancel($orderId)
     {
-        // TODO: Implement cancel() method.
+        $req['txid'] = $orderId;
+        return $this->privateQuery('CancelOrder', $req);
     }
 
     public function isOrderAccepted($orderResponse)
     {
-        // TODO: Implement isOrderAccepted() method.
+        return isset($orderResponse['txid']) && count($orderResponse['txid']) > 0;
     }
 
     public function isOrderOpen($orderResponse)
@@ -232,6 +245,6 @@ class Kraken extends BaseExchange implements ILifecycleHandler
 
     public function getOrderID($orderResponse)
     {
-        // TODO: Implement getOrderID() method.
+        return $orderResponse['txid'][0];
     }
 }
