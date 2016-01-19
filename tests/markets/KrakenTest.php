@@ -42,5 +42,22 @@ class KrakenTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testOrderSubmitAndExecute()
+    {
+        if($this->mkt instanceof Kraken)
+        {
+            $res = $this->mkt->sell(CurrencyPair::ETHBTC, 0.1, 0.001);
+
+            $this->assertTrue($this->mkt->isOrderAccepted($res));
+
+            sleep(1);
+
+            $this->assertFalse($this->mkt->isOrderOpen($res));
+
+            $oe = $this->mkt->getOrderExecutions($res);
+
+            $this->assertTrue(count($oe) > 1);
+        }
+    }
 }
  

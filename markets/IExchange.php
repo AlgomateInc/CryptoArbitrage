@@ -86,6 +86,10 @@ interface IExchange extends IAccount
      */
     public function isOrderOpen($orderResponse);
 
+    /**
+     * @param $orderResponse object Exchange-specific order response from buy/sell methods
+     * @return OrderExecution[] An array of all the executions for this order
+     */
     public function getOrderExecutions($orderResponse);
 
     public function tradeHistory($desiredCount);
