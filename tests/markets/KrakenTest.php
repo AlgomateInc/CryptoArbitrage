@@ -37,6 +37,8 @@ class KrakenTest extends PHPUnit_Framework_TestCase {
             $cres = $this->mkt->cancel($this->mkt->getOrderID($res));
 
             $this->assertTrue($cres['count'] == 1);
+
+            $this->assertFalse($this->mkt->isOrderOpen($res));
         }
     }
 
