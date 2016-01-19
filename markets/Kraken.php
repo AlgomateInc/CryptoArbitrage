@@ -230,7 +230,16 @@ class Kraken extends BaseExchange implements ILifecycleHandler
 
     public function isOrderOpen($orderResponse)
     {
-        // TODO: Implement isOrderOpen() method.
+        if(!$this->isOrderAccepted($orderResponse))
+            return false;
+
+        $res = $this->privateQuery('OpenOrders');
+
+        foreach($res['open'] as $txid => $txData)
+            if($txid == $this->getOrderID($orderResponse))
+                return true;
+
+        return false;
     }
 
     public function getOrderExecutions($orderResponse)

@@ -79,6 +79,11 @@ interface IExchange extends IAccount
      * @return boolean True if order accepted by exchange, else false
      */
     public function isOrderAccepted($orderResponse);
+
+    /**
+     * @param $orderResponse object Exchange-specific order response from buy/sell methods
+     * @return boolean True if order still open on exchange, else false
+     */
     public function isOrderOpen($orderResponse);
 
     public function getOrderExecutions($orderResponse);
