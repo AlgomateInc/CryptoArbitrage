@@ -170,7 +170,8 @@ abstract class ActionProcess {
 
             do {
                 $this->run();
-                sleep($this->monitor_timeout);
+                if($this->monitor)
+                    sleep($this->monitor_timeout);
             }while($this->monitor);
 
             $this->shutdown();
