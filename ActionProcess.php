@@ -150,21 +150,6 @@ abstract class ActionProcess {
             exit(1);
         }
 
-        ////////////////////////////////////////////////////////
-        // Execute process according to setup
-        // if not monitoring, run once and exit
-        if($this->monitor == false){
-            try{
-                $this->initialize();
-                $this->run();
-                $this->shutdown();
-            }catch(Exception $e){
-                $logger->error('Execution error', $e);
-                exit(1);
-            }
-            exit;
-        }
-
         //if we are here, we are monitoring.
         //fork the process depending on setup and loop
         if($this->fork){
@@ -180,7 +165,7 @@ abstract class ActionProcess {
 
         //perform the monitoring loop
         try{
-            $logger->info(get_class($this) . ' - monitoring starting');
+            $logger->info(get_class($this) . ' - starting');
             $this->initialize();
 
             do {
@@ -189,7 +174,7 @@ abstract class ActionProcess {
             }while($this->monitor);
 
             $this->shutdown();
-            $logger->info(get_class($this) . ' - monitoring finished');
+            $logger->info(get_class($this) . ' - finished');
         }catch(Exception $e){
             $logger->error('ActionProcess runtime error', $e);
             exit(1);
