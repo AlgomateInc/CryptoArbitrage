@@ -106,7 +106,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
                     'Interval' => array('$literal' => $intervalSecs),
                     'Open'=>1, 'High'=>1, 'Low'=>1, 'Close'=>1, 'Volume'=>1,
                     'TradeCount'=>1, 'Buys'=>1, 'Sells'=>1, 'BuyVolume'=>1, 'SellVolume'=>1,
-                    'TradeVWAP' => array('$divide' => array('$PxTimesVol', '$Volume'))
+                    'TradeVWAP' => array('$cond' => array(array('$eq' => array('$Volume', 0)), '$Open', array('$divide' => array('$PxTimesVol', '$Volume'))))
                 )
             )
         );
