@@ -14,6 +14,7 @@ require_once('markets/TestMarket.php');
 require_once('markets/Poloniex.php');
 require_once('markets/Gemini.php');
 require_once('markets/Kraken.php');
+require_once('markets/EthereumAccount.php');
 
 class ConfigAccountLoader implements IAccountLoader{
 
@@ -100,6 +101,12 @@ class ConfigAccountLoader implements IAccountLoader{
                     $accounts[Exchange::Kraken] = new Kraken(
                         $mktConfig['key'],
                         $mktConfig['secret']
+                    );
+                    break;
+
+                case Exchange::Ethereum:
+                    $accounts[Exchange::Ethereum] = new EthereumAccount(
+                        $mktConfig['address']
                     );
                     break;
             }

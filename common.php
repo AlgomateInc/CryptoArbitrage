@@ -10,6 +10,7 @@ class Exchange{
     const Poloniex = 'Poloniex';
     const Gemini = 'Gemini';
     const Kraken = 'Kraken';
+    const Ethereum = 'Ethereum';
 }
 
 class Currency{
