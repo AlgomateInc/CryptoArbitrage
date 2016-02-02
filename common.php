@@ -11,6 +11,7 @@ class Exchange{
     const Gemini = 'Gemini';
     const Kraken = 'Kraken';
     const Ethereum = 'Ethereum';
+    const Bitcoin = 'Bitcoin';
 }
 
 class Currency{
