@@ -35,9 +35,12 @@ class ConcurrentFile {
 
             rewind($this->sharedFile);
             $fileInfo = fstat($this->sharedFile);
-            $str = fread($this->sharedFile, $fileInfo['size']);
-            if($str != FALSE)
-                $data = unserialize(trim($str));
+
+            if($fileInfo['size'] > 0) {
+                $str = fread($this->sharedFile, $fileInfo['size']);
+                if ($str != FALSE)
+                    $data = unserialize(trim($str));
+            }
 
         }catch (Exception $e){
             $this->logger->error('Exception reading trade data from shared file', $e);
