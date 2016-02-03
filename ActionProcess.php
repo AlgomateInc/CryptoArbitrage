@@ -31,7 +31,8 @@ abstract class ActionProcess {
     abstract public function run();
     abstract public function shutdown();
 
-    protected $exchanges;
+    protected $exchanges = array();
+    protected $configuredExchanges;
 
     private function processCommandLine()
     {
@@ -85,7 +86,7 @@ abstract class ActionProcess {
         ////////////////////////////////
         // Load all the accounts data
         if(array_key_exists('testmarket', $options))
-            $this->exchanges = array('TestMarket' => new TestMarket($this->requiresListener));
+            $this->configuredExchanges = array('TestMarket' => new TestMarket($this->requiresListener));
         else
         {
             $accountLoader = null;
@@ -98,7 +99,7 @@ abstract class ActionProcess {
             else
                 $accountLoader = new ConfigAccountLoader();
 
-            $this->exchanges = $accountLoader->getAccounts();
+            $this->configuredExchanges = $accountLoader->getAccounts();
         }
 
         ////////////////////////////////
@@ -117,22 +118,26 @@ abstract class ActionProcess {
         $this->processOptions($options);
     }
 
-    private function initialize()
+    private function initializeMarkets()
     {
         $logger = Logger::getLogger(get_class($this));
 
-        foreach($this->exchanges as $name => $mkt)
+        foreach($this->configuredExchanges as $name => $mkt)
+        {
+            if(isset($this->exchanges[$name]))
+                continue;
+
             if ($mkt instanceof ILifecycleHandler) {
                 try {
                     $mkt->init();
                 } catch (Exception $e) {
                     $logger->error('Error initializing market: ', $e);
-
-                    unset($this->exchanges[$name]);
+                    continue;
                 }
             }
 
-        $this->init();
+            $this->exchanges[$name] = $mkt;
+        }
     }
 
     public function start()
@@ -166,9 +171,11 @@ abstract class ActionProcess {
         //perform the monitoring loop
         try{
             $logger->info(get_class($this) . ' - starting');
-            $this->initialize();
+            $this->initializeMarkets();
+            $this->init();
 
             do {
+                $this->initializeMarkets();
                 $this->run();
                 if($this->monitor)
                     sleep($this->monitor_timeout);

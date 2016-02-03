@@ -19,7 +19,7 @@ class ExecutionManager {
         $this->liveTrade = $liveTrade;
     }
 
-    function __construct(ActiveOrderManager $activeOrderManager, $exchanges, IReporter $reporter)
+    function __construct(ActiveOrderManager $activeOrderManager, &$exchanges, IReporter $reporter)
     {
         $this->activeOrderManager = $activeOrderManager;
         $this->exchanges = $exchanges;

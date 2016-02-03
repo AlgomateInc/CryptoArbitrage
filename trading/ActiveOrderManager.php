@@ -15,7 +15,7 @@ class ActiveOrderManager {
     private $exchanges;
     private $reporter;
 
-    function __construct($fileName, $exchanges, $reporter)
+    function __construct($fileName, &$exchanges, $reporter)
     {
         $this->logger = Logger::getLogger(get_class($this));
 
