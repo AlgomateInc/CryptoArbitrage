@@ -98,7 +98,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
     public function depth($currencyPair)
     {
         $raw = curl_query($this->getApiUrl() . 'book' . '/' . $currencyPair .
-            '?limit_bids=50&limit_asks=50&group=1');
+            '?limit_bids=150&limit_asks=150&group=1');
 
         $book = new OrderBook($raw);
 

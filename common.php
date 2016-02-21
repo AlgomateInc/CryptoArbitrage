@@ -240,6 +240,43 @@ class OrderBook{
 
         return $volume;
     }
+
+    public function getOrderBookVolume($pricePercentage)
+    {
+        $bid = OrderBook::getInsideBookPrice($this, OrderType::BUY);
+        $ask = OrderBook::getInsideBookPrice($this, OrderType::SELL);
+
+        if($bid == null || $ask == null)
+            return null;
+
+        $midpoint = ($bid + $ask)/2.0;
+
+        $bidVolume = $this->volumeToPrice($midpoint * (1 - $pricePercentage / 100.0));
+        $askVolume = $this->volumeToPrice($midpoint * (1 + $pricePercentage / 100.0));
+
+        if($bidVolume == 0 || $askVolume == 0)
+            return null;
+
+        return array('bid' => $bid, 'bidVolume' => $bidVolume, 'ask' => $ask, 'askVolume' => $askVolume);
+    }
+
+    public static function getInsideBookPrice(OrderBook $depth, $bookSide){
+        if (count($depth->bids) > 0 && count($depth->asks) > 0) {
+            $insideBid = $depth->bids[0];
+            $insideAsk = $depth->asks[0];
+
+            if ($insideBid instanceof DepthItem && $insideAsk instanceof DepthItem) {
+                switch($bookSide){
+                    case OrderType::BUY:
+                        return $insideBid->price;
+                    case OrderType::SELL:
+                        return $insideAsk->price;
+                }
+            }
+        }
+
+        return null;
+    }
 }
 
 class DepthItem{

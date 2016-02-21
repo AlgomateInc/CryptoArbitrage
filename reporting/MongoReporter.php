@@ -144,6 +144,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             'Exchange'=>"$exchange_name",
             'CurrencyPair'=>"$currencyPair",
             'Depth'=>$depth,
+            'OnePercentVolume'=>$depth->getOrderBookVolume(1.0),
             'Timestamp'=>new MongoDate());
         
         $orderbooks->insert($book_entry);
