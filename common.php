@@ -44,6 +44,12 @@ class Currency{
         return $precision[$currency];
     }
 
+    public static function GetMinimumValue($currency)
+    {
+        $p = self::getPrecision($currency);
+        return pow(10, -$p);
+    }
+
     public static function FloorValue($value, $currency)
     {
         $p = self::getPrecision($currency);
