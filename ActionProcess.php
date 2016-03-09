@@ -8,6 +8,7 @@ Logger::configure($log4phpConfig);
 require_once('common.php');
 require_once('ConfigAccountLoader.php');
 require_once('MongoAccountLoader.php');
+require_once('TestAccountLoader.php');
 require_once('reporting/MultiReporter.php');
 require_once('reporting/ConsoleReporter.php');
 require_once('reporting/MongoReporter.php');
@@ -31,6 +32,7 @@ abstract class ActionProcess {
     abstract public function run();
     abstract public function shutdown();
 
+    private $accountLoader = null;
     protected $exchanges = array();
     protected $configuredExchanges;
 
@@ -86,21 +88,20 @@ abstract class ActionProcess {
         ////////////////////////////////
         // Load all the accounts data
         if(array_key_exists('testmarket', $options))
-            $this->configuredExchanges = array('TestMarket' => new TestMarket($this->requiresListener));
+            $this->accountLoader = new TestAccountLoader($this->requiresListener);
         else
         {
-            $accountLoader = null;
             if(array_key_exists("mongodb", $options)) {
                 if(array_key_exists('servername', $options) && isset($options['servername']))
-                    $accountLoader = new MongoAccountLoader($options['servername']);
+                    $this->accountLoader = new MongoAccountLoader($options['servername']);
                 else
-                    $accountLoader = new MongoAccountLoader();
+                    $this->accountLoader = new MongoAccountLoader();
             }
             else
-                $accountLoader = new ConfigAccountLoader();
-
-            $this->configuredExchanges = $accountLoader->getAccounts();
+                $this->accountLoader = new ConfigAccountLoader();
         }
+
+        $this->setConfiguration($this->accountLoader);
 
         ////////////////////////////////
         if(array_key_exists("monitor", $options)){
@@ -118,9 +119,21 @@ abstract class ActionProcess {
         $this->processOptions($options);
     }
 
+    private function setConfiguration(IAccountLoader $loader)
+    {
+        $config = $loader->getAccounts();
+
+        if($this->configuredExchanges != null && $this->configuredExchanges != $config)
+            throw new Exception('Configuration changed');
+
+        $this->configuredExchanges = $config;
+    }
+
     private function initializeMarkets()
     {
         $logger = Logger::getLogger(get_class($this));
+
+        $this->setConfiguration($this->accountLoader);
 
         foreach($this->configuredExchanges as $name => $mkt)
         {

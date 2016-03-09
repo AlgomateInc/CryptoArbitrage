@@ -9,6 +9,8 @@ class MongoAccountLoader extends ConfigAccountLoader{
     private $mongo;
     private $mdb;
 
+    private $serverName = null;
+
     public function __construct($serverName = null){
         global $mongodb_uri, $mongodb_db;
 
@@ -17,7 +19,7 @@ class MongoAccountLoader extends ConfigAccountLoader{
 
         if($serverName == null)
             $serverName = gethostname();
-        $this->loadAccountConfig($serverName);
+        $this->serverName = $serverName;
     }
 
     function loadAccountConfig($serverName)
@@ -40,5 +42,12 @@ class MongoAccountLoader extends ConfigAccountLoader{
         foreach ($mktConfig as $mktSetItem) {
             $this->accountsConfig[$mktSetItem['Name']] = $mktSetItem['Settings'];
         }
+    }
+
+    function getAccounts(array $mktFilter = null)
+    {
+        $this->loadAccountConfig($this->serverName);
+
+        return parent::getAccounts($mktFilter);
     }
 }
