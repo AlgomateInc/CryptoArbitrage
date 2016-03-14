@@ -154,7 +154,11 @@ class StrategyProcessor extends ActionProcess {
             if($updateIsoList !== null) {
                 foreach ($updateIsoList as $iso) {
                     if ($iso instanceof IStrategyOrder)
-                        $this->executionManager->updateStrategy($iso);
+                        try{
+                            $this->executionManager->updateStrategy($iso);
+                        }catch (Exception $e){
+                            $logger->error('Strategy update failed', $e);
+                        }
                 }
                 continue;
             }
@@ -162,9 +166,14 @@ class StrategyProcessor extends ActionProcess {
             //////////////////////////////////////////
             // Execute the order(s) returned
             //////////////////////////////////////////
-            $iso = $s->run($inst->data, $this->exchanges, $this->balanceManager->getBalances());
-            if($iso instanceof IStrategyOrder)
-                $this->executionManager->executeStrategy($s, $iso);
+            try{
+                $iso = $s->run($inst->data, $this->exchanges, $this->balanceManager->getBalances());
+                if($iso instanceof IStrategyOrder){
+                    $this->executionManager->executeStrategy($s, $iso);
+                }
+            }catch (Exception $e){
+                $logger->error('Strategy execution failed', $e);
+            }
         }
 
         //get inactive strategies that have active orders. cancel those orders
