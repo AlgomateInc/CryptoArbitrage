@@ -27,6 +27,11 @@ class ConfigAccountLoader implements IAccountLoader{
         $this->accountsConfig = $accountsConfig;
     }
 
+    function getConfig()
+    {
+        return $this->accountsConfig;
+    }
+
     function getAccounts(array $mktFilter = null)
     {
         $accounts = array();

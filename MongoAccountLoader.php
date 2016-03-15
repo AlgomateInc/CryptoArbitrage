@@ -44,6 +44,12 @@ class MongoAccountLoader extends ConfigAccountLoader{
         }
     }
 
+    function getConfig()
+    {
+        $this->loadAccountConfig($this->serverName);
+        return parent::getConfig();
+    }
+
     function getAccounts(array $mktFilter = null)
     {
         $this->loadAccountConfig($this->serverName);

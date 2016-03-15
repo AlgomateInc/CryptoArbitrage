@@ -22,6 +22,10 @@ class TestAccountLoader implements IAccountLoader
         $this->accounts = array('TestMarket' => new TestMarket($requiresListener));
     }
 
+    function getConfig()
+    {
+        return 'TestMarket';
+    }
 
     function getAccounts(array $mktFilter = null)
     {

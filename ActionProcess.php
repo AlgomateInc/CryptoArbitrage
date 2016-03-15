@@ -101,7 +101,7 @@ abstract class ActionProcess {
                 $this->accountLoader = new ConfigAccountLoader();
         }
 
-        $this->setConfiguration($this->accountLoader);
+        $this->checkConfiguration($this->accountLoader);
 
         ////////////////////////////////
         if(array_key_exists("monitor", $options)){
@@ -119,23 +119,24 @@ abstract class ActionProcess {
         $this->processOptions($options);
     }
 
-    private function setConfiguration(IAccountLoader $loader)
+    private function checkConfiguration(IAccountLoader $loader)
     {
-        $config = $loader->getAccounts();
+        $config = $loader->getConfig();
 
-        if($this->configuredExchanges != null && $this->configuredExchanges != $config)
+        if($this->configuredExchanges == null){
+            $this->configuredExchanges = $config;
+            return;
+        }
+
+        if($this->configuredExchanges != $config)
             throw new Exception('Configuration changed');
-
-        $this->configuredExchanges = $config;
     }
 
-    private function initializeMarkets()
+    private function initializeMarkets(IAccountLoader $loader)
     {
         $logger = Logger::getLogger(get_class($this));
 
-        $this->setConfiguration($this->accountLoader);
-
-        foreach($this->configuredExchanges as $name => $mkt)
+        foreach($loader->getAccounts() as $name => $mkt)
         {
             if(isset($this->exchanges[$name]))
                 continue;
@@ -184,11 +185,11 @@ abstract class ActionProcess {
         //perform the monitoring loop
         try{
             $logger->info(get_class($this) . ' - starting');
-            $this->initializeMarkets();
+            $this->initializeMarkets($this->accountLoader);
             $this->init();
 
             do {
-                $this->initializeMarkets();
+                $this->checkConfiguration($this->accountLoader);
                 $this->run();
                 if($this->monitor)
                     sleep($this->monitor_timeout);
