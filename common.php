@@ -25,6 +25,7 @@ class Currency{
     const XMR = 'XMR';
     const XCP = 'XCP';
     const ETH = 'ETH';
+    const DAO = 'DAO';
 
     public static function getPrecision($currency)
     {
@@ -38,7 +39,8 @@ class Currency{
             static::CNY => 2,
             static::XMR => 8,
             static::XCP => 8,
-            static::ETH => 8
+            static::ETH => 8,
+            static::DAO => 8
         );
 
         return $precision[$currency];
@@ -80,6 +82,7 @@ class CurrencyPair{
     const MAIDBTC = 'MAID/BTC';
     const ETHBTC = 'ETHBTC';
     const ETHUSD = 'ETHUSD';
+    const DAOETH = 'DAOETH';
 
     public static function Base($strPair){
         if(strlen($strPair) == 6)

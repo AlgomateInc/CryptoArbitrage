@@ -74,7 +74,7 @@ class Kraken extends BaseExchange implements ILifecycleHandler
 
     public function supportedCurrencyPairs()
     {
-        return array(CurrencyPair::BTCUSD, CurrencyPair::ETHBTC, CurrencyPair::ETHUSD);
+        return array(CurrencyPair::BTCUSD, CurrencyPair::ETHBTC, CurrencyPair::ETHUSD, CurrencyPair::DAOETH);
     }
 
     public function minimumOrderSize($pair, $pairRate)
