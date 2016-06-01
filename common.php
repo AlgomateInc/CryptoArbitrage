@@ -57,7 +57,7 @@ class Currency{
         $p = self::getPrecision($currency);
 
         $mul = pow(10, $p);
-        return floor($value * $mul) / $mul;
+        return bcdiv(floor(bcmul($value, $mul, $p)), $mul, $p); //bc math lib avoids floating point weirdness
     }
 
     public static function RoundValue($value, $currency, $roundMode = PHP_ROUND_HALF_UP)
