@@ -56,7 +56,7 @@ class Poloniex extends BaseExchange {
     public function supportedCurrencyPairs()
     {
         return array(CurrencyPair::LTCBTC, CurrencyPair::XMRBTC, CurrencyPair::BTCUSD,
-            CurrencyPair::XCPBTC, CurrencyPair::MAIDBTC, CurrencyPair::ETHBTC, CurrencyPair::ETHUSD);
+            CurrencyPair::XCPBTC, CurrencyPair::MAIDBTC, CurrencyPair::ETHBTC, CurrencyPair::ETHUSD, 'ETCBTC');
     }
 
     /**
