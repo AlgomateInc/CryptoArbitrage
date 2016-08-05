@@ -25,12 +25,17 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
     {
         $pairs = curl_query($this->getApiUrl() . 'symbols');
         foreach($pairs as $pair){
-            $this->supportedPairs[] = strtoupper($pair);
+            try{
+                CurrencyPair::Base($pair); //checks the format of the pair to make sure it is standard
+                $this->supportedPairs[] = strtoupper($pair);
+            }catch(Exception $e){}
         }
 
         $minOrderSizes = curl_query($this->getApiUrl() . 'symbols_details');
         foreach($minOrderSizes as $symbolDetail){
-            $this->minOrderSizes[strtoupper($symbolDetail['pair'])] = $symbolDetail['minimum_order_size'];
+            $pairName = strtoupper($symbolDetail['pair']);
+            if($this->supports($pairName))
+                $this->minOrderSizes[$pairName] = $symbolDetail['minimum_order_size'];
         }
     }
 
