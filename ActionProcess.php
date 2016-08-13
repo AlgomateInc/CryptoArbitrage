@@ -35,6 +35,7 @@ abstract class ActionProcess {
     private $accountLoader = null;
     protected $exchanges = array();
     protected $configuredExchanges;
+    protected $retryInitExchanges;
 
     private function processCommandLine()
     {
@@ -132,11 +133,18 @@ abstract class ActionProcess {
             throw new Exception('Configuration changed');
     }
 
-    private function initializeMarkets(IAccountLoader $loader)
+    private function prepareMarkets(IAccountLoader $loader)
+    {
+        $this->retryInitExchanges = $this->initializeMarkets($loader->getAccounts());
+    }
+
+    private function initializeMarkets(array $marketList)
     {
         $logger = Logger::getLogger(get_class($this));
 
-        foreach($loader->getAccounts() as $name => $mkt)
+        $failedInitExchanges = array();
+
+        foreach($marketList as $name => $mkt)
         {
             if(isset($this->exchanges[$name]))
                 continue;
@@ -145,6 +153,7 @@ abstract class ActionProcess {
                 try {
                     $mkt->init();
                 } catch (Exception $e) {
+                    $failedInitExchanges[$name] = $mkt;
                     $logger->error('Error initializing market: ', $e);
                     continue;
                 }
@@ -152,6 +161,8 @@ abstract class ActionProcess {
 
             $this->exchanges[$name] = $mkt;
         }
+
+        return $failedInitExchanges;
     }
 
     public function start()
@@ -185,11 +196,12 @@ abstract class ActionProcess {
         //perform the monitoring loop
         try{
             $logger->info(get_class($this) . ' - starting');
-            $this->initializeMarkets($this->accountLoader);
+            $this->prepareMarkets($this->accountLoader);
             $this->init();
 
             do {
                 $this->checkConfiguration($this->accountLoader);
+                $this->retryInitExchanges = $this->initializeMarkets($this->retryInitExchanges);
                 $this->run();
                 if($this->monitor)
                     sleep($this->monitor_timeout);
