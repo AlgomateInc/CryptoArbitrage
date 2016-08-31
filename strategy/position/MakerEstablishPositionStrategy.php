@@ -79,7 +79,9 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
                         $neededCurrencyBalance = $balances[$soi->exchange][$neededCurrency];
                     if($neededCurrencyBalance <= 0)
                         return null;
-                    $ret->size = min($ret->size, $neededCurrencyBalance);
+                    $ret->size = min($ret->size, ($ret->type == OrderType::BUY)?
+                        $neededCurrencyBalance / $tgtPrice:
+                        $neededCurrencyBalance);
 
                     //check our order against any trigger price
                     if(isset($ret->triggerPrice)){
