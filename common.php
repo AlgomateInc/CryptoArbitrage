@@ -32,18 +32,13 @@ class Currency{
         $precision = array(
             static::USD => 2,
             static::BTC => 8,
-            static::FTC => 8,
-            static::LTC => 8,
-            static::DRK => 8,
-            static::NXT => 8,
-            static::CNY => 2,
-            static::XMR => 8,
-            static::XCP => 8,
-            static::ETH => 8,
-            static::DAO => 8
+            static::CNY => 2
         );
 
-        return $precision[$currency];
+        if(array_key_exists($currency, $precision))
+            return $precision[$currency];
+
+        return $precision[static::BTC]; //return BTC precison for all else
     }
 
     public static function GetMinimumValue($currency)
