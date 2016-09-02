@@ -67,7 +67,7 @@ class Poloniex extends BaseExchange {
      */
     public function minimumOrderSize($pair, $pairRate)
     {
-        // TODO: Implement minimumOrderSize() method.
+        return 0.0001;
     }
 
     public function ticker($pair)
