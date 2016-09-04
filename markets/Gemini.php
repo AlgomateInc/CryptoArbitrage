@@ -28,17 +28,14 @@ class Gemini extends Bitfinex
 
     public function ticker($pair)
     {
-        $raw = new OrderBook(curl_query($this->getApiUrl() . 'book' . '/' . $pair .
-            '?limit_bids=1&limit_asks=1'));
-
-        $tradeList = curl_query($this->getApiUrl() . 'trades' . '/' . $pair . "?limit_trades=1");
+        $tickerData = curl_query($this->getApiUrl() . 'pubticker' . '/' . $pair);
 
         $t = new Ticker();
         $t->currencyPair = $pair;
-        $t->bid = (count($raw->bids) > 0 && $raw->bids[0] instanceof DepthItem)? $raw->bids[0]->price : 0;
-        $t->ask = (count($raw->asks) > 0 && $raw->asks[0] instanceof DepthItem)? $raw->asks[0]->price : 0;
-        $t->last = (count($tradeList) > 0)? $tradeList[0]['price'] : 0;
-        $t->volume = 0;
+        $t->bid = $tickerData['bid'];
+        $t->ask = $tickerData['ask'];
+        $t->last = $tickerData['last'];
+        $t->volume = $tickerData['volume'][CurrencyPair::Base($pair)];
 
         return $t;
     }
