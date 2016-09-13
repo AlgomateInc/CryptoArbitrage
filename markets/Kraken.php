@@ -252,20 +252,22 @@ class Kraken extends BaseExchange implements ILifecycleHandler
 
         $orderStatus = $res[$this->getOrderID($orderResponse)];
 
-        $tradeReq['txid'] = implode(',',$orderStatus['trades']);
-        $tradeRes = $this->privateQuery('QueryTrades', $tradeReq);
-
         $orderTx = array();
 
-        foreach($tradeRes as $txid => $t){
-            $exec = new OrderExecution();
-            $exec->txid = $txid;
-            $exec->orderId = $t['ordertxid'];
-            $exec->quantity = $t['vol'];
-            $exec->price = $t['price'];
-            $exec->timestamp = $t['time'];
+        if(isset($orderStatus['trades']) && count($orderStatus['trades']) > 0) {
+            $tradeReq['txid'] = implode(',', $orderStatus['trades']);
+            $tradeRes = $this->privateQuery('QueryTrades', $tradeReq);
 
-            $orderTx[] = $exec;
+            foreach ($tradeRes as $txid => $t) {
+                $exec = new OrderExecution();
+                $exec->txid = $txid;
+                $exec->orderId = $t['ordertxid'];
+                $exec->quantity = $t['vol'];
+                $exec->price = $t['price'];
+                $exec->timestamp = $t['time'];
+
+                $orderTx[] = $exec;
+            }
         }
 
         return $orderTx;
