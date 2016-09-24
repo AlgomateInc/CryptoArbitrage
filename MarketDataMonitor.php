@@ -8,13 +8,14 @@ class MarketDataMonitor extends ActionProcess {
 
     private $activeOrderManager;
     private $balanceManager;
+    private $storeDepth = true;
 
     //stores market -> last received trade date
     private $lastMktTradeDate = array();
 
     public function getProgramOptions()
     {
-        return array('activeorders', 'balances');
+        return array('activeorders', 'balances','discard-depth');
     }
 
     public function processOptions($options)
@@ -23,6 +24,8 @@ class MarketDataMonitor extends ActionProcess {
             $this->activeOrderManager = new ActiveOrderManager('activeOrders.json', $this->exchanges, $this->reporter);
         if(array_key_exists('balances', $options))
             $this->balanceManager = new BalanceManager($this->reporter);
+        if(array_key_exists('discard-depth', $options))
+            $this->storeDepth = false;
     }
 
     public function init()
@@ -59,8 +62,10 @@ class MarketDataMonitor extends ActionProcess {
                         );
 
                     //get the order book data
-                    $depth = $mkt->depth($pair);
-                    $this->reporter->depth($mkt->Name(), $pair, $depth);
+                    if($this->storeDepth) {
+                        $depth = $mkt->depth($pair);
+                        $this->reporter->depth($mkt->Name(), $pair, $depth);
+                    }
 
                     //get recent trade data
                     $trades = $mkt->trades($pair, $this->lastMktTradeDate[$mkt->Name()]);
