@@ -32,6 +32,10 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
         if (!($depth instanceof OrderBook))
             return null;
 
+        //get the currencies
+        $baseCurrency = CurrencyPair::Base($soi->currencyPair);
+        $quoteCurrency = CurrencyPair::Quote($soi->currencyPair);
+
         if (count($depth->bids) > 0 && count($depth->asks) > 0) {
             $insideBid = $depth->bids[0];
             $insideAsk = $depth->asks[0];
@@ -39,11 +43,11 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
             if ($insideBid instanceof DepthItem && $insideAsk instanceof DepthItem) {
                 //default to midpoint price
                 $tgtPrice = Currency::FloorValue(($insideAsk->price + $insideBid->price) / 2.0,
-                    CurrencyPair::Quote($soi->currencyPair));
+                    $quoteCurrency);
 
                 if($soi->pegOrder){
                     //check to see if we can get a minsize that we could work with to peg the order
-                    $minCurSize = Currency::GetMinimumValue(CurrencyPair::Quote($soi->currencyPair));
+                    $minCurSize = Currency::GetMinimumValue($quoteCurrency);
                     $minMarketSize = pow(10, -max($this->numberOfDecimals($insideBid->price),
                         $this->numberOfDecimals($insideAsk->price)));
                     $minSize = max($minCurSize, $minMarketSize);
@@ -55,7 +59,7 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
                         if($soi->type == OrderType::SELL && $insideAsk->price - $minSize > $tgtPrice)
                             $tgtPrice = $insideAsk->price - $minSize;
 
-                        $tgtPrice = strval(Currency::FloorValue($tgtPrice, CurrencyPair::Quote($soi->currencyPair)));
+                        $tgtPrice = strval(Currency::FloorValue($tgtPrice, $quoteCurrency));
                     }
                 }
 
@@ -69,18 +73,17 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
                     //this is so we don't keep putting the same size orders on the book
                     $windowSize = $soi->sizeRangePct / 100.0 * $soi->size;
                     $sizeAdjustment = lcg_value() * $windowSize - $windowSize / 2.0;
-                    $ret->size = Currency::FloorValue($ret->size + $sizeAdjustment, CurrencyPair::Base($soi->currencyPair));
+                    $ret->size = Currency::FloorValue($ret->size + $sizeAdjustment, $baseCurrency);
 
                     //check the size against current balance
-                    $neededCurrency = ($ret->type == OrderType::BUY)? CurrencyPair::Quote($soi->currencyPair) :
-                        CurrencyPair::Base($soi->currencyPair);
+                    $neededCurrency = ($ret->type == OrderType::BUY)? $quoteCurrency : $baseCurrency;
                     $neededCurrencyBalance = 0;
                     if(isset($balances[$soi->exchange][$neededCurrency]))
                         $neededCurrencyBalance = $balances[$soi->exchange][$neededCurrency];
                     if($neededCurrencyBalance <= 0)
                         return null;
                     $ret->size = min($ret->size, ($ret->type == OrderType::BUY)?
-                        Currency::FloorValue($neededCurrencyBalance / $tgtPrice, CurrencyPair::Base($soi->currencyPair)) :
+                        Currency::FloorValue(bcdiv($neededCurrencyBalance, $tgtPrice, Currency::getPrecision($baseCurrency)), $baseCurrency) :
                         $neededCurrencyBalance);
 
                     if($ret->size < $market->minimumOrderSize($soi->currencyPair, $tgtPrice))
