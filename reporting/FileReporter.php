@@ -70,6 +70,11 @@ class FileReporter implements IReporter {
         // TODO: Implement execution() method.
     }
 
+    public function orderMessage($strategyId, $orderId, $messageCode, $messageText)
+    {
+        // TODO: Implement orderMessage() method.
+    }
+
     public function trade($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp)
     {
         fwrite($this->file, "$exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp\n");

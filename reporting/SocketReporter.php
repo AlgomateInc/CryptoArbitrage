@@ -193,6 +193,11 @@ class SocketReporter implements IReporter, IListener {
         $this->send($data);
     }
 
+    public function orderMessage($strategyId, $orderId, $messageCode, $messageText)
+    {
+        // TODO: Implement orderMessage() method.
+    }
+
     public function trade($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp)
     {
         // TODO: Implement trade() method.

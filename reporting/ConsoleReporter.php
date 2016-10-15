@@ -83,6 +83,11 @@ class ConsoleReporter implements IReporter
         print "Execution ($txid) for order $orderId: $market, $quantity @ $price; $timestamp\n";
     }
 
+    public function orderMessage($strategyId, $orderId, $messageCode, $messageText)
+    {
+        print "Message ($messageCode) for order $orderId: $messageText";
+    }
+
     public function transaction($exchange_name, $id, $type, $currency, $amount, $timestamp)
     {
         print "Transaction $exchange_name: $id, $type, $currency, $amount, $timestamp\n";

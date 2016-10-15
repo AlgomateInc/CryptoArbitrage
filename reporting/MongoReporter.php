@@ -243,6 +243,21 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         );
     }
 
+    public function orderMessage($strategyId, $orderId, $messageCode, $messageText)
+    {
+        $messageEntry = array(
+            'Code'=>"$messageCode",
+            'Message'=>"$messageText",
+            'Timestamp'=>microtime(true)
+        );
+
+        $strategyOrderDb = $this->mdb->strategyorder;
+        $strategyOrderDb->update(
+            array('_id' => $strategyId, "Orders.OrderID" => $orderId),
+            array('$push' => array("Orders.$.Message" => $messageEntry))
+        );
+    }
+
     public function transaction($exchange_name, $id, $type, $currency, $amount, $timestamp)
     {
         $tx_entry = array(

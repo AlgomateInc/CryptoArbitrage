@@ -113,8 +113,11 @@ class ActiveOrderManager {
         $aoCount = count($aoJson);
         for($i = 0;$i < $aoCount;$i++) {
             $ao = $aoJson[$i];
-            if ($ao instanceof ActiveOrder && $ao->order instanceof Order)
-                $ao->marketObj = $this->exchanges[$ao->order->exchange];
+            if ($ao instanceof ActiveOrder && $ao->order instanceof Order) {
+                $ao->marketObj = null;
+                if (isset($this->exchanges[$ao->order->exchange]))
+                    $ao->marketObj = $this->exchanges[$ao->order->exchange];
+            }
             else
                 unset($aoJson[$i]);
         }
@@ -153,8 +156,12 @@ class ActiveOrderManager {
             $strategyOrderId = $ao->strategyOrderId;
             $orderId = $ao->orderId;
 
-            if(!$market instanceof IExchange)
+            if(!$market instanceof IExchange) {
+                if($this->reporter instanceof IReporter)
+                    $this->reporter->orderMessage($strategyOrderId,
+                        $orderId, 'MarketUnavailable', 'Market for order is not available');
                 continue;
+            }
 
             //check if the order is done
             if(!$market->isOrderOpen($marketResponse))
