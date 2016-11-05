@@ -29,8 +29,9 @@ class BitcoinAddress implements IAccount
         foreach($this->address as $addy)
         {
             $addy = trim($addy);
-            $raw = curl_query("https://blockchain.info/rawaddr/$addy?limit=0");
-            $totalBalance = strval($totalBalance + $raw['final_balance'] / pow(10, 8));
+
+            $bal = $this->getBalance($addy);
+            $totalBalance = strval($totalBalance + $bal);
         }
 
         $balances = array();
@@ -38,6 +39,37 @@ class BitcoinAddress implements IAccount
         return $balances;
     }
 
+    function getBalance($addr)
+    {
+        $functions = array(
+            function ($addr)
+            {
+                $raw = curl_query("https://blockchain.info/rawaddr/$addr?limit=0");
+                return $raw['final_balance'] / pow(10, 8);
+            },
+            function ($addr)
+            {
+                $raw = curl_query("https://blockexplorer.com/api/addr/$addr?noTxList=1");
+                return $raw['balance'];
+            }
+        );
+        static $marketIndex = 0;
+
+        $val = null;
+        for($i = 0;$i < count($functions);$i++)
+            try{
+                echo "Market Index: $marketIndex";
+                $val = $functions[($marketIndex + $i) % count($functions)]($addr);
+                $marketIndex = ($marketIndex + 1) % count($functions);
+                break;
+            }catch(Exception $e){}
+
+        if($val == null)
+            throw new Exception('Could not get bitcoin address balance');
+
+        return $val;
+    }
+    
     public function transactions()
     {
         // TODO: Implement transactions() method.
