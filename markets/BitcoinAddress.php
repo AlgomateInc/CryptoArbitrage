@@ -58,7 +58,6 @@ class BitcoinAddress implements IAccount
         $val = null;
         for($i = 0;$i < count($functions);$i++)
             try{
-                echo "Market Index: $marketIndex";
                 $val = $functions[($marketIndex + $i) % count($functions)]($addr);
                 $marketIndex = ($marketIndex + 1) % count($functions);
                 break;
@@ -69,7 +68,7 @@ class BitcoinAddress implements IAccount
 
         return $val;
     }
-    
+
     public function transactions()
     {
         // TODO: Implement transactions() method.
