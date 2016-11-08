@@ -12,7 +12,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
     private $nonceFactory;
 
     protected $supportedPairs = array();
-    private $minOrderSizes = array(); //assoc array pair->minordersize
+    protected $minOrderSizes = array(); //assoc array pair->minordersize
 
     public function __construct($key, $secret){
         $this->key = $key;

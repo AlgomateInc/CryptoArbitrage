@@ -19,6 +19,10 @@ class Gemini extends Bitfinex
         foreach($pairs as $pair){
             $this->supportedPairs[] = strtoupper($pair);
         }
+
+        $this->minOrderSizes[CurrencyPair::BTCUSD] = 0.00001;
+        $this->minOrderSizes[CurrencyPair::ETHBTC] = 0.001;
+        $this->minOrderSizes[CurrencyPair::ETHUSD] = 0.001;
     }
 
     public function positions()
