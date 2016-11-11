@@ -8,6 +8,8 @@ class MarketDataMonitor extends ActionProcess {
 
     private $activeOrderManager;
     private $balanceManager;
+
+    private $useActiveOrderManager = false;
     private $storeDepth = true;
 
     //stores market -> last received trade date
@@ -21,7 +23,7 @@ class MarketDataMonitor extends ActionProcess {
     public function processOptions($options)
     {
         if(array_key_exists("activeorders", $options))
-            $this->activeOrderManager = new ActiveOrderManager('activeOrders.json', $this->exchanges, $this->reporter);
+            $this->useActiveOrderManager = true;
         if(array_key_exists('balances', $options))
             $this->balanceManager = new BalanceManager($this->reporter);
         if(array_key_exists('discard-depth', $options))
@@ -33,6 +35,9 @@ class MarketDataMonitor extends ActionProcess {
         foreach($this->exchanges as $mkt)
             if($mkt instanceof IExchange)
                 $this->lastMktTradeDate[$mkt->Name()] = time();
+
+        if($this->useActiveOrderManager)
+            $this->activeOrderManager = new ActiveOrderManager('activeOrders.json', $this->exchanges, $this->reporter);
     }
 
     public function run()
