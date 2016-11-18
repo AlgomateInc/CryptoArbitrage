@@ -44,7 +44,7 @@ abstract class ActionProcess {
         $shortopts = "";
         $longopts = array(
             'console',
-            "mongodb",
+            "mongodb::",
             "file:",
             "monitor::",
             "fork",
@@ -63,8 +63,17 @@ abstract class ActionProcess {
         // Configure reporters
         $this->reporter = new MultiReporter();
 
-        if(array_key_exists("mongodb", $options))
-            $this->reporter->add(new MongoReporter());
+        if(array_key_exists("mongodb", $options)) {
+
+            if(isset($options['mongodb']) && $options['mongodb'] !== false)
+                $fullUri = $options['mongodb'];
+            else{
+                global $mongodb_uri, $mongodb_db;
+                $fullUri = $mongodb_uri . '/' . $mongodb_db;
+            }
+
+            $this->reporter->add(new MongoReporter($fullUri));
+        }
 
         if(array_key_exists("file", $options) && isset($options['file']))
             $this->reporter->add(new FileReporter($options['file']));

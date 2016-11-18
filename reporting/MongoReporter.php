@@ -8,13 +8,18 @@ class MongoReporter implements IReporter, IStatisticsGenerator
     private $mongo;
     private $mdb;
     
-    public function __construct(){
-        global $mongodb_uri, $mongodb_db;
-        
+    public function __construct($mongodb_uri)
+    {
+        //expect 'servername/databasename' url format
+        $pos = strrpos($mongodb_uri,'/');
+        if($pos === false)
+            throw new Exception('MongoDB database name not specified');
+        $mongodb_db = substr($mongodb_uri, $pos + 1);
+
         $this->mongo = new MongoClient($mongodb_uri);
         $this->mdb = $this->mongo->selectDB($mongodb_db);
     }
-    
+
     public function balance($exchange_name, $currency, $balance){
         $balances = $this->mdb->balance;
         $balances->ensureIndex(array('Timestamp' => -1));
