@@ -208,16 +208,23 @@ abstract class ActionProcess {
             $this->prepareMarkets($this->accountLoader);
             $this->init();
 
-            do {
-                $this->checkConfiguration($this->accountLoader);
-                $this->retryInitExchanges = $this->initializeMarkets($this->retryInitExchanges);
-                $this->run();
-                if($this->monitor)
-                    sleep($this->monitor_timeout);
-            }while($this->monitor);
+            try{
+                do {
+                    $this->checkConfiguration($this->accountLoader);
+                    $this->retryInitExchanges = $this->initializeMarkets($this->retryInitExchanges);
+                    $this->run();
+                    if($this->monitor)
+                        sleep($this->monitor_timeout);
+                }while($this->monitor);
 
-            $this->shutdown();
-            $logger->info(get_class($this) . ' - finished');
+                $this->shutdown();
+                $logger->info(get_class($this) . ' - finished');
+            }catch(Exception $e){
+                $this->shutdown();
+                $logger->info(get_class($this) . ' - finished');
+                throw $e;
+            }
+
         }catch(Exception $e){
             $logger->error('ActionProcess runtime error', $e);
             exit(1);
