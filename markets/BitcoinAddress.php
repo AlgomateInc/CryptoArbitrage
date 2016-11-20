@@ -1,12 +1,13 @@
 <?php
 
+require_once ('MultiSourcedAccount.php');
 /**
  * Created by PhpStorm.
  * User: marko_000
  * Date: 2/2/2016
  * Time: 5:21 AM
  */
-class BitcoinAddress implements IAccount
+class BitcoinAddress extends MultiSourcedAccount
 {
     private $address;
 
@@ -23,25 +24,19 @@ class BitcoinAddress implements IAccount
         return Exchange::Bitcoin;
     }
 
-    public function balances()
+    public function transactions()
     {
-        $totalBalance = 0;
-        foreach($this->address as $addy)
-        {
-            $addy = trim($addy);
-
-            $bal = $this->getBalance($addy);
-            $totalBalance = strval($totalBalance + $bal);
-        }
-
-        $balances = array();
-        $balances[Currency::BTC] = $totalBalance;
-        return $balances;
+        // TODO: Implement transactions() method.
     }
 
-    function getBalance($addr)
+    protected function getAddressList()
     {
-        $functions = array(
+        return $this->address;
+    }
+
+    protected function getBalanceFunctions()
+    {
+        return array(
             function ($addr)
             {
                 $raw = curl_query("https://blockchain.info/rawaddr/$addr?limit=0");
@@ -53,25 +48,10 @@ class BitcoinAddress implements IAccount
                 return $raw['balance'];
             }
         );
-        static $marketIndex = 0;
-
-        $val = null;
-        for($i = 0;$i < count($functions);$i++)
-            try{
-                $val = $functions[($marketIndex + $i) % count($functions)]($addr);
-                $marketIndex = ($marketIndex + 1) % count($functions);
-                break;
-            }catch(Exception $e){}
-
-        if($val == null)
-            throw new Exception('Could not get bitcoin address balance');
-
-        return $val;
     }
 
-    public function transactions()
+    protected function getCurrencyName()
     {
-        // TODO: Implement transactions() method.
+        return Currency::BTC;
     }
-
 }

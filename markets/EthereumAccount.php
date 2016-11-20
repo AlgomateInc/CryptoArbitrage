@@ -1,12 +1,13 @@
 <?php
 
+require_once ('MultiSourcedAccount.php');
 /**
  * Created by PhpStorm.
  * User: marko_000
  * Date: 2/1/2016
  * Time: 3:29 AM
  */
-class EthereumAccount implements IAccount
+class EthereumAccount extends MultiSourcedAccount
 {
     private $address;
 
@@ -23,22 +24,34 @@ class EthereumAccount implements IAccount
         return Exchange::Ethereum;
     }
 
-    public function balances()
-    {
-        $totalBalance = 0;
-        foreach($this->address as $addy)
-        {
-            $raw = curl_query('http://api.etherscan.io/api?module=account&action=balance&address=' . trim($addy));
-            $totalBalance = strval($totalBalance + $raw['result'] / pow(10, 18));
-        }
-
-        $balances = array();
-        $balances[Currency::ETH] = $totalBalance;
-        return $balances;
-    }
-
     public function transactions()
     {
         // TODO: Implement transactions() method.
+    }
+
+    protected function getAddressList()
+    {
+        return $this->address;
+    }
+
+    protected function getBalanceFunctions()
+    {
+        return array(
+            function ($addr)
+            {
+                $raw = curl_query('http://api.etherscan.io/api?module=account&action=balance&address=' . trim($addr));
+                return $raw['result'] / pow(10, 18);
+            },
+            function ($addr)
+            {
+                $raw = curl_query('https://etherchain.org/api/account/' . trim($addr));
+                return $raw['data'][0]['balance'] / pow(10, 18);
+            }
+        );
+    }
+
+    protected function getCurrencyName()
+    {
+        return Currency::ETH;
     }
 }
