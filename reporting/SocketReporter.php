@@ -132,7 +132,7 @@ class SocketReporter implements IReporter, IListener {
         $this->send($data);
     }
 
-    public function trades($exchange_name, $currencyPair, $trades)
+    public function trades($exchange_name, $currencyPair, array $trades)
     {
         $data = array(
             'MessageType' => 'Trade',
@@ -198,7 +198,7 @@ class SocketReporter implements IReporter, IListener {
         // TODO: Implement orderMessage() method.
     }
 
-    public function trade($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp)
+    public function trade($exchange_name, $currencyPair, $tradeId, $orderId, $orderType, $price, $quantity, $timestamp)
     {
         // TODO: Implement trade() method.
     }

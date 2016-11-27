@@ -35,7 +35,7 @@ class FileReporter implements IReporter {
         // TODO: Implement depth() method.
     }
 
-    public function trades($exchange_name, $currencyPair, $trades)
+    public function trades($exchange_name, $currencyPair, array $trades)
     {
         // TODO: Implement trades() method.
     }
@@ -75,7 +75,7 @@ class FileReporter implements IReporter {
         // TODO: Implement orderMessage() method.
     }
 
-    public function trade($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp)
+    public function trade($exchange_name, $currencyPair, $tradeId, $orderId, $orderType, $price, $quantity, $timestamp)
     {
         fwrite($this->file, "$exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp\n");
     }

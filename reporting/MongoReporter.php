@@ -156,7 +156,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         return $book_entry['_id'];
     }
     
-    public function trades($exchange_name, $currencyPair, $trades){
+    public function trades($exchange_name, $currencyPair, array $trades){
         $tradeCollection = $this->mdb->trades;
         $tradeCollection->ensureIndex(array('timestamp' => -1, 'exchange' => 1,
             'currencyPair' => 1, 'tradeId' => -1), array('unique' => true));
@@ -178,9 +178,19 @@ class MongoReporter implements IReporter, IStatisticsGenerator
 //        $tradeCollection->batchInsert($trades);
     }
 
-    public function trade($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp)
+    public function trade($exchange_name, $currencyPair, $tradeId, $orderId, $orderType, $price, $quantity, $timestamp)
     {
+        $t = new Trade();
+        $t->exchange = $exchange_name;
+        $t->currencyPair = $currencyPair;
+        $t->tradeId = $tradeId;
+        $t->orderId = $orderId;
+        $t->orderType = $orderType;
+        $t->price = $price;
+        $t->quantity = $quantity;
+        $t->timestamp = new MongoDate($timestamp);
 
+        $this->trades($exchange_name, $currencyPair, array($t));
     }
 
     public function position($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp)

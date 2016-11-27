@@ -55,7 +55,7 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
         }
     }
 
-    public function trades($exchange_name, $currencyPair, $trades)
+    public function trades($exchange_name, $currencyPair, array $trades)
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
@@ -154,13 +154,13 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
         }
     }
 
-    public function trade($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp)
+    public function trade($exchange_name, $currencyPair, $tradeId, $orderId, $orderType, $price, $quantity, $timestamp)
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
                 throw new Exception('Invalid reporter in multi-reporter');
 
-            $rpt->trade($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp);
+            $rpt->trade($exchange_name, $currencyPair, $tradeId, $orderId, $orderType, $price, $quantity, $timestamp);
         }
     }
 
