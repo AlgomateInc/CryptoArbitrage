@@ -11,13 +11,12 @@ class BalanceManager {
     private $reporter;
 
     private $balances = array();
-    private $lastReportTime;
     const ForceReportAfterSeconds = 28800; //8 hours
+    private $lastReportTime = array();
 
     function __construct(IReporter $reporter)
     {
         $this->reporter = $reporter;
-        $this->lastReportTime = time();
     }
 
     function get($marketName, $currencyPair)
@@ -38,8 +37,10 @@ class BalanceManager {
             throw new Exception('Invalid reporter object');
 
         //initialize local data structures
-        if(!array_key_exists($mkt->Name(), $this->balances))
+        if(!array_key_exists($mkt->Name(), $this->balances)){
             $this->balances[$mkt->Name()] = array();
+            $this->lastReportTime[$mkt->Name()] = time();
+        }
 
         //get balances
         $balList = array();
@@ -53,9 +54,9 @@ class BalanceManager {
 
         //update our running list of balances
         $forceReport = false;
-        if(time() > $this->lastReportTime + self::ForceReportAfterSeconds){
+        if(time() > $this->lastReportTime[$mkt->Name()] + self::ForceReportAfterSeconds){
             $forceReport = true;
-            $this->lastReportTime = time();
+            $this->lastReportTime[$mkt->Name()] = time();
         }
         foreach($balList as $cur => $bal){
             //report balance only on balance change (or first run, or periodically)
