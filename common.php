@@ -13,6 +13,7 @@ class Exchange{
     const Ethereum = 'Ethereum';
     const Bitcoin = 'Bitcoin';
     const Gdax = 'Gdax';
+    const EthereumClassic = 'EthClassic';
 }
 
 class Currency{
@@ -27,6 +28,7 @@ class Currency{
     const XCP = 'XCP';
     const ETH = 'ETH';
     const DAO = 'DAO';
+    const ETC = 'ETC';
 
     public static function getPrecision($currency)
     {

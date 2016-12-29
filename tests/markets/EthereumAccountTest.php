@@ -15,5 +15,10 @@ class EthereumAccountTest extends PHPUnit_Framework_TestCase
         $bal = $ea->balances();
 
         $this->assertNotNull($bal);
+
+        $eca = new EthereumClassicAccount('0xf978b025b64233555cc3c19ada7f4199c9348bf7');
+        $bal2 = $eca->balances();
+
+        $this->assertNotNull($bal);
     }
 }
