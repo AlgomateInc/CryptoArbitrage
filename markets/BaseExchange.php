@@ -26,4 +26,13 @@ abstract class BaseExchange implements IExchange {
 
         return $currList;
     }
+
+    public function tickers()
+    {
+        $ret = array();
+        foreach ($this->supportedCurrencyPairs() as $pair) {
+            $ret[] = $this->ticker($pair);
+        }
+        return $ret;
+    }
 } 

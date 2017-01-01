@@ -103,6 +103,14 @@ class CurrencyPair{
 
         throw new Exception('Unsupported currency pair string');
     }
+
+    public static function MakePair($base, $quote)
+    {
+        if(strlen($base) != 3 || strlen($quote) != 3)
+            return $base . '/' . $quote;
+
+        return $base . $quote;
+    }
 }
 
 class OrderType{

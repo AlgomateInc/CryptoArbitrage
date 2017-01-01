@@ -34,6 +34,11 @@ interface IExchange extends IAccount
     public function ticker($pair);
 
     /**
+     * @return Ticker[] An array of Ticker objects for all supported pairs on the exchange
+     */
+    public function tickers();
+
+    /**
      * @param $pair String The CurrencyPair string that we want last trade data for
      * @param $sinceDate int The unix timestamp of the date we are interested in
      * @return Trade[] An array of Trade objects, representing each trade that

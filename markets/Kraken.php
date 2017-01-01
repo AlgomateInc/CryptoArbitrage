@@ -17,7 +17,11 @@ class Kraken extends BaseExchange implements ILifecycleHandler
     private $nonceFactory;
 
     private $currencyMapping = array();
-    private $marketMapping = array();
+    private $marketMapping = array(); //maps our name -> kraken name
+    private $krakenMarketMapping = array(); //maps kraken name -> our name
+
+    private $supportedPairs = array();
+    private $supportedKrakenPairs = array();
 
     public function __construct($key, $secret){
         $this->key = $key;
@@ -28,6 +32,8 @@ class Kraken extends BaseExchange implements ILifecycleHandler
 
     function init()
     {
+        $krakenCurrencyMapping = array();
+
         $curr = $this->publicQuery('Assets');
         foreach($curr as $krakenName => $currencyInfo)
         {
@@ -36,14 +42,26 @@ class Kraken extends BaseExchange implements ILifecycleHandler
                 $altName = Currency::BTC;
 
             $this->currencyMapping[$altName] = $krakenName;
+            $krakenCurrencyMapping[$krakenName] = $altName;
         }
 
-        foreach($this->supportedCurrencyPairs() as $pair)
+        $assetPairs = $this->publicQuery('AssetPairs');
+        foreach($assetPairs as $krakenPairName => $krakenPairInfo)
         {
-            $base = CurrencyPair::Base($pair);
-            $quote = CurrencyPair::Quote($pair);
+            if(substr($krakenPairName, -2) === '.d')
+                continue;
 
-            $this->marketMapping[$pair] = $this->currencyMapping[$base] . $this->currencyMapping[$quote];
+            $krakenBase = $krakenPairInfo['base'];
+            $krakenQuote = $krakenPairInfo['quote'];
+
+            $base = $krakenCurrencyMapping[$krakenBase];
+            $quote = $krakenCurrencyMapping[$krakenQuote];
+            $pair = CurrencyPair::MakePair($base, $quote);
+
+            $this->supportedPairs[] = $pair;
+            $this->supportedKrakenPairs[] = $krakenPairName;
+            $this->marketMapping[$pair] = $krakenPairName;
+            $this->krakenMarketMapping[$krakenPairName] = $pair;
         }
     }
 
@@ -74,7 +92,7 @@ class Kraken extends BaseExchange implements ILifecycleHandler
 
     public function supportedCurrencyPairs()
     {
-        return array(CurrencyPair::BTCUSD, CurrencyPair::ETHBTC, CurrencyPair::ETHUSD);
+        return $this->supportedPairs;
     }
 
     public function minimumOrderSize($pair, $pairRate)
@@ -133,17 +151,38 @@ class Kraken extends BaseExchange implements ILifecycleHandler
     public function ticker($pair)
     {
         $krakenPairName = $this->marketMapping[$pair];
-        $rawList = $this->publicQuery('Ticker', 'pair=' . $krakenPairName);
-        $raw = $rawList[$krakenPairName];
+
+        $rawData = $this->publicQuery('Ticker', 'pair=' . $krakenPairName);
+
+        $krakenPairInfo = $rawData[$krakenPairName];
 
         $t = new Ticker();
         $t->currencyPair = $pair;
-        $t->bid = $raw['b'][0];
-        $t->ask = $raw['a'][0];
-        $t->last = $raw['c'][0];
-        $t->volume = $raw['v'][1];
+        $t->bid = $krakenPairInfo['b'][0];
+        $t->ask = $krakenPairInfo['a'][0];
+        $t->last = $krakenPairInfo['c'][0];
+        $t->volume = $krakenPairInfo['v'][1];
 
         return $t;
+    }
+
+    public function tickers()
+    {
+        $fullTickerData = $this->publicQuery('Ticker', 'pair=' . implode(',',$this->supportedKrakenPairs));
+
+        $ret = array();
+        foreach ($fullTickerData as $krakenPairName => $krakenPairInfo) {
+
+            $t = new Ticker();
+            $t->currencyPair = $this->krakenMarketMapping[$krakenPairName];
+            $t->bid = $krakenPairInfo['b'][0];
+            $t->ask = $krakenPairInfo['a'][0];
+            $t->last = $krakenPairInfo['c'][0];
+            $t->volume = $krakenPairInfo['v'][1];
+
+            $ret[] = $t;
+        }
+        return $ret;
     }
 
     public function trades($pair, $sinceDate)

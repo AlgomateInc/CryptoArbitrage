@@ -53,9 +53,9 @@ class MarketDataMonitor extends ActionProcess {
             $logger = Logger::getLogger(get_class($this));
 
             try {
-                foreach ($mkt->supportedCurrencyPairs() as $pair) {
-                    $tickData = $mkt->ticker($pair);
 
+                $fullTickData = $mkt->tickers();
+                foreach($fullTickData as $tickData)
                     if ($tickData instanceof Ticker)
                         $this->reporter->market(
                             $mkt->Name(),
@@ -66,6 +66,7 @@ class MarketDataMonitor extends ActionProcess {
                             $tickData->volume
                         );
 
+                foreach ($mkt->supportedCurrencyPairs() as $pair) {
                     //get the order book data
                     if($this->storeDepth) {
                         $depth = $mkt->depth($pair);
