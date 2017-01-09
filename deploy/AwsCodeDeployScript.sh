@@ -23,13 +23,14 @@ fi
 
 if [ "$LIFECYCLE_EVENT" == "AfterInstall" ]
 then
+    echo $PWD
     cp config.example.php config.php
 
     # Install the supervisor configuration files
     if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitor" ]
     then
         sudo cp deploy/market_monitor.conf /etc/supervisor/conf.d/
-        sudo cp deploy/report_serverinstructions - Ubuntu1604.txt.conf /etc/supervisor/conf.d/
+        sudo cp deploy/report_server.conf /etc/supervisor/conf.d/
     fi
 
     if [ "$DEPLOYMENT_GROUP_NAME" == "StrategyProcessor" ]
