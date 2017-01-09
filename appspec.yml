@@ -3,3 +3,15 @@ os: linux
 files:
   - source: /
     destination: CryptoArbitrage
+  - source: /config.example.php
+    destination: CryptoArbitrage/config.php
+hooks:
+  BeforeInstall:
+    - location: deploy/AwsCodeDeployScript.sh
+      timeout: 300
+  AfterInstall:
+    - location: deploy/AwsCodeDeployScript.sh
+      timeout: 300
+  ApplicationStart:
+    - location: deploy/AwsCodeDeployScript.sh
+      timeout: 300
