@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 
 if [ "$LIFECYCLE_EVENT" == "BeforeInstall" ]
 then
@@ -31,7 +32,7 @@ then
         sudo cp deploy/report_serverinstructions - Ubuntu1604.txt.conf /etc/supervisor/conf.d/
     fi
 
-    if [ [ "$DEPLOYMENT_GROUP_NAME" == "StrategyProcessor" ]
+    if [ "$DEPLOYMENT_GROUP_NAME" == "StrategyProcessor" ]
     then
         sudo cp deploy/crypto_arbitrage.conf /etc/supervisor/conf.d/
     fi
