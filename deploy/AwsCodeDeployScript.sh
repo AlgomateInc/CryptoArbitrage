@@ -22,6 +22,8 @@ fi
 
 if [ "$LIFECYCLE_EVENT" == "AfterInstall" ]
 then
+    cp config.example.php config.php
+
     # Install the supervisor configuration files
     if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitor" ]
     then

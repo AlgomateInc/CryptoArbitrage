@@ -2,9 +2,7 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: CryptoArbitrage
-  - source: /config.example.php
-    destination: CryptoArbitrage/config.php
+    destination: /home/ubuntu/CryptoArbitrage
 hooks:
   BeforeInstall:
     - location: deploy/AwsCodeDeployScript.sh
