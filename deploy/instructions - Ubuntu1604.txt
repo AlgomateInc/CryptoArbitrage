@@ -1,5 +1,12 @@
 # Ubuntu 16.04 Instructions
 
+# For AWS codedeploy, instance needs to be set up as follows:
+# http://docs.aws.amazon.com/codedeploy/latest/userguide/how-to-set-up-new-instance.html
+# after startup, configure proper /etc/hostname and /etc/hosts
+# loggly has to be manually installed:
+# curl -O https://www.loggly.com/install/configure-linux.sh
+# sudo bash configure-linux.sh -a markobarko -t dc3efef5-f78c-4e21-ba79-e91fba1ca435 -u markobarko
+
 # Install supervisor:
 sudo apt-get install -y supervisor
 sudo systemctl enable supervisor
