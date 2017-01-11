@@ -19,7 +19,12 @@ then
     sudo apt-get install -y php-pear
     sudo pear channel-discover pear.apache.org/log4php
     sudo pear install log4php/Apache_log4php
+fi
 
+if [ "$LIFECYCLE_EVENT" == "AfterInstall" ]
+then
+    cd /home/ubuntu/CryptoArbitrage
+    echo $PWD
     cp config.example.php config.php
 
     # Install the supervisor configuration files
