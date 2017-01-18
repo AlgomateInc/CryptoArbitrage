@@ -37,7 +37,7 @@ class EthereumAccount extends MultiSourcedAccount
 
             foreach($this->getAddressList() as $addy)
             {
-                $raw = curl_query("https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress=$tokenContract&address=$addy");
+                $raw = curl_query("http://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress=$tokenContract&address=$addy");
                 $tokenBalance += $raw['result'] / pow(10, 18);
             }
 
@@ -62,7 +62,7 @@ class EthereumAccount extends MultiSourcedAccount
         return array(
             function ($addr)
             {
-                $raw = curl_query('https://api.etherscan.io/api?module=account&action=balance&address=' . trim($addr));
+                $raw = curl_query('http://api.etherscan.io/api?module=account&action=balance&address=' . trim($addr));
                 return $raw['result'] / pow(10, 18);
             },
             function ($addr)
