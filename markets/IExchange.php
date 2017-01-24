@@ -97,6 +97,10 @@ interface IExchange extends IAccount
      */
     public function getOrderExecutions($orderResponse);
 
+    /**
+     * @param $desiredCount Maximum number of trades to return
+     * @return Trade[] An array of all trades
+     */
     public function tradeHistory($desiredCount);
 
     /**
