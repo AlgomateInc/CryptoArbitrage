@@ -18,6 +18,7 @@ require_once('markets/EthereumAccount.php');
 require_once('markets/BitcoinAddress.php');
 require_once('markets/Gdax.php');
 require_once('markets/EthereumClassicAccount.php');
+require_once('markets/Yunbi.php');
 
 class ConfigAccountLoader implements IAccountLoader{
 
@@ -135,6 +136,13 @@ class ConfigAccountLoader implements IAccountLoader{
                         $mktConfig['key'],
                         $mktConfig['secret'],
                         $mktConfig['passphrase']
+                    );
+                    break;
+
+                case Exchange::Yunbi:
+                    $accounts[Exchange::Yunbi] = new Yunbi(
+                        $mktConfig['key'],
+                        $mktConfig['secret']
                     );
                     break;
             }

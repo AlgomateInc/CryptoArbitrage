@@ -296,7 +296,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
             'CB-ACCESS-PASSPHRASE: ' . $this->passphrase
         );
 
-        return curl_query($this->getApiUrl() . $request_path, $body, $headers, $method, $return_headers);
+        return curl_query($this->getApiUrl() . $request_path, $body, $method, $headers, $return_headers);
     }
 
     // Helper function for converting from the GDAX product id, e.g. "BTC-USD",

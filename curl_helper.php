@@ -22,8 +22,8 @@ function http_parse_headers( $header )
 
 function curl_query($url, 
         $post_data = null,
-        $headers = array(),
         $verb = null,
+        $headers = array(),
         $return_headers = false){
     static $ch = null;
     if (is_null($ch)) {
@@ -36,9 +36,7 @@ function curl_query($url,
     }
     curl_setopt($ch, CURLOPT_URL, $url);
 
-    if (isset($verb)) {
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $verb);
-    }
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $verb);
 
     if (isset($post_data)) {
         curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);

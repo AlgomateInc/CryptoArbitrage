@@ -14,6 +14,7 @@ class Exchange{
     const Bitcoin = 'Bitcoin';
     const Gdax = 'Gdax';
     const EthereumClassic = 'EthClassic';
+    const Yunbi = 'Yunbi';
 }
 
 class Currency{
@@ -73,7 +74,6 @@ class CurrencyPair{
     const LTCUSD = 'LTCUSD';
     const DRKUSD = 'DRKUSD';
     const NXTBTC = 'NXTBTC';
-    const BTCCNY = 'BTCCNY';
     const DRKBTC = 'DRKBTC';
     const XMRBTC = 'XMRBTC';
     const XCPBTC = 'XCPBTC';
@@ -81,6 +81,21 @@ class CurrencyPair{
     const ETHBTC = 'ETHBTC';
     const ETHUSD = 'ETHUSD';
     const DAOETH = 'DAOETH';
+    const BTCCNY = 'BTCCNY';
+    const ETHCNY = 'ETHCNY';
+    const DGDCNY = 'DGDCNY';
+    const PLSCNY = 'PLSCNY';
+    const BTSCNY = 'BTSCNY';
+    const BITCNYCNY = 'BITCNY/CNY';
+    const DCSCNY = 'DCSCNY';
+    const SCCNY = 'SC/CNY';
+    const ETCCNY = 'ETCCNY';
+    const FSTCNY = '1SŦCNY'; // ! NB: Variables can't start with numbers
+    const REPCNY = 'REPCNY';
+    const ANSCNY = 'ANSCNY';
+    const ZECCNY = 'ZECCNY';
+    const ZMCCNY = 'ZMCCNY';
+    const GNTCNY = 'GNTCNY';
 
     public static function Base($strPair){
         if(strlen($strPair) == 6)
