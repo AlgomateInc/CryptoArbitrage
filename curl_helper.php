@@ -22,8 +22,8 @@ function http_parse_headers( $header )
 
 function curl_query($url, 
         $post_data = null,
-        $verb = null,
         $headers = array(),
+        $verb = null,
         $return_headers = false){
     static $ch = null;
     if (is_null($ch)) {

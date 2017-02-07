@@ -325,7 +325,7 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
         if ($method=='GET') {
             return curl_query($this->getApiUrl() . $request_path.'?'.$body_string);
         } else {
-            return curl_query($this->getApiUrl() . $request_path, $body_string, $method);
+            return curl_query($this->getApiUrl() . $request_path, $body_string, array(), $method);
         }
     }
 }

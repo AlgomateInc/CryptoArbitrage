@@ -62,16 +62,6 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
         $this->assertNotEmpty($ret);
     }
 
-    public function testMakeTrades()
-    {
-        $this->assertTrue($this->mkt instanceof Yunbi);
-        for ($i = 0; $i < 20; ++$i) {
-            $ret = $this->mkt->buy(CurrencyPair::BTCCNY, 0.01, 10000);
-            $ret = $this->mkt->sell(CurrencyPair::BTCCNY, 0.01, 1000);
-            sleep(5);
-        }
-    }
-
     public function testBuyOrderSubmission()
     {
         $this->assertTrue($this->mkt instanceof Yunbi);
