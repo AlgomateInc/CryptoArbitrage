@@ -166,10 +166,12 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
 
     public function isOrderOpenOfId($orderId)
     {
-        $os = $this->authQuery('order.json', 'GET', array('id' => $orderId));
-        if (isset($os['state'])) {
-            return $os['state'] === 'wait';
-        }
+        try {
+            $os = $this->authQuery('order.json', 'GET', array('id' => $orderId));
+            if (isset($os['state'])) {
+                return $os['state'] === 'wait';
+            }
+        } catch (Exception $e) {}
         return false;
     }
 
