@@ -13,14 +13,18 @@ then
     sudo apt-get update
     sudo apt-get install -y php5.6-cli php5.6-dev php5.6-curl php5.6-xml php5.6-bcmath
 
-    # Install log4php
-    sudo apt-get install -y php-pear
-    sudo pear channel-discover pear.apache.org/log4php
-    sudo pear install log4php/Apache_log4php
-
     # Install PHP mongo libs (echo 'no' declines sasl option prompt)
     echo "no" | sudo pecl install mongo
     grep -q "extension=mongo.so" /etc/php/5.6/cli/php.ini; [ $? -ne 0 ] && echo "extension=mongo.so" | sudo tee -a /etc/php/5.6/cli/php.ini
+
+    # Install log4php, pear reports error on install if package already exists
+    sudo apt-get install -y php-pear
+    sudo pear channel-discover pear.apache.org/log4php
+    sudo pear install log4php/Apache_log4php
+    if [ $? -ne 0 ]
+    then
+        sudo pear upgrade log4php/Apache_log4php
+    fi
 fi
 
 if [ "$LIFECYCLE_EVENT" == "AfterInstall" ]
