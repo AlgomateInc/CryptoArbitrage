@@ -8,10 +8,31 @@ then
     then
        rm -rf /home/ubuntu/CryptoArbitrage
     fi
+
+    # Stop the database
+    sudo service mongod stop
 fi
 
 if [ "$LIFECYCLE_EVENT" == "BeforeInstall" ]
 then
+    # Install mongodb 3.2
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
+    echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+    sudo apt-get update
+    sudo apt-get install -y mongodb-org=3.2.12 mongodb-org-server=3.2.12 mongodb-org-shell=3.2.12 mongodb-org-mongos=3.2.12 mongodb-org-tools=3.2.12
+    echo "[Unit]
+    Description=High-performance, schema-free document-oriented database
+    After=network.target
+    Documentation=https://docs.mongodb.org/manual
+
+    [Service]
+    User=mongodb
+    Group=mongodb
+    ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
+
+    [Install]
+    WantedBy=multi-user.target" > /lib/systemd/system/mongod.service
+
     # Install supervisor:
     sudo apt-get install -y supervisor
     sudo systemctl enable supervisor
@@ -57,5 +78,6 @@ fi
 
 if [ "$LIFECYCLE_EVENT" == "ApplicationStart" ]
 then
+    sudo service mongod start
     sudo supervisorctl reload
 fi

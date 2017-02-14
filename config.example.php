@@ -1,6 +1,6 @@
 <?php
 
-$mongodb_uri = 'mongodb://mongo.caramila.capital';
+$mongodb_uri = 'mongodb://localhost';
 $mongodb_db = 'coindata';
 
 $log4phpConfig = array(
