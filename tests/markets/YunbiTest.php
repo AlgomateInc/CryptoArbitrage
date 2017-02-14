@@ -106,6 +106,15 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
         $this->assertTrue(count($exec) > 0);
     }
 
+    public function test401Error()
+    {
+        $this->assertTrue($this->mkt instanceof Yunbi);
+        for ($i = 0; $i < 10; $i++) {
+            $res = $this->mkt->tradeHistory(1000);
+            $this->assertNotNull($res);
+        }
+    }
+
     private function checkAndCancelOrder($response)
     {
         $this->assertNotNull($response);
@@ -116,4 +125,5 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
         $this->assertNotNull($this->mkt->cancel($response['id']));
         $this->assertFalse($this->mkt->isOrderOpen($response));
     }
+
 }

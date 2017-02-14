@@ -2,7 +2,6 @@
 
 require_once(__DIR__.'/../curl_helper.php');
 require_once('BaseExchange.php');
-require_once('NonceFactory.php');
 
 /**
  * Created by PhpStorm.

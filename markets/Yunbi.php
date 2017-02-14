@@ -2,7 +2,6 @@
 
 require_once(__DIR__.'/../curl_helper.php');
 require_once('BaseExchange.php');
-require_once('NonceFactory.php');
 
 /**
  * User: jon
@@ -13,7 +12,6 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
 {
     private $key;
     private $secret;
-    private $nonceFactory;
 
     private $supportedPairs = array();
     private $productId = array(); //assoc array pair->productid
@@ -21,7 +19,6 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
     public function __construct($key, $secret) {
         $this->key = $key;
         $this->secret = $secret;
-        $this->nonceFactory = new NonceFactory();
     }
 
     function init()
@@ -317,7 +314,7 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
 
     private function authQuery($request_path, $method='GET', $body=array()) {
         // Adapated from https://gist.github.com/lgn21st/5de1995bff6334824406
-        $body['tonce'] = $this->nonceFactory->getMilliseconds();
+        $body['tonce'] = round(microtime(true) * 1000);
         $body['access_key'] = $this->key;
         ksort($body);
         $body_string = http_build_query($body);

@@ -19,8 +19,4 @@ class NonceFactory {
     public function get(){
         return $this->noncetime + (++$this->nonce);
     }
-
-    public function getMilliseconds(){
-        return $this->noncetime * 1000 + (++$this->nonce);
-    }
 } 
