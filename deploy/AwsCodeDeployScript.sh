@@ -9,29 +9,35 @@ then
        rm -rf /home/ubuntu/CryptoArbitrage
     fi
 
-    # Stop the database
-    sudo service mongod stop
+    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ]
+    then
+        # Stop the database
+        sudo service mongod stop
+    fi
 fi
 
 if [ "$LIFECYCLE_EVENT" == "BeforeInstall" ]
 then
-    # Install mongodb 3.2
-    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
-    echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
-    sudo apt-get update
-    sudo apt-get install -y mongodb-org=3.2.12 mongodb-org-server=3.2.12 mongodb-org-shell=3.2.12 mongodb-org-mongos=3.2.12 mongodb-org-tools=3.2.12
-    echo "[Unit]
-    Description=High-performance, schema-free document-oriented database
-    After=network.target
-    Documentation=https://docs.mongodb.org/manual
+    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ]
+    then
+        # Install mongodb 3.2
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
+        echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+        sudo apt-get update
+        sudo apt-get install -y mongodb-org=3.2.12 mongodb-org-server=3.2.12 mongodb-org-shell=3.2.12 mongodb-org-mongos=3.2.12 mongodb-org-tools=3.2.12
+        echo "[Unit]
+        Description=High-performance, schema-free document-oriented database
+        After=network.target
+        Documentation=https://docs.mongodb.org/manual
 
-    [Service]
-    User=mongodb
-    Group=mongodb
-    ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
+        [Service]
+        User=mongodb
+        Group=mongodb
+        ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
 
-    [Install]
-    WantedBy=multi-user.target" > /lib/systemd/system/mongod.service
+        [Install]
+        WantedBy=multi-user.target" > /lib/systemd/system/mongod.service
+    fi
 
     # Install supervisor:
     sudo apt-get install -y supervisor
@@ -63,8 +69,14 @@ then
     echo $PWD
     cp config.example.php config.php
 
+    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ]
+    then
+        # Set the mongodb uri config to 'localhost' for local deployment
+        sed -i "s#mongodb_uri = .*#mongodb_uri = 'mongodb://localhost';#" config.php
+    fi
+
     # Install the supervisor configuration files
-    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitor" ]
+    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitor" ] || [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ]
     then
         sudo cp deploy/market_monitor.conf /etc/supervisor/conf.d/
         sudo cp deploy/report_server.conf /etc/supervisor/conf.d/
@@ -78,6 +90,9 @@ fi
 
 if [ "$LIFECYCLE_EVENT" == "ApplicationStart" ]
 then
-    sudo service mongod start
+    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ]
+    then
+        sudo service mongod start
+    fi
     sudo supervisorctl reload
 fi
