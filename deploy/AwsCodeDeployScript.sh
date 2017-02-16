@@ -3,12 +3,6 @@ export LC_ALL=C.UTF-8
 
 if [ "$LIFECYCLE_EVENT" == "ApplicationStop" ]
 then
-    # Blast the directory if it exists before deploying
-    if [ -d /home/ubuntu/CryptoArbitrage ]
-    then
-       rm -rf /home/ubuntu/CryptoArbitrage
-    fi
-
     if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ]
     then
         # Stop the database
