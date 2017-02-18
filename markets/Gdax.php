@@ -2,7 +2,6 @@
 
 require_once(__DIR__.'/../curl_helper.php');
 require_once('BaseExchange.php');
-require_once('NonceFactory.php');
 
 /**
  * Created by PhpStorm.
@@ -28,7 +27,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
 
     function init()
     {
-        $pairs = curl_query($this->getApiUrl() . 'products');
+        $pairs = curl_query($this->getApiUrl() . '/products');
         foreach($pairs as $pairInfo){
             try{
                 $pair = $pairInfo['base_currency'] . $pairInfo['quote_currency'];
@@ -48,7 +47,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
 
     public function balances()
     {
-        $balance_info = $this->authGetQuery('/accounts');
+        $balance_info = $this->authQuery('/accounts');
 
         $balances = array();
         foreach($this->supportedCurrencies() as $curr){
@@ -78,7 +77,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
 
     public function ticker($pair)
     {
-        $raw = curl_query($this->getApiUrl() . 'products/' . $this->productId[$pair] . '/ticker');
+        $raw = curl_query($this->getApiUrl() . '/products/' . $this->productId[$pair] . '/ticker');
 
         $t = new Ticker();
         $t->currencyPair = $pair;
@@ -92,7 +91,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
 
     public function trades($pair, $sinceDate)
     {
-        $tradeList = curl_query($this->getApiUrl() . 'products/' . $this->productId[$pair] . '/trades');
+        $tradeList = curl_query($this->getApiUrl() . '/products/' . $this->productId[$pair] . '/trades');
 
         $ret = array();
 
@@ -118,7 +117,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
 
     public function depth($currencyPair)
     {
-        $raw = curl_query($this->getApiUrl() . 'products/' . $this->productId[$currencyPair] .
+        $raw = curl_query($this->getApiUrl() . '/products/' . $this->productId[$currencyPair] .
             '/book?level=2');
 
         $book = new OrderBook($raw);
@@ -128,12 +127,30 @@ class Gdax extends BaseExchange implements ILifecycleHandler
 
     public function buy($pair, $quantity, $price)
     {
-        // TODO: Implement buy() method.
+        return $this->submitOrder('buy', 'limit', $pair, $quantity, $price);
     }
 
     public function sell($pair, $quantity, $price)
     {
-        // TODO: Implement sell() method.
+        return $this->submitOrder('sell', 'limit', $pair, $quantity, $price);
+    }
+
+    // Used for testing the order executions
+    public function submitMarketOrder($side, $pair, $quantity)
+    {
+        return $this->submitOrder($side, 'market', $pair, $quantity, 0);
+    }
+
+    private function submitOrder($side, $type, $pair, $quantity, $price)
+    {
+        $req = array(
+            'size' => "$quantity",
+            'price' => "$price",
+            'side' => $side,
+            'product_id' => $this->productId[$pair],
+            'type' => $type
+        );
+        return $this->authQuery('/orders', 'POST', $req);
     }
 
     public function activeOrders()
@@ -148,60 +165,149 @@ class Gdax extends BaseExchange implements ILifecycleHandler
 
     public function cancel($orderId)
     {
-        // TODO: Implement cancel() method.
+        return $this->authQuery('/orders/' . $orderId, 'DELETE');
     }
 
     public function isOrderAccepted($orderResponse)
     {
-        // TODO: Implement isOrderAccepted() method.
+        return isset($orderResponse['id']);
     }
 
     public function isOrderOpen($orderResponse)
     {
-        // TODO: Implement isOrderOpen() method.
+        if(!$this->isOrderAccepted($orderResponse))
+            return false;
+
+        try {
+            $os = $this->authQuery('/orders/' . $this->getOrderId($orderResponse));
+            if (isset($os['status'])) {
+                return $os['status'] === 'open' || $os['status'] === 'pending';
+            }
+        } catch (Exception $e) { }
+        return false;
     }
 
     public function getOrderExecutions($orderResponse)
     {
-        // TODO: Implement getOrderExecutions() method.
+        return $this->getOrderExecutionsOfId($this->getOrderId($orderResponse));
+    }
+
+    private function getOrderExecutionsOfId($orderId)
+    {
+        $ret = array();
+        $after_cursor = '';
+        do
+        {
+            $url = '/fills?order_id='.$orderId.$after_cursor;
+            $order_fills = $this->authQuery($url, 'GET', '', true);
+
+            // Probably not necessary for this function, but in case an order
+            // has over 100 executions, we're safe.
+            // See https://docs.gdax.com/#pagination
+            if (isset($order_fills['header']['Cb-After'])) {
+                $after_cursor = '&after='.$order_fills['header']['Cb-After'];
+            } else {
+                $after_cursor = '';
+            }
+
+            foreach ($order_fills['body'] as $fill) {
+                if ($fill['order_id'] === $orderId)
+                {
+                    $exec = new OrderExecution();
+                    $exec->txid = $fill['trade_id'];
+                    $exec->orderId = $fill['order_id'];
+                    $exec->quantity = $fill['size'];
+                    $exec->price = $fill['price'];
+                    $exec->timestamp = new MongoDate(strtotime($fill['created_at']));
+
+                    $ret[] = $exec;
+                }
+            }
+        } while ($after_cursor != '');
+
+        return $ret;
     }
 
     public function tradeHistory($desiredCount)
     {
-        // TODO: Implement tradeHistory() method.
+        $num_fetched = 0;
+        $ret = array();
+        $after_cursor = '';
+        do
+        {
+            // The header contains a special 'Cb-After' parameter to use in
+            // subsequent requests, see https://docs.gdax.com/#pagination
+            // Alternatively, this query could get the orders using
+            // '/orders?status=all' but this doesn't retrieve the trade id.
+            $orders = $this->authQuery('/fills'.$after_cursor, 'GET', '', true);
+            if (isset($orders['header']['Cb-After'])) {
+                $after_cursor = '?after='.$orders['header']['Cb-After'];
+            }
+            if(count($orders['body']) === 0)
+                break;
+            foreach($orders['body'] as $order) {
+                $td = new Trade();
+                $td->tradeId = $order['trade_id'];
+                $td->orderId = $order['order_id'];
+                $td->exchange = $this->Name();
+                $td->currencyPair = $this->currencyPairOfProductId($order['product_id']);
+                $td->orderType = ($order['side'] == 'sell')? OrderType::SELL : OrderType::BUY;
+                $td->price = $order['price'];
+                $td->quantity = $order['size'];
+                $td->timestamp = new MongoDate(strtotime($order['created_at']));
+
+                $ret[] = $td;
+                $num_fetched += 1;
+                if($num_fetched >= $desiredCount)
+                    break;
+            }
+        }
+        while ($num_fetched < $desiredCount);
+        return $ret;
     }
 
     public function getOrderID($orderResponse)
     {
-        // TODO: Implement getOrderID() method.
+        return $orderResponse['id'];
     }
 
-    function getApiUrl()
+    private function getApiUrl()
     {
-        return 'https://api.gdax.com/';
+        return 'https://api.gdax.com';
     }
 
-    function signature($request_path='', $body='', $timestamp=false, $method='GET')
+    private function signature($request_path, $body, $timestamp, $method)
     {
-        $body = is_array($body) ? json_encode($body) : $body;
-        $timestamp = $timestamp ? $timestamp : time();
-
         $what = $timestamp.$method.$request_path.$body;
 
         return base64_encode(hash_hmac("sha256", $what, base64_decode($this->secret), true));
     }
 
-    function authGetQuery($method) {
+    private function authQuery($request_path, $method='GET', $body='', $return_headers=false) {
         $ts = time();
-        $sig = $this->signature($method, '', $ts);
+        $body = is_array($body) ? json_encode($body) : $body;
+        $sig = $this->signature($request_path, $body, $ts, $method);
 
         $headers = array(
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($body),
             'CB-ACCESS-KEY: ' . $this->key,
             'CB-ACCESS-SIGN: ' . $sig,
             'CB-ACCESS-TIMESTAMP: ' . $ts,
             'CB-ACCESS-PASSPHRASE: ' . $this->passphrase
         );
 
-        return curl_query($this->getApiUrl() . $method, null, $headers);
+        return curl_query($this->getApiUrl() . $request_path, $body, $headers, $method, $return_headers);
+    }
+
+    // Helper function for converting from the GDAX product id, e.g. "BTC-USD",
+    // to the standard representation in the application.
+    private function currencyPairOfProductId($productId)
+    {
+        foreach($this->productId as $pair=>$pid) {
+            if ($productId === $pid)
+                return $pair;
+        }
+        throw new Exception("Product id not found: $productId");
     }
 }

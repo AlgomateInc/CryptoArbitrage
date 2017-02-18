@@ -39,6 +39,15 @@ $accountsConfig = array(
 //        'username' => 'username',
 //        'password' => 'password'
 //    )
+//    'Gdax' => array(
+//        'key' => 'key',
+//        'secret' => 'secret',
+//        'passphrase' =>'passphrase'
+//    )
+//    'Yunbi'=> array(
+//        'key' => 'key',
+//        'secret' => 'secret',
+//    ),
 );
 
 $strategyInstructions = array(

@@ -12,6 +12,8 @@ class MongoAccountLoader extends ConfigAccountLoader{
     private $serverName = null;
 
     public function __construct($serverName = null){
+        parent::__construct();
+
         global $mongodb_uri, $mongodb_db;
 
         $this->mongo = new MongoClient($mongodb_uri);
