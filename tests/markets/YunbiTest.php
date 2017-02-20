@@ -60,6 +60,14 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
         $this->assertTrue($this->mkt instanceof Yunbi);
         $ret = $this->mkt->depth(CurrencyPair::BTCCNY);
         $this->assertNotEmpty($ret);
+        // asks should be ascending
+        for ($i = 1; $i < count($ret->asks); ++$i) {
+            $this->assertGreaterThanOrEqual(floatval($ret->asks[$i-1]->price), floatval($ret->asks[$i]->price));
+        }
+        // bids should be descending
+        for ($i = 1; $i < count($ret->bids); ++$i) {
+            $this->assertLessThanOrEqual(floatval($ret->bids[$i-1]->price), floatval($ret->bids[$i]->price));
+        }
     }
 
     public function testBuyOrderSubmission()

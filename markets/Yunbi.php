@@ -114,6 +114,11 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
     {
         $raw = curl_query($this->getApiUrl() . 'depth.json?market=' . $this->productId[$currencyPair]);
 
+        // asks are returned in descending order, so reverse them
+        $rev_asks = array_reverse($raw['asks']);
+        unset($raw['asks']);
+        $raw['asks'] = $rev_asks;
+
         $book = new OrderBook($raw);
 
         return $book;
