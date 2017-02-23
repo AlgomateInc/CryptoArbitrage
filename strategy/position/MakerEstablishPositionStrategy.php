@@ -176,6 +176,6 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
             return 0;
         }
 
-        return strlen($value) - strrpos($value, '.') - 1;
+        return mb_strlen($value) - mb_strrpos($value, '.') - 1;
     }
 }

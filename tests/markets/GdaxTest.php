@@ -23,6 +23,19 @@ class GdaxTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testSupportedPairs()
+    {
+        $this->assertTrue($this->mkt instanceof Gdax);
+        $known_pairs = array("BTCGBP","BTCEUR","ETHUSD","ETHBTC","LTCUSD", "LTCBTC", "BTCUSD");
+        foreach ($known_pairs as $pair) {
+            $this->assertTrue($this->mkt->supports($pair));
+        }
+        $known_pairs_slash = array("BTC/GBP","BTC/EUR","ETH/USD","ETH/BTC","LTC/USD", "LTC/BTC", "BTC/USD");
+        foreach ($known_pairs_slash as $pair) {
+            $this->assertTrue($this->mkt->supports($pair));
+        }
+    }
+
     public function testBalances()
     {
         $this->assertTrue($this->mkt instanceof Gdax);
@@ -65,6 +78,10 @@ class GdaxTest extends PHPUnit_Framework_TestCase {
         sleep(1);
         $exec = $this->mkt->getOrderExecutions($ret);
         $this->assertTrue(count($exec) > 0);
+        $ret = $this->mkt->submitMarketOrder('buy', CurrencyPair::BTCUSD, 0.01, 0.01);
+        sleep(1);
+        $exec = $this->mkt->getOrderExecutions($ret);
+        $this->assertTrue(count($exec) > 0);
     }
 
     private function checkAndCancelOrder($response)
@@ -75,6 +92,7 @@ class GdaxTest extends PHPUnit_Framework_TestCase {
         $this->assertTrue($this->mkt->isOrderOpen($response));
 
         $this->assertNotNull($this->mkt->cancel($response['id']));
+        sleep(1);
         $this->assertFalse($this->mkt->isOrderOpen($response));
     }
 }

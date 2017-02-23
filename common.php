@@ -99,29 +99,29 @@ class CurrencyPair{
 
     public static function Base($strPair){
         $parts = explode('/', $strPair);
-        if(count($parts) == 2 && strlen($parts[0]) >= 2 && strlen($parts[1]) >= 2)
+        if (count($parts) == 2 && mb_strlen($parts[0]) >= 2 && mb_strlen($parts[1]) >= 2)
             return $parts[0];
 
-        if(strlen($strPair) == 6)
-            return substr($strPair, 0, 3);
+        if (mb_strlen($strPair) == 6)
+            return mb_substr($strPair, 0, 3);
 
         throw new Exception('Unsupported currency pair string');
     }
 
     public static function Quote($strPair){
         $parts = explode('/', $strPair);
-        if(count($parts) == 2 && strlen($parts[0]) >= 2 && strlen($parts[1]) >= 2)
+        if (count($parts) == 2 && mb_strlen($parts[0]) >= 2 && mb_strlen($parts[1]) >= 2)
             return $parts[1];
 
-        if(strlen($strPair) == 6)
-            return substr($strPair, 3, 3);
+        if (mb_strlen($strPair) == 6)
+            return mb_substr($strPair, 3, 3);
 
         throw new Exception('Unsupported currency pair string');
     }
 
     public static function MakePair($base, $quote)
     {
-        if(strlen($base) != 3 || strlen($quote) != 3)
+        if(mb_strlen($base) != 3 || mb_strlen($quote) != 3)
             return $base . '/' . $quote;
 
         return $base . $quote;

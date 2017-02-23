@@ -28,7 +28,7 @@ class JPMChase implements IAccount
         if($msgCount > 0)
         {
             $bodyText = imap_fetchbody($conn,$msgCount,1.2);
-            if(!strlen($bodyText)>0){
+            if(!mb_strlen($bodyText)>0){
                 $bodyText = imap_fetchbody($conn,$msgCount,1);
             }
 

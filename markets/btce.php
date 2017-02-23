@@ -22,7 +22,7 @@ class BtceExchange extends BtceStyleExchange implements ILifecycleHandler
     {
         $marketsInfo = curl_query('https://btc-e.com/api/3/info');
         foreach($marketsInfo['pairs'] as $pair => $info){
-            $pairName = strtoupper(str_replace('_', '', $pair));
+            $pairName = mb_strtoupper(str_replace('_', '', $pair));
             $this->supportedPairs[] = $pairName;
             $this->minOrderSize[$pairName] = $info['min_amount'];
         }
@@ -34,7 +34,7 @@ class BtceExchange extends BtceStyleExchange implements ILifecycleHandler
 
         $balances = array();
         foreach($this->supportedCurrencies() as $curr){
-            $balances[$curr] = $btce_info['funds'][strtolower($curr)];
+            $balances[$curr] = $btce_info['funds'][mb_strtolower($curr)];
         }
 
         return $balances;
@@ -58,7 +58,7 @@ class BtceExchange extends BtceStyleExchange implements ILifecycleHandler
         if(!$this->supports($pair))
             throw new UnexpectedValueException('Currency pair not supported');
 
-        return strtolower(CurrencyPair::Base($pair)) . '_' . strtolower(CurrencyPair::Quote($pair));
+        return mb_strtolower(CurrencyPair::Base($pair)) . '_' . mb_strtolower(CurrencyPair::Quote($pair));
     }
 
     public function depth($currencyPair)

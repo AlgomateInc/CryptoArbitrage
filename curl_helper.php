@@ -8,8 +8,8 @@ function http_parse_headers( $header )
     foreach( $fields as $field ) {
         if( preg_match('/([^:]+): (.+)/m', $field, $match) ) {
             $match[1] = preg_replace_callback('/(?<=^|[\x09\x20\x2D])./', 
-                function ($m) { return strtoupper($m[0]); },
-                strtolower(trim($match[1])));
+                function ($m) { return mb_strtoupper($m[0]); },
+                mb_strtolower(trim($match[1])));
             if( isset($retVal[$match[1]]) ) {
                 $retVal[$match[1]] = array($retVal[$match[1]], $match[2]);
             } else {
@@ -54,9 +54,9 @@ function curl_query($url,
 
     if ($return_headers) {
         $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-        $header = substr($res, 0, $header_size);
+        $header = mb_substr($res, 0, $header_size);
         $header_dec = http_parse_headers($header);
-        $body = substr($res, $header_size);
+        $body = mb_substr($res, $header_size);
         $body_dec = json_decode($body, true);
         $err = json_last_error();
         if ($err !== JSON_ERROR_NONE) {

@@ -17,7 +17,7 @@ class Gemini extends Bitfinex
     {
         $pairs = curl_query($this->getApiUrl() . 'symbols');
         foreach($pairs as $pair){
-            $this->supportedPairs[] = strtoupper($pair);
+            $this->supportedPairs[] = mb_strtoupper($pair);
         }
 
         $this->minOrderSizes[CurrencyPair::BTCUSD] = 0.00001;

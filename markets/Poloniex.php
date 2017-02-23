@@ -37,7 +37,7 @@ class Poloniex extends BaseExchange {
 
         $balances = array();
         foreach($this->supportedCurrencies() as $curr){
-            $mktCurrName = strtoupper($curr == Currency::USD? 'USDT' : $curr);
+            $mktCurrName = mb_strtoupper($curr == Currency::USD? 'USDT' : $curr);
             if(isset($bal[$mktCurrName]))
                 $balances[$curr] = $bal[$mktCurrName];
         }
@@ -101,7 +101,7 @@ class Poloniex extends BaseExchange {
             $t->tradeId = md5($raw['date'] . $raw['type'] . $raw['rate'] . $raw['amount']);
             $t->price = (float) $raw['rate'];
             $t->quantity = (float) $raw['amount'];
-            $t->orderType = strtoupper($raw['type']);
+            $t->orderType = mb_strtoupper($raw['type']);
 
             $dt = new DateTime($raw['date']);
             $t->timestamp = new MongoDate($dt->getTimestamp());
@@ -124,7 +124,7 @@ class Poloniex extends BaseExchange {
         return $this->query(
             array(
                 'command' => 'buy',
-                'currencyPair' => strtoupper($this->getCurrencyPairName($pair)),
+                'currencyPair' => mb_strtoupper($this->getCurrencyPairName($pair)),
                 'rate' => $price,
                 'amount' => $quantity
             )
@@ -136,7 +136,7 @@ class Poloniex extends BaseExchange {
         return $this->query(
             array(
                 'command' => 'sell',
-                'currencyPair' => strtoupper($this->getCurrencyPairName($pair)),
+                'currencyPair' => mb_strtoupper($this->getCurrencyPairName($pair)),
                 'rate' => $price,
                 'amount' => $quantity
             )
@@ -230,7 +230,7 @@ class Poloniex extends BaseExchange {
             $th = $this->query(
                 array(
                     'command' => 'returnTradeHistory',
-                    'currencyPair' => strtoupper($this->getCurrencyPairName($pair))
+                    'currencyPair' => mb_strtoupper($this->getCurrencyPairName($pair))
                 )
             );
 
