@@ -249,7 +249,7 @@ class BitstampExchange extends BaseExchange
         // generate the POST data string
         $req['key'] = $this->key;
         $req['nonce'] = $this->nonceFactory->get();
-        $req['signature'] = strtoupper(hash_hmac("sha256", $req['nonce'] . $this->custid . $this->key, $this->secret));
+        $req['signature'] = mb_strtoupper(hash_hmac("sha256", $req['nonce'] . $this->custid . $this->key, $this->secret));
         $post_data = http_build_query($req, '', '&');
 
         return curl_query('https://www.bitstamp.net/api/' . $method . '/', $post_data);

@@ -27,13 +27,13 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
         foreach($pairs as $pair){
             try{
                 CurrencyPair::Base($pair); //checks the format of the pair to make sure it is standard
-                $this->supportedPairs[] = strtoupper($pair);
+                $this->supportedPairs[] = mb_strtoupper($pair);
             }catch(Exception $e){}
         }
 
         $minOrderSizes = curl_query($this->getApiUrl() . 'symbols_details');
         foreach($minOrderSizes as $symbolDetail){
-            $pairName = strtoupper($symbolDetail['pair']);
+            $pairName = mb_strtoupper($symbolDetail['pair']);
             if($this->supports($pairName))
                 $this->minOrderSizes[$pairName] = $symbolDetail['minimum_order_size'];
         }
@@ -92,7 +92,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
             $t->price = (float) $raw['price'];
             $t->quantity = (float) $raw['amount'];
             $t->timestamp = new MongoDate($raw['timestamp']);
-            $t->orderType = strtoupper($raw['type']);
+            $t->orderType = mb_strtoupper($raw['type']);
 
             $ret[] = $t;
         }
@@ -129,10 +129,10 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
     private function submitOrder($side, $type, $pair, $quantity, $price)
     {
         $result = $this->authQuery('order/new',array(
-            'symbol' => strtolower($pair),
+            'symbol' => mb_strtolower($pair),
             'amount' => "$quantity",
             'price' => "$price",
-            'exchange' => strtolower($this->Name()),
+            'exchange' => mb_strtolower($this->Name()),
             'side' => "$side",
             'type' => "$type"
         ));
@@ -205,7 +205,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
         foreach($this->supportedCurrencyPairs() as $pair){
             $th = $this->authQuery('mytrades',
                 array('limit_trades' => $desiredCount,
-                    'symbol' => strtolower($pair)));
+                    'symbol' => mb_strtolower($pair)));
 
             //make a note of the currency pair on each returned item
             //bitfinex does not return this information
@@ -282,7 +282,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
         foreach($rawPosList as $p)
         {
             $pos = new Trade();
-            $pos->currencyPair = strtoupper($p['symbol']);
+            $pos->currencyPair = mb_strtoupper($p['symbol']);
             $pos->exchange = Exchange::Bitfinex;
             $pos->orderType = ($p['amount'] < 0)? OrderType::SELL : OrderType::BUY;
             $pos->price = $p['base'];

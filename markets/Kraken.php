@@ -48,7 +48,7 @@ class Kraken extends BaseExchange implements ILifecycleHandler
         $assetPairs = $this->publicQuery('AssetPairs');
         foreach($assetPairs as $krakenPairName => $krakenPairInfo)
         {
-            if(substr($krakenPairName, -2) === '.d')
+            if(mb_substr($krakenPairName, -2) === '.d')
                 continue;
 
             $krakenBase = $krakenPairInfo['base'];

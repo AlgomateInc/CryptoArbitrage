@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 export LC_ALL=C.UTF-8
 
+function add_line_to_file() {
+    grep -q "$1" "$2"
+    [ $? -ne 0 ] && echo "$1" | sudo tee -a "$2"
+}
+
 if [ "$LIFECYCLE_EVENT" == "ApplicationStop" ]
 then
     if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ]
@@ -16,7 +21,7 @@ then
     then
         # Install mongodb 3.2
         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
-        echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
+        add_line_to_file "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" /etc/apt/sources.list.d/mongodb-org-3.2.list
         sudo apt-get update
         sudo apt-get install -y mongodb-org=3.2.12 mongodb-org-server=3.2.12 mongodb-org-shell=3.2.12 mongodb-org-mongos=3.2.12 mongodb-org-tools=3.2.12
         echo "[Unit]
@@ -41,11 +46,15 @@ then
     # Install PHP and dependencies:
     sudo add-apt-repository -y ppa:ondrej/php
     sudo apt-get update
-    sudo apt-get install -y php5.6-cli php5.6-dev php5.6-curl php5.6-xml php5.6-bcmath
+    sudo apt-get install -y php5.6-cli php5.6-dev php5.6-curl php5.6-xml php5.6-bcmath php5.6-mbstring
+
+    # Setup mbstring function overload for all str functions to use mb_ variants
+    add_line_to_file "mbstring.func_overload 7" /etc/php/5.6/cli/php.ini
+    add_line_to_file "mbstring.language Neutral" /etc/php/5.6/cli/php.ini
 
     # Install PHP mongo libs (echo 'no' declines sasl option prompt)
     echo "no" | sudo pecl install mongo
-    grep -q "extension=mongo.so" /etc/php/5.6/cli/php.ini; [ $? -ne 0 ] && echo "extension=mongo.so" | sudo tee -a /etc/php/5.6/cli/php.ini
+    add_line_to_file "extension=mongo.so" /etc/php/5.6/cli/php.ini
 
     # Install log4php, pear reports error on install if package already exists
     sudo apt-get install -y php-pear

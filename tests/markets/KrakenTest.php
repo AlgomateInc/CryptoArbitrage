@@ -16,7 +16,7 @@ class KrakenTest extends PHPUnit_Framework_TestCase {
     {
         error_reporting(error_reporting() ^ E_NOTICE);
 
-        $cal = new MongoAccountLoader();
+        $cal = new ConfigAccountLoader();
         $exchanges = $cal->getAccounts(array(Exchange::Kraken));
         $this->mkt = $exchanges[Exchange::Kraken];
 

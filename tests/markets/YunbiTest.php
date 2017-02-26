@@ -30,6 +30,25 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals($ticker->currencyPair, CurrencyPair::BTCCNY);
     }
 
+    public function testSupportedPairs()
+    {
+        $this->assertTrue($this->mkt instanceof Yunbi);
+        $this->assertTrue($this->mkt->supports("1SŦ/CNY"));
+
+        $known_pairs = array("BTCCNY","ETHCNY","DGDCNY","PLSCNY","BTSCNY", 
+            "BITCNY/CNY", "DCSCNY", "SC/CNY", "ETCCNY", "1SŦCNY", "REPCNY", 
+            "ANSCNY", "ZECCNY", "ZMCCNY", "GNTCNY");
+        foreach ($known_pairs as $pair) {
+            $this->assertTrue($this->mkt->supports($pair));
+        }
+        $known_pairs_slash = array("BTC/CNY","ETH/CNY","DGD/CNY","PLS/CNY",
+            "BTS/CNY", "DCS/CNY", "ETC/CNY", "1SŦ/CNY", "REP/CNY", 
+            "ANS/CNY", "ZEC/CNY", "ZMC/CNY", "GNT/CNY");
+        foreach ($known_pairs_slash as $pair) {
+            $this->assertTrue($this->mkt->supports($pair));
+        }
+    }
+
     public function testBalances()
     {
         $this->assertTrue($this->mkt instanceof Yunbi);
@@ -113,6 +132,16 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
         $exec = $this->mkt->getOrderExecutions($ret);
         $this->assertTrue(count($exec) > 0);
     }
+
+    /* For testing dates in order executions, not always needed */
+    /*
+    public function testOrderExecution()
+    {
+        $this->assertTrue($this->mkt instanceof Yunbi);
+        $ret = $this->mkt->getOrderExecutions(array('id'=>404653556));
+        var_dump($ret);
+    }
+     */
 
     public function test401Error()
     {

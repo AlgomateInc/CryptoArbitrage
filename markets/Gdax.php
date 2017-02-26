@@ -33,7 +33,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
                 $pair = $pairInfo['base_currency'] . $pairInfo['quote_currency'];
                 CurrencyPair::Base($pair); //checks the format
 
-                $this->supportedPairs[] = strtoupper($pair);
+                $this->supportedPairs[] = mb_strtoupper($pair);
                 $this->minOrderSizes[$pair] = $pairInfo['base_min_size'];
                 $this->productId[$pair] = $pairInfo['id'];
             }catch(Exception $e){}
@@ -290,7 +290,6 @@ class Gdax extends BaseExchange implements ILifecycleHandler
 
         $headers = array(
             'Content-Type: application/json',
-            'Content-Length: ' . strlen($body),
             'CB-ACCESS-KEY: ' . $this->key,
             'CB-ACCESS-SIGN: ' . $sig,
             'CB-ACCESS-TIMESTAMP: ' . $ts,

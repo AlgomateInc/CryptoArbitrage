@@ -5,7 +5,19 @@ require_once('IExchange.php');
 abstract class BaseExchange implements IExchange {
 
     public function supports($currencyPair){
-        return in_array($currencyPair, $this->supportedCurrencyPairs());
+        $findBase = CurrencyPair::Base($currencyPair);
+        $findQuote = CurrencyPair::Quote($currencyPair);
+
+        foreach ($this->supportedCurrencyPairs() as $pair)
+        {
+            $base = CurrencyPair::Base($pair);
+            $quote = CurrencyPair::Quote($pair);
+
+            if ($base == $findBase && $quote == $findQuote)
+                return true;
+        }
+
+        return false;
     }
 
     public function supportedCurrencies(){

@@ -11,10 +11,10 @@ class MongoReporter implements IReporter, IStatisticsGenerator
     public function __construct($mongodb_uri)
     {
         //expect 'servername/databasename' url format
-        $pos = strrpos($mongodb_uri,'/');
+        $pos = mb_strrpos($mongodb_uri,'/');
         if($pos === false)
             throw new Exception('MongoDB database name not specified');
-        $mongodb_db = substr($mongodb_uri, $pos + 1);
+        $mongodb_db = mb_substr($mongodb_uri, $pos + 1);
 
         $this->mongo = new MongoClient($mongodb_uri);
         $this->mdb = $this->mongo->selectDB($mongodb_db);

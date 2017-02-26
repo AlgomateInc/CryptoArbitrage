@@ -35,7 +35,7 @@ class BulkPriceQuoter extends ActionProcess
 
         //get buy or sell from user
         print "Are you looking to buy or sell ($currencyPair)?: ";
-        $inputValue = strtoupper(trim(fgets(STDIN)));
+        $inputValue = mb_strtoupper(trim(fgets(STDIN)));
         if($inputValue !== OrderType::BUY && $inputValue !== OrderType::SELL){
             print "Error!";
             return;
@@ -48,7 +48,7 @@ class BulkPriceQuoter extends ActionProcess
         $inputValue = fgets(STDIN);
         if($inputValue !== false) {
             $inputValue = trim($inputValue);
-            if(strlen($inputValue) > 0)
+            if(mb_strlen($inputValue) > 0)
                 $valueRequired = $inputValue;
         }
 

@@ -31,7 +31,7 @@ class MarketOrderInstructions implements IStrategyInstructions, IStrategyOrder {
             $this->useMargin = $data['IsMarginOrder'];
 
         $this->currencyPair = $data['CurrencyPair'];
-        $this->type = strtoupper($data['Type']);
+        $this->type = mb_strtoupper($data['Type']);
         $this->size = $data['Size'];
     }
 

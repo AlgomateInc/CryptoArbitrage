@@ -201,7 +201,7 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
             $exec->orderId = $orderId;
             $exec->quantity = $fill['volume'];
             $exec->price = $fill['price'];
-            $exec->timestamp = new MongoDate(strtotime($fill['created_at']));
+            $exec->timestamp = new MongoDate(strtotime($fill['at']));
 
             $ret[] = $exec;
         }
