@@ -171,7 +171,7 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
         $ret = $this->mkt->trades(CurrencyPair::BTCCNY, $yesterday);
         foreach($ret as $trade) {
             $this->assertEquals($trade->currencyPair, CurrencyPair::BTCCNY);
-            $this->assertTrue($trade->timestamp > $yesterday);
+            $this->assertTrue($trade->timestamp->toDateTime()->getTimestamp() > $yesterday);
         }
     }
 

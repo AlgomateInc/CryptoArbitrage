@@ -16,43 +16,43 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             throw new Exception('MongoDB database name not specified');
         $mongodb_db = mb_substr($mongodb_uri, $pos + 1);
 
-        $this->mongo = new MongoClient($mongodb_uri);
-        $this->mdb = $this->mongo->selectDB($mongodb_db);
+        $this->mongo = new MongoDB\Client($mongodb_uri);
+        $this->mdb = $this->mongo->selectDatabase($mongodb_db);
     }
 
     public function balance($exchange_name, $currency, $balance){
         $balances = $this->mdb->balance;
-        $balances->ensureIndex(array('Timestamp' => -1));
+        $balances->createIndex(array('Timestamp' => -1));
 
         $balance_entry = array(
             'Exchange'=>"$exchange_name",
             'Currency'=>"$currency",
             'Balance'=>"$balance",
-            'Timestamp'=>new MongoDate());
+            'Timestamp'=>new MongoDB\BSON\UTCDateTime());
         
-        $balances->insert($balance_entry);
-        return $balance_entry['_id'];
+        $res = $balances->insertOne($balance_entry);
+        return $res->getInsertedId();
     }
 
     public function fees($exchange_name, $currencyPair, $takerFee, $makerFee)
     {
         $fees = $this->mdb->fees;
-        $fees->ensureIndex(array('Timestamp' => -1, 'Exchange' => 1, 'CurrencyPair' => 1));
+        $fees->createIndex(array('Timestamp' => -1, 'Exchange' => 1, 'CurrencyPair' => 1));
 
         $fee_entry = array(
             'Exchange'    => "$exchange_name",
             'CurrencyPair'=> "$currencyPair",
             'TakerFee'    => "$takerFee",
             'MakerFee'    => "$makerFee",
-            'Timestamp'   => new MongoDate());
+            'Timestamp'   => new MongoDB\BSON\UTCDateTime());
         
-        $fees->insert($fee_entry);
-        return $fee_entry['_id'];
+        $res = $fees->insertOne($fee_entry);
+        return $res->getInsertedId();
     }
 
     public function market($exchange_name, $currencyPair, $bid, $ask, $last, $vol){
         $markets = $this->mdb->market;
-        $markets->ensureIndex(array('Timestamp' => -1));
+        $markets->createIndex(array('Timestamp' => -1));
 
         $market_entry = array(
             'Exchange'=>"$exchange_name",
@@ -61,10 +61,10 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             'Ask'=>"$ask",
             'Last'=>"$last",
             'Volume'=>"$vol",
-            'Timestamp'=>new MongoDate());
+            'Timestamp'=>new MongoDB\BSON\UTCDateTime());
         
-        $markets->insert($market_entry);
-        return $market_entry['_id'];
+        $res = $markets->insertOne($market_entry);
+        return $res->getInsertedId();
     }
 
     function computeMarketStats()
@@ -91,8 +91,8 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             array(
                 '$match' => array(
                     'timestamp' => array(
-                        '$gte' => new MongoDate(floor($time/$intervalSecs)*$intervalSecs),
-                        '$lt' => new MongoDate(floor($time/$intervalSecs)*$intervalSecs + $intervalSecs)
+                        '$gte' => new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(floor($time/$intervalSecs)*$intervalSecs)),
+                        '$lt' => new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(floor($time/$intervalSecs)*$intervalSecs + $intervalSecs))
                     )
                 )
             ),
@@ -123,7 +123,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
                     '_id'=>0,
                     'Exchange' => '$_id.market',
                     'CurrencyPair' => '$_id.pair',
-                    'Timestamp' => array('$literal' => new MongoDate(floor($time/$intervalSecs)*$intervalSecs)),
+                    'Timestamp' => array('$literal' => new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(floor($time/$intervalSecs)*$intervalSecs))),
                     'Interval' => array('$literal' => $intervalSecs),
                     'Open'=>1, 'High'=>1, 'Low'=>1, 'Close'=>1, 'Volume'=>1,
                     'TradeCount'=>1, 'Buys'=>1, 'Sells'=>1, 'BuyVolume'=>1, 'SellVolume'=>1,
@@ -133,65 +133,72 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         );
 
         $res = $mdDb->aggregate($ops);
+        // throws Exceptions so error checking not needed
 
-        if($res['ok'] === 0)
-            throw new Exception("Aggregation didnt work");
-
-        if(count($res['result']) == 0)
+        // TODO eventually use this $res as a cursor instead of converting to
+        // array, but first ensure compatibility with new libraries
+        $res_array = $res->toArray();
+        if(count($res_array) == 0)
             return;
 
         ////////////////////////////////
         $candleData = $this->mdb->candles;
-        $candleData->ensureIndex(array('Timestamp' => -1, 'Exchange' => 1,
+        $candleData->createIndex(array('Timestamp' => -1, 'Exchange' => 1,
             'CurrencyPair' => 1, 'Interval' => 1), array('unique' => true));
 
-        $batch = new MongoUpdateBatch($candleData);
-        foreach($res['result'] as $item){
-            $batch->add(array(
-                'q' => array('Timestamp' => $item['Timestamp'], 'Exchange' => $item['Exchange'],
-                    'CurrencyPair' => $item['CurrencyPair'], 'Interval' => $item['Interval']),
-                'u' => $item,
-                'upsert' => true
-            ));
+        $batch = [];
+        foreach($res_array as $item){
+            $batch[] = [
+                'updateOne'=> [
+                    ['Timestamp' => $item['Timestamp'],
+                     'Exchange' => $item['Exchange'],
+                     'CurrencyPair'=> $item['CurrencyPair'],
+                     'Interval'=> $item['Interval']], // filter
+                    [ '$set' => $item ], // update
+                    ['upsert'=>true], // options
+                ]
+            ];
         }
-        $batch->execute();
+        $candleData->bulkWrite($batch);
     }
 
     public function depth($exchange_name, $currencyPair, OrderBook $depth){
         $orderbooks = $this->mdb->orderbook;
-        $orderbooks->ensureIndex(array('Timestamp' => -1));
+        $orderbooks->createIndex(array('Timestamp' => -1));
 
         $book_entry = array(
             'Exchange'=>"$exchange_name",
             'CurrencyPair'=>"$currencyPair",
             'Depth'=>$depth,
             'OnePercentVolume'=>$depth->getOrderBookVolume(1.0),
-            'Timestamp'=>new MongoDate());
+            'Timestamp'=>new MongoDB\BSON\UTCDateTime());
         
-        $orderbooks->insert($book_entry);
-        return $book_entry['_id'];
+        $res = $orderbooks->insertOne($book_entry);
+        return $res->getInsertedId();
     }
     
     public function trades($exchange_name, $currencyPair, array $trades){
         $tradeCollection = $this->mdb->trades;
-        $tradeCollection->ensureIndex(array('timestamp' => -1, 'exchange' => 1,
+        $tradeCollection->createIndex(array('timestamp' => -1, 'exchange' => 1,
             'currencyPair' => 1, 'tradeId' => -1), array('unique' => true));
 
-        $batch = new MongoUpdateBatch($tradeCollection);
+        $batch = [];
         foreach($trades as $t){
             if(!$t instanceof Trade)
                 throw new Exception('Non-trade passed for reporting!!');
 
-            $batch->add(array(
-                'q' => array('timestamp' => $t->timestamp, 'exchange' => $t->exchange,'currencyPair'=>$t->currencyPair,
-                    'tradeId'=> $t->tradeId),
-                'u' => $t,
-                'upsert'=>true
-            ));
+            $batch[] = [
+                'updateOne'=> [
+                    ['timestamp' => $t->timestamp,
+                     'exchange' => $t->exchange,
+                     'currencyPair'=>$t->currencyPair,
+                     'tradeId'=> $t->tradeId], // filter
+                    [ '$set' => $t ], // update
+                    ['upsert'=>true], // options
+                ]
+            ];
         }
-        $batch->execute();
-
-//        $tradeCollection->batchInsert($trades);
+        $tradeCollection->bulkWrite($batch);
     }
 
     public function trade($exchange_name, $currencyPair, $tradeId, $orderId, $orderType, $price, $quantity, $timestamp)
@@ -204,7 +211,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         $t->orderType = $orderType;
         $t->price = $price;
         $t->quantity = $quantity;
-        $t->timestamp = new MongoDate($timestamp);
+        $t->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate($timestamp));
 
         $this->trades($exchange_name, $currencyPair, array($t));
     }
@@ -234,10 +241,10 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         $strategyOrder_entry = array(
             'StrategyID' => $strategyId,
             'Data'=>$iso,
-            'Timestamp'=>new MongoDate());
+            'Timestamp'=>new MongoDB\BSON\UTCDateTime());
 
-        $strategyOrders->insert($strategyOrder_entry);
-        return $strategyOrder_entry['_id'];
+        $res = $strategyOrders->insertOne($strategyOrder_entry);
+        return $res->getInsertedId();
     }
 
     public function order($exchange, $type, $quantity, $price, $orderId, $orderResponse, $arbid)
@@ -249,7 +256,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             'Quantity'=>$quantity,
             'Price'=>$price,
             'ExchangeResponse'=>$orderResponse,
-            'Timestamp'=>new MongoDate());
+            'Timestamp'=>new MongoDB\BSON\UTCDateTime());
 
         $arborders = $this->mdb->strategyorder;
         $arborders->update(
@@ -313,7 +320,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         $cancelInfo = array(
             'CancelQuantity'=>$cancelQuantity,
             'CancelResponse'=>$cancelResponse,
-            'Timestamp'=>new MongoDate(time())
+            'Timestamp'=>new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(time()))
         );
 
         $strategies = $this->mdb->strategyorder;

@@ -1,6 +1,7 @@
 <?php
 
 require_once(__DIR__.'/../curl_helper.php');
+require_once(__DIR__.'/../mongo_helper.php');
 require_once('BaseExchange.php');
 
 /**
@@ -170,7 +171,7 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
             $t->tradeId = $raw['id'];
             $t->price = floatval($raw['price']);
             $t->quantity = floatval($raw['volume']);
-            $t->timestamp = new MongoDate($raw['at']);
+            $t->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate($raw['at']));
             $t->orderType = ($raw['side'] == 'up')? OrderType::BUY : OrderType::SELL;
 
             $ret[] = $t;
@@ -270,7 +271,7 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
             $exec->orderId = $orderId;
             $exec->quantity = $fill['volume'];
             $exec->price = $fill['price'];
-            $exec->timestamp = new MongoDate(strtotime($fill['at']));
+            $exec->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(strtotime($fill['at'])));
 
             $ret[] = $exec;
         }
@@ -298,7 +299,7 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
             $td->orderType = ($order['side'] == 'ask')? OrderType::SELL : OrderType::BUY;
             $td->price = $order['avg_price'];
             $td->quantity = $order['volume'];
-            $td->timestamp = new MongoDate(strtotime($order['created_at']));
+            $td->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(strtotime($order['created_at'])));
 
             $ret[] = $td;
         }
