@@ -17,9 +17,16 @@ class PoloniexTest extends PHPUnit_Framework_TestCase {
         error_reporting(error_reporting() ^ E_NOTICE);
         date_default_timezone_set('UTC');
 
-        $cal = new MongoAccountLoader();
+        $cal = new ConfigAccountLoader();
         $exchanges = $cal->getAccounts(array(Exchange::Poloniex));
         $this->bf = $exchanges[Exchange::Poloniex];
+    }
+
+    public function testMinOrderSize()
+    {
+        $this->assertTrue($this->bf instanceof Poloniex);
+        $this->assertEquals(0.000001, $this->bf->minimumOrderSize(CurrencyPair::BTCUSD, 1202));
+        $this->assertGreaterThan(0.000001, $this->bf->minimumOrderSize(CurrencyPair::BTCUSD, 0.01));
     }
 
     public function testBalances()

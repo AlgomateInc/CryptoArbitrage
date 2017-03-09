@@ -47,4 +47,9 @@ abstract class BaseExchange implements IExchange {
         }
         return $ret;
     }
+
+    public function quotePrecision($pair, $pairRate)
+    {
+        return Currency::getPrecision(CurrencyPair::Quote($pair));
+    }
 } 

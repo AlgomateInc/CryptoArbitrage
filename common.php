@@ -18,13 +18,19 @@ class Exchange{
 }
 
 class Currency{
-    const USD = "USD";
-    const BTC = "BTC";
+    // Fiat currencies
+    const USD = 'USD';
+    const EUR = 'EUR';
+    const GBP = 'GBP';
+    const CNY = 'CNY';
+    const RUR = 'RUR';
+
+    // Crypto-currencies
+    const BTC = 'BTC';
     const FTC = 'FTC';
     const LTC = 'LTC';
     const DRK = 'DRK';
     const NXT = 'NXT';
-    const CNY = 'CNY';
     const XMR = 'XMR';
     const XCP = 'XCP';
     const ETH = 'ETH';
@@ -35,8 +41,11 @@ class Currency{
     {
         $precision = array(
             static::USD => 2,
+            static::EUR => 2,
+            static::GBP => 2,
+            static::CNY => 2,
+            static::RUR => 2,
             static::BTC => 8,
-            static::CNY => 2
         );
 
         if(array_key_exists($currency, $precision))
@@ -68,7 +77,11 @@ class Currency{
 }
 
 class CurrencyPair{
-    const BTCUSD = "BTCUSD";
+    const BTCUSD = 'BTCUSD';
+    const BTCEUR = 'BTCEUR';
+    const XRPUSD = 'XRPUSD';
+    const XRPEUR = 'XRPEUR';
+    const XRPBTC = 'XRPBTC';
     const FTCBTC = 'FTCBTC';
     const LTCBTC = 'LTCBTC';
     const LTCUSD = 'LTCUSD';
@@ -187,23 +200,134 @@ class TransactionType{
 }
 
 class Transaction{
+    /** @var string */
     public $exchange;
+    /** @var int */
     public $id;
+    /** @var string */
     public $type;
+    /** @var string */
     public $currency;
+    /** @var float */
     public $amount;
+    /** @var int or MongoDate */
     public $timestamp;
+
+    public function isValid()
+    {
+        if (!is_string($this->exchange) || $this->exchange == "") {
+            printf("Exchange is empty: ");
+            var_dump($this->exchange);
+            return false;
+        }
+
+        if (!is_int($this->id) || $this->id == 0) {
+            printf("Id is empty: ");
+            var_dump($this->id);
+            return false;
+        }
+
+        if (!is_string($this->type) ||
+            ($this->type != TransactionType::Credit && $this->type != TransactionType::Debit)) {
+            printf("Type is invalid: ");
+            var_dump($this->type);
+            return false;
+        }
+
+        if (!is_string($this->currency) || $this->currency == "") {
+            printf("Currency is invalid: ");
+            var_dump($this->currency);
+            return false;
+        }
+
+        if (!is_float($this->amount) || $this->amount == 0.0) {
+            printf("Amount is empty: ");
+            var_dump($this->amount);
+            return false;
+        }
+
+        /* Need to make sure that timestamps are always the same type first
+        if (!is_int($this->timestamp) || $this->timestamp == 0) {
+            printf("Timestamp is empty");
+            return false;
+        }
+         */
+
+        return true;
+    }
 }
 
 class Trade {
+    /** @var int */
     public $tradeId;
+    /** @var int */
     public $orderId;
+    /** @var string */
     public $exchange;
+    /** @var string */
     public $currencyPair;
+    /** @var string */
     public $orderType;
+    /** @var float */
     public $price;
+    /** @var float */
     public $quantity;
+    /** @var int or MongoDate */
     public $timestamp;
+
+    public function isValid()
+    {
+        if (!is_int($this->tradeId) || $this->tradeId == 0) {
+            printf("tradeId is empty: ");
+            var_dump($this->tradeId);
+            return false;
+        }
+
+        if (!is_int($this->orderId) || $this->orderId == 0) {
+            printf("orderId is empty: ");
+            var_dump($this->orderId);
+            return false;
+        }
+
+        if (!is_string($this->exchange) || $this->exchange == "") {
+            printf("Exchange is empty: ");
+            var_dump($this->exchange);
+            return false;
+        }
+
+        if (!is_string($this->currencyPair) || $this->currencyPair == "") {
+            printf("currencyPair is empty: ");
+            var_dump($this->currencyPair);
+            return false;
+        }
+
+        if (!is_string($this->orderType) || $this->orderType == "") {
+            printf("orderType is empty: ");
+            var_dump($this->orderType);
+            return false;
+        }
+
+        if (!is_float($this->price) || $this->price == 0.0) {
+            printf("price is empty: ");
+            var_dump($this->price);
+            return false;
+        }
+
+        if (!is_float($this->quantity) || $this->quantity == 0.0) {
+            printf("quantity is empty: ");
+            var_dump($this->quantity);
+            return false;
+        }
+
+        /* Need to make sure that timestamps are always the same type first
+        if (!is_int($this->timestamp) || $this->timestamp == 0) {
+            printf("timestamp is empty: ");
+            var_dump($this->timestamp);
+            return false;
+        }
+         */
+        return true;
+    }
 }
 
 class Ticker{

@@ -18,6 +18,17 @@ class BitfinexTest extends PHPUnit_Framework_TestCase {
         $cal = new ConfigAccountLoader();
         $exchanges = $cal->getAccounts(array(Exchange::Bitfinex));
         $this->bf = $exchanges[Exchange::Bitfinex];
+        $this->bf->init();
+    }
+
+    public function testPrecision()
+    {
+        $this->assertTrue($this->bf instanceof Bitfinex);
+        $pair = CurrencyPair::BTCUSD;
+        $this->assertEquals(4, $this->bf->quotePrecision($pair, 1.0));
+        $this->assertEquals(5, $this->bf->quotePrecision($pair, 0.1));
+        $this->assertEquals(1, $this->bf->quotePrecision($pair, 1000.0));
+        $this->assertEquals(-2, $this->bf->quotePrecision($pair, 1000000.0));
     }
 
     public function testBalances()

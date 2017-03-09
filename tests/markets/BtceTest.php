@@ -8,7 +8,7 @@
 
 require_once('ConfigAccountLoader.php');
 
-class BtceExchangeTest extends PHPUnit_Framework_TestCase {
+class BtceTest extends PHPUnit_Framework_TestCase {
 
     protected $mkt;
     public function setUp()
@@ -18,11 +18,19 @@ class BtceExchangeTest extends PHPUnit_Framework_TestCase {
         $cal = new ConfigAccountLoader();
         $exchanges = $cal->getAccounts(array(Exchange::Btce));
         $this->mkt = $exchanges[Exchange::Btce];
+        $this->mkt->init();
+    }
+
+    public function testBalances()
+    {
+        $this->assertTrue($this->mkt instanceof Btce);
+        $bal = $this->mkt->balances();
+        var_dump($bal);
     }
 
     public function testOrderSubmitAndCancel()
     {
-        if($this->mkt instanceof BtceExchange)
+        if($this->mkt instanceof Btce)
         {
             $res = $this->mkt->buy(CurrencyPair::BTCUSD, 1, 1);
 
@@ -36,7 +44,7 @@ class BtceExchangeTest extends PHPUnit_Framework_TestCase {
 
     public function testTradeHistory()
     {
-        if($this->mkt instanceof BtceExchange)
+        if($this->mkt instanceof Btce)
         {
             $res = $this->mkt->tradeHistory(5);
 

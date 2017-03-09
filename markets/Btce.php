@@ -5,7 +5,7 @@ require_once(__DIR__.'/../OrderExecution.php');
 require_once('BtceStyleExchange.php');
 require_once('ILifecycleHandler.php');
 
-class BtceExchange extends BtceStyleExchange implements ILifecycleHandler
+class Btce extends BtceStyleExchange implements ILifecycleHandler
 {
     private $supportedPairs = array();
     private $minOrderSize = array(); //associative, pair->size

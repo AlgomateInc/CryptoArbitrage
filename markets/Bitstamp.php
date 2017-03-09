@@ -2,31 +2,50 @@
 
 require_once(__DIR__.'/../config.php');
 require_once(__DIR__.'/../curl_helper.php');
-require_once('BaseExchange.php');
 require_once(__DIR__.'/../OrderExecution.php');
+require_once('BaseExchange.php');
 require_once('NonceFactory.php');
 
-class BitstampExchange extends BaseExchange
+class Bitstamp extends BaseExchange implements ILifecycleHandler
 {
     private $custid;
     private $key;
     private $secret;
     private $nonceFactory;
 
-    public function __construct($custid, $key, $secret){
+    private $supportedPairs = array();
+    private $productIds = array();
+
+    public function __construct($custid, $key, $secret)
+    {
         $this->custid = $custid;
         $this->key = $key;
         $this->secret = $secret;
 
         $this->nonceFactory = new NonceFactory();
+
+        $this->supportedPairs = array(CurrencyPair::BTCUSD,
+            CurrencyPair::BTCEUR,
+            CurrencyPair::XRPUSD,
+            CurrencyPair::XRPEUR,
+            CurrencyPair::XRPBTC);
+        foreach($this->supportedPairs as $pair) {
+            $this->productIds[$pair] = mb_strtolower($pair);
+        }
     }
 
-    public function Name(){
+    public function init()
+    {
+    }
+
+    public function Name()
+    {
         return 'Bitstamp';
     }
 
-    public function supportedCurrencyPairs(){
-        return array(CurrencyPair::BTCUSD);
+    public function supportedCurrencyPairs()
+    {
+        return $this->supportedPairs;
     }
 
     /**
@@ -35,7 +54,7 @@ class BitstampExchange extends BaseExchange
      */
     public function minimumOrderSize($pair, $pairRate)
     {
-        return 5.0/$pairRate; //minimum is $5
+        return 5.0/$pairRate; //minimum is 5 units of fiat currency, e.g. $5
     }
 
     public function balances()
@@ -43,16 +62,18 @@ class BitstampExchange extends BaseExchange
         $bstamp_info = $this->assertSuccessResponse($this->authQuery('balance'));
 
         $balances = array();
-        $balances[Currency::USD] = $bstamp_info['usd_balance'];
-        $balances[Currency::BTC] = $bstamp_info['btc_balance'];
+        foreach ($this->supportedCurrencies() as $curr) {
+            $balances[$curr] = $bstamp_info[mb_strtolower($curr) . '_balance'];
+        }
 
         return $balances;
     }
 
-    public function depth($currencyPair){
+    public function depth($currencyPair)
+    {
         $this->assertValidCurrencyPair($currencyPair);
 
-        $bstamp_depth = curl_query('https://www.bitstamp.net/api/order_book/');
+        $bstamp_depth = curl_query($this->getAPIUrl() . 'order_book/' . $this->productIds[$currencyPair]);
 
         $bstamp_depth['bids'] = array_slice($bstamp_depth['bids'],0,150);
         $bstamp_depth['asks'] = array_slice($bstamp_depth['asks'],0,150);
@@ -64,7 +85,7 @@ class BitstampExchange extends BaseExchange
     {
         $this->assertValidCurrencyPair($pair);
 
-        $raw = curl_query('https://www.bitstamp.net/api/ticker/');
+        $raw = curl_query($this->getAPIUrl() . 'ticker/' . $this->productIds[$pair]);
 
         $t = new Ticker();
         $t->currencyPair = $pair;
@@ -78,36 +99,46 @@ class BitstampExchange extends BaseExchange
 
     public function trades($pair, $sinceDate)
     {
+        //TODO
         return array();
     }
 
-    private function assertValidCurrencyPair($pair){
-        if($pair != CurrencyPair::BTCUSD)
+    private function assertValidCurrencyPair($pair)
+    {
+        if (false == in_array($pair, $this->supportedCurrencyPairs())) {
             throw new UnexpectedValueException("Currency pair not supported");
+        }
     }
 
     public function buy($pair, $quantity, $price)
     {
         $this->assertValidCurrencyPair($pair);
 
-        return $this->authQuery('buy', array("amount" => $quantity, "price" => $price));
+        return $this->authQuery('buy/' . $this->productIds[$pair], 
+            array("amount" => $quantity, "price" => $price));
     }
 
     public function sell($pair, $quantity, $price)
     {
         $this->assertValidCurrencyPair($pair);
 
-        return $this->authQuery('sell', array("amount" => $quantity, "price" => $price));
+        return $this->authQuery('sell/' . $this->productIds[$pair], 
+            array("amount" => $quantity, "price" => $price));
     }
 
     public function cancel($orderId)
     {
-        return $this->authQuery('cancel_order', array('id' => $orderId));
+        $response = $this->authQuery('cancel_order', array('id' => $orderId));
+        return $response['id'] == $orderId;
     }
 
     public function activeOrders()
     {
-        return $this->authQuery('open_orders');
+        $orders = array();
+        foreach ($this->productIds as $pair=>$productId) {
+            $orders = array_merge($orders, $this->authQuery('open_orders/' . $productId));
+        }
+        return $orders;
     }
 
     public function hasActiveOrders()
@@ -131,15 +162,15 @@ class BitstampExchange extends BaseExchange
         if(!$this->isOrderAccepted($orderResponse))
             return false;
 
+        $orderId = $orderResponse['id'];
         $ao = $this->activeOrders();
 
         //search the active order list for our order
-        $orderId = $orderResponse['id'];
-        for($i = 0;$i < count($ao);$i++)
+        for ($i = 0;$i < count($ao);$i++)
         {
             $order = $ao[$i];
 
-            if($order['id'] == $orderId)
+            if ($order['id'] == $orderId)
                 return true;
         }
 
@@ -152,16 +183,31 @@ class BitstampExchange extends BaseExchange
 
         $orderTx = array();
 
-        for($i = 0; $i< count($usrTx); $i++)
+        for ($i = 0; $i< count($usrTx); $i++)
         {
-            if($usrTx[$i]['order_id'] == $orderResponse['id'])
+            if ($usrTx[$i]['order_id'] == $orderResponse['id'])
             {
                 $exec = new OrderExecution();
                 $exec->txid = $usrTx[$i]['id'];
                 $exec->orderId = $usrTx[$i]['order_id'];
-                $exec->quantity = abs($usrTx[$i]['btc']);
-                $exec->price = abs((float)$usrTx[$i]['btc_usd']);
-                $exec->timestamp = $usrTx[$i]['datetime'];
+
+                if (isset($usrTx[$i]['btc']) && $usrTx[$i]['btc'] != 0) {
+                    $exec->quantity = abs(floatval($usrTx[$i]['btc']));
+                } else if (isset($usrTx[$i]['xrp']) && $usrTx[$i]['xrp'] != 0) {
+                    $exec->quantity = abs(floatval($usrTx[$i]['xrp']));
+                }
+
+                if (isset($usrTx[$i]['btc_usd']) && $usrTx[$i]['btc_usd'] != 0) {
+                    $exec->price = abs($usrTx[$i]['btc_usd']);
+                } else if (isset($usrTx[$i]['btc_eur']) && $usrTx[$i]['btc_eur'] != 0){
+                    $exec->price = abs($usrTx[$i]['btc_eur']);
+                } else if (isset($usrTx[$i]['xrp_usd']) && $usrTx[$i]['xrp_usd'] != 0){
+                    $exec->price = abs($usrTx[$i]['xrp_usd']);
+                } else if (isset($usrTx[$i]['xrp_eur']) && $usrTx[$i]['xrp_eur'] != 0){
+                    $exec->price = abs($usrTx[$i]['xrp_eur']);
+                }
+
+                $exec->timestamp = strtotime($usrTx[$i]['datetime']);
 
                 $orderTx[] = $exec;
             }
@@ -170,7 +216,7 @@ class BitstampExchange extends BaseExchange
         return $orderTx;
     }
 
-    function assertSuccessResponse($response)
+    private function assertSuccessResponse($response)
     {
         if(isset($response['error']))
             throw new Exception($response['error']);
@@ -194,8 +240,13 @@ class BitstampExchange extends BaseExchange
             $tx->exchange = Exchange::Bitstamp;
             $tx->id = $btx['id'];
             $tx->type = ($btx['type'] == 0)? TransactionType::Credit : TransactionType::Debit;
-            $tx->currency = ($btx['usd'] != 0)? Currency::USD : Currency::BTC;
-            $tx->amount = ($btx['usd'] != 0)? $btx['usd'] : $btx['btc'];
+            foreach ($this->supportedCurrencies() as $curr) {
+                $amount = floatval($btx[mb_strtolower($curr)]);
+                if ($amount != 0) {
+                    $tx->currency = $curr;
+                    $tx->amount = $amount;
+                }
+            }
             $tx->timestamp = new MongoDate(strtotime($btx['datetime']));
 
             $ret[] = $tx;
@@ -216,16 +267,23 @@ class BitstampExchange extends BaseExchange
             sleep(1);
 
             foreach ($res as $od) {
-
-                if($od['type'] != 2)
+                if($od['type'] != 2) // not including transactions
                     continue;
 
                 $td = new Trade();
                 $td->exchange = $this->Name();
-                $td->currencyPair = CurrencyPair::BTCUSD;
-                $td->orderType = ($od['usd'] > 0)? OrderType::SELL : OrderType::BUY;
-                $td->price = $od['btc_usd'];
-                $td->quantity = abs($od['btc']);
+                $td->orderId = $od['order_id'];
+                $td->tradeId = $od['id'];
+                foreach ($this->supportedCurrencyPairs() as $pair) {
+                    $base = mb_strtolower(CurrencyPair::Base($pair));
+                    $quote = mb_strtolower(CurrencyPair::Quote($pair));
+                    if ($od[$quote] != 0 && $od[$base] != 0) {
+                        $td->currencyPair = $pair;
+                        $td->orderType = ($od[$quote] > 0)? OrderType::SELL : OrderType::BUY;
+                        $td->price = $od[$base . '_' . $quote];
+                        $td->quantity = abs($od[$base]);
+                    }
+                }
                 $td->timestamp = $od['datetime'];
 
                 $ret[] = $td;
@@ -242,8 +300,14 @@ class BitstampExchange extends BaseExchange
         return $ret;
     }
 
-    function authQuery($method, array $req = array()) {
-        if(!$this->nonceFactory instanceof NonceFactory)
+    private function getAPIUrl()
+    {
+        return 'https://www.bitstamp.net/api/v2/';
+    }
+
+    private function authQuery($method, array $req = array()) 
+    {
+        if (!$this->nonceFactory instanceof NonceFactory)
             throw new Exception('No way to get nonce!');
 
         // generate the POST data string
@@ -252,7 +316,7 @@ class BitstampExchange extends BaseExchange
         $req['signature'] = mb_strtoupper(hash_hmac("sha256", $req['nonce'] . $this->custid . $this->key, $this->secret));
         $post_data = http_build_query($req, '', '&');
 
-        return curl_query('https://www.bitstamp.net/api/' . $method . '/', $post_data);
+        return curl_query($this->getAPIUrl() . $method . '/', $post_data);
     }
 
     public function getOrderID($orderResponse)

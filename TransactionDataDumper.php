@@ -26,7 +26,7 @@ class TransactionDataDumper extends ActionProcess {
 
         foreach($this->exchanges as $mkt)
         {
-            if(!$mkt instanceof BtceExchange)
+            if(!$mkt instanceof Btce)
                 continue;
 
             foreach($mkt->transactionHistory() as $tx){
