@@ -68,7 +68,30 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
 
     public function minimumOrderSize($pair, $pairRate)
     {
-        return 0.01;
+        // 0.01 CNY minimum total price
+        return 0.01 / $pairRate;
+    }
+
+    public function quotePrecision($pair, $pairRate)
+    {
+        // currency pairs are shown with 3 significant figures, or a minimum 
+        // of 2 decimal places, and smallest increment is the last sig fig
+        // Some currencies inexplicably have different conventions "subjectively
+        // determined by the CTO"
+        $order_of_magnitude = intval(floor(log10($pairRate)));
+        if ($order_of_magnitude >= 0) {
+            if ($pair == CurrencyPair::REPCNY) {
+                return 3;
+            } else {
+                return 2;
+            }
+        } else {
+            if ($pair == CurrencyPair::BITCNYCNY) {
+                return 3 - $order_of_magnitude;
+            } else {
+                return 2 - $order_of_magnitude;
+            }
+        }
     }
 
     public function ticker($pair)

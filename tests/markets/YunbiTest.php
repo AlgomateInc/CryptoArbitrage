@@ -49,6 +49,35 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testPrecisions()
+    {
+        $this->assertTrue($this->mkt instanceof Yunbi);
+
+        $this->assertEquals(2, $this->mkt->quotePrecision(CurrencyPair::BTCCNY, 1.0));
+        $this->assertEquals(3, $this->mkt->quotePrecision(CurrencyPair::BTCCNY, 0.11));
+        $this->assertEquals(2, $this->mkt->quotePrecision(CurrencyPair::BTCCNY, 1000.1));
+        $this->assertEquals(4, $this->mkt->quotePrecision(CurrencyPair::BTCCNY, 0.0123));
+    }
+
+    public function testLivePrecisions()
+    {
+        $this->assertTrue($this->mkt instanceof Yunbi);
+
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $precision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $this->assertEquals($ticker->bid, round($ticker->bid, $precision), "Failure on $ticker->currencyPair");
+            $this->assertEquals($ticker->ask, round($ticker->ask, $precision), "Failure on $ticker->currencyPair");
+            $this->assertEquals($ticker->last, round($ticker->last, $precision), "Failure on $ticker->currencyPair");
+        }
+    }
+
+    public function testQuoteLimits()
+    {
+        $this->assertTrue($this->mkt instanceof Yunbi);
+        $ret = $this->mkt->buy("1SŦCNY", 0.01, 0.6021);
+    }
+
     public function testBalances()
     {
         $this->assertTrue($this->mkt instanceof Yunbi);
