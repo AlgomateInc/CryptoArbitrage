@@ -17,7 +17,8 @@ class Gdax extends BaseExchange implements ILifecycleHandler
 
     private $supportedPairs = array();
     private $minOrderSizes = array(); //assoc array pair->minordersize
-    private $productId = array(); //assoc array pair->productid
+    private $productIds = array(); //assoc array pair->productid
+    private $quotePrecisions = array(); //assoc array pair->quotePrecision
 
     public function __construct($key, $secret, $passphrase) {
         $this->key = $key;
@@ -35,7 +36,8 @@ class Gdax extends BaseExchange implements ILifecycleHandler
 
                 $this->supportedPairs[] = mb_strtoupper($pair);
                 $this->minOrderSizes[$pair] = $pairInfo['base_min_size'];
-                $this->productId[$pair] = $pairInfo['id'];
+                $this->productIds[$pair] = $pairInfo['id'];
+                $this->quotePrecisions[$pair] = intval(abs(floor(log10($pairInfo['quote_increment']))));
             }catch(Exception $e){}
         }
     }
@@ -75,9 +77,14 @@ class Gdax extends BaseExchange implements ILifecycleHandler
         return $this->minOrderSizes[$pair];
     }
 
+    public function quotePrecision($pair, $pairRate)
+    {
+        return $this->quotePrecisions[$pair];
+    }
+
     public function ticker($pair)
     {
-        $raw = curl_query($this->getApiUrl() . '/products/' . $this->productId[$pair] . '/ticker');
+        $raw = curl_query($this->getApiUrl() . '/products/' . $this->productIds[$pair] . '/ticker');
 
         $t = new Ticker();
         $t->currencyPair = $pair;
@@ -91,7 +98,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
 
     public function trades($pair, $sinceDate)
     {
-        $tradeList = curl_query($this->getApiUrl() . '/products/' . $this->productId[$pair] . '/trades');
+        $tradeList = curl_query($this->getApiUrl() . '/products/' . $this->productIds[$pair] . '/trades');
 
         $ret = array();
 
@@ -117,7 +124,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
 
     public function depth($currencyPair)
     {
-        $raw = curl_query($this->getApiUrl() . '/products/' . $this->productId[$currencyPair] .
+        $raw = curl_query($this->getApiUrl() . '/products/' . $this->productIds[$currencyPair] .
             '/book?level=2');
 
         $book = new OrderBook($raw);
@@ -147,7 +154,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
             'size' => "$quantity",
             'price' => "$price",
             'side' => $side,
-            'product_id' => $this->productId[$pair],
+            'product_id' => $this->productIds[$pair],
             'type' => $type
         );
         return $this->authQuery('/orders', 'POST', $req);
@@ -303,7 +310,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
     // to the standard representation in the application.
     private function currencyPairOfProductId($productId)
     {
-        foreach($this->productId as $pair=>$pid) {
+        foreach($this->productIds as $pair=>$pid) {
             if ($productId === $pid)
                 return $pair;
         }
