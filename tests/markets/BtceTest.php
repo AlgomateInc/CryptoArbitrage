@@ -24,8 +24,33 @@ class BtceTest extends PHPUnit_Framework_TestCase {
     public function testBalances()
     {
         $this->assertTrue($this->mkt instanceof Btce);
+        $currs = $this->mkt->supportedCurrencies();
         $bal = $this->mkt->balances();
-        var_dump($bal);
+        foreach ($bal as $pair=>$amt) {
+            $this->assertTrue(in_array($pair, $currs));
+            $this->assertTrue(is_int($amt) || is_float($amt));
+        }
+    }
+
+    public function testPrecisions()
+    {
+        $this->assertTrue($this->mkt instanceof Btce);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $precision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $this->assertEquals($ticker->bid, round($ticker->bid, $precision));
+            $this->assertEquals($ticker->ask, round($ticker->ask, $precision));
+            $this->assertEquals($ticker->last, round($ticker->last, $precision));
+        }
+    }
+
+    public function testBTCEUROrder()
+    {
+        $res = $this->mkt->sell(CurrencyPair::BTCEUR, 0.01, 3000.12345);
+        $this->assertTrue($this->mkt->isOrderAccepted($res));
+
+        $cres = $this->mkt->cancel($res['return']['order_id']);
+        $this->assertTrue($cres['success'] == 1);
     }
 
     public function testOrderSubmitAndCancel()

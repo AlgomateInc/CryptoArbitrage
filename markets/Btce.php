@@ -7,8 +7,10 @@ require_once('ILifecycleHandler.php');
 
 class Btce extends BtceStyleExchange implements ILifecycleHandler
 {
-    private $supportedPairs = array();
-    private $minOrderSize = array(); //associative, pair->size
+    private $supportedPairs = array(); //associative, pair->productId
+    private $minOrderSizes = array(); //associative, pair->size
+    private $quotePrecisions = array(); //associative, pair->precision
+    private $minPrices = array(); //associative, pair->minPrice
 
     protected function getAuthQueryUrl(){
         return 'https://btc-e.com/tapi/';
@@ -23,8 +25,10 @@ class Btce extends BtceStyleExchange implements ILifecycleHandler
         $marketsInfo = curl_query('https://btc-e.com/api/3/info');
         foreach($marketsInfo['pairs'] as $pair => $info){
             $pairName = mb_strtoupper(str_replace('_', '', $pair));
-            $this->supportedPairs[] = $pairName;
-            $this->minOrderSize[$pairName] = $info['min_amount'];
+            $this->supportedPairs[$pairName] = $pair;
+            $this->minOrderSizes[$pairName] = $info['min_amount'];
+            $this->quotePrecisions[$pairName] = $info['decimal_places'];
+            $this->minPrices[$pairName] = $info['min_price'];
         }
     }
 
@@ -41,7 +45,7 @@ class Btce extends BtceStyleExchange implements ILifecycleHandler
     }
 
     public function supportedCurrencyPairs(){
-        return array(CurrencyPair::BTCUSD, CurrencyPair::LTCBTC, CurrencyPair::LTCUSD);
+        return array_keys($this->supportedPairs);
     }
 
     /**
@@ -50,7 +54,14 @@ class Btce extends BtceStyleExchange implements ILifecycleHandler
      */
     public function minimumOrderSize($pair, $pairRate)
     {
-        return $this->minOrderSize[$pair];
+        if ($pairRate < $this->minPrices[$pair])
+            throw new UnexpectedValueException('Input rate too low, unacceptable by exchange');
+        return $this->minOrderSizes[$pair];
+    }
+
+    public function quotePrecision($pair, $pairRate)
+    {
+        return $this->quotePrecisions[$pair];
     }
 
     private function getCurrencyPairName($pair)
