@@ -54,15 +54,15 @@ class Currency{
         return $precision[static::BTC]; //return BTC precison for all else
     }
 
-    public static function GetMinimumValue($currency)
+    public static function GetMinimumValue($currency, $currencyPrecision = -INF)
     {
-        $p = self::getPrecision($currency);
+        $p = max(self::getPrecision($currency), $currencyPrecision);
         return pow(10, -$p);
     }
 
-    public static function FloorValue($value, $currency)
+    public static function FloorValue($value, $currency, $currencyPrecision = -INF)
     {
-        $p = self::getPrecision($currency);
+        $p = max(self::getPrecision($currency), $currencyPrecision);
 
         $mul = pow(10, $p);
         return bcdiv(floor(bcmul($value, $mul, $p)), $mul, $p); //bc math lib avoids floating point weirdness

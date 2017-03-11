@@ -42,15 +42,13 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
 
             if ($insideBid instanceof DepthItem && $insideAsk instanceof DepthItem) {
                 //default to midpoint price
+                $pricePrecision = $market->quotePrecision($soi->currencyPair, $insideBid->price);
                 $tgtPrice = Currency::FloorValue(($insideAsk->price + $insideBid->price) / 2.0,
-                    $quoteCurrency);
+                    $quoteCurrency, $pricePrecision);
 
                 if($soi->pegOrder){
                     //check to see if we can get a minsize that we could work with to peg the order
-                    $minCurSize = Currency::GetMinimumValue($quoteCurrency);
-                    $minMarketSize = pow(10, -max($this->numberOfDecimals($insideBid->price),
-                        $this->numberOfDecimals($insideAsk->price)));
-                    $minSize = max($minCurSize, $minMarketSize);
+                    $minSize = Currency::GetMinimumValue($quoteCurrency, $pricePrecision);
 
                     if($minSize > 0 && $minSize < $insideAsk->price - $insideBid->price)
                     {
@@ -59,7 +57,7 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
                         if($soi->type == OrderType::SELL && $insideAsk->price - $minSize > $tgtPrice)
                             $tgtPrice = $insideAsk->price - $minSize;
 
-                        $tgtPrice = strval(Currency::FloorValue($tgtPrice, $quoteCurrency));
+                        $tgtPrice = strval(Currency::FloorValue($tgtPrice, $quoteCurrency, $pricePrecision));
                     }
                 }
 
