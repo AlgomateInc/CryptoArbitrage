@@ -22,6 +22,7 @@ class Kraken extends BaseExchange implements ILifecycleHandler
 
     private $supportedPairs = array();
     private $supportedKrakenPairs = array();
+    private $quotePrecisions = array(); //maps pair -> precision
 
     public function __construct($key, $secret){
         $this->key = $key;
@@ -46,7 +47,7 @@ class Kraken extends BaseExchange implements ILifecycleHandler
         }
 
         $assetPairs = $this->publicQuery('AssetPairs');
-        foreach($assetPairs as $krakenPairName => $krakenPairInfo)
+        foreach ($assetPairs as $krakenPairName => $krakenPairInfo)
         {
             if(mb_substr($krakenPairName, -2) === '.d')
                 continue;
@@ -62,6 +63,7 @@ class Kraken extends BaseExchange implements ILifecycleHandler
             $this->supportedKrakenPairs[] = $krakenPairName;
             $this->marketMapping[$pair] = $krakenPairName;
             $this->krakenMarketMapping[$krakenPairName] = $pair;
+            $this->quotePrecisions[$pair] = $krakenPairInfo['pair_decimals'];
         }
     }
 
@@ -97,7 +99,13 @@ class Kraken extends BaseExchange implements ILifecycleHandler
 
     public function minimumOrderSize($pair, $pairRate)
     {
+        // From https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-
         return 0.01;
+    }
+
+    public function quotePrecision($pair, $pairRate)
+    {
+        return $this->quotePrecisions[$pair];
     }
 
     private function getApiUrl()

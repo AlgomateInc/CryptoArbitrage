@@ -36,6 +36,18 @@ class GdaxTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testPrecisions()
+    {
+        $this->assertTrue($this->mkt instanceof Gdax);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $precision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $this->assertEquals($ticker->bid, round($ticker->bid, $precision));
+            $this->assertEquals($ticker->ask, round($ticker->ask, $precision));
+            $this->assertEquals($ticker->last, round($ticker->last, $precision));
+        }
+    }
+
     public function testBalances()
     {
         $this->assertTrue($this->mkt instanceof Gdax);

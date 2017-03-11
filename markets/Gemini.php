@@ -20,9 +20,14 @@ class Gemini extends Bitfinex
             $this->supportedPairs[] = mb_strtoupper($pair);
         }
 
+        // From https://docs.gemini.com/rest-api/#symbols-and-minimums
         $this->minOrderSizes[CurrencyPair::BTCUSD] = 0.00001;
-        $this->minOrderSizes[CurrencyPair::ETHBTC] = 0.001;
         $this->minOrderSizes[CurrencyPair::ETHUSD] = 0.001;
+        $this->minOrderSizes[CurrencyPair::ETHBTC] = 0.001;
+
+        $this->quotePrecisions[CurrencyPair::BTCUSD] = 2;
+        $this->quotePrecisions[CurrencyPair::ETHUSD] = 2;
+        $this->quotePrecisions[CurrencyPair::ETHBTC] = 5;
     }
 
     public function positions()
@@ -42,6 +47,11 @@ class Gemini extends Bitfinex
         $t->volume = $tickerData['volume'][CurrencyPair::Base($pair)];
 
         return $t;
+    }
+
+    public function quotePrecision($pair, $pairRate)
+    {
+        return $this->quotePrecisions[$pair];
     }
 
     function getApiUrl()

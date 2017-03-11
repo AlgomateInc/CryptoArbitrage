@@ -4,8 +4,8 @@ require_once('config.php');
 require_once('common.php');
 require_once('IAccountLoader.php');
 
-require_once('markets/btce.php');
-require_once('markets/bitstamp.php');
+require_once('markets/Btce.php');
+require_once('markets/Bitstamp.php');
 require_once('markets/jpmchase.php');
 require_once('markets/Cryptsy.php');
 require_once('markets/Bitfinex.php');
@@ -49,7 +49,7 @@ class ConfigAccountLoader implements IAccountLoader{
             switch($mktName)
             {
                 case Exchange::Bitstamp:
-                    $accounts[Exchange::Bitstamp] = new BitstampExchange(
+                    $accounts[Exchange::Bitstamp] = new Bitstamp(
                         $mktConfig['custid'],
                         $mktConfig['key'],
                         $mktConfig['secret']
@@ -57,7 +57,7 @@ class ConfigAccountLoader implements IAccountLoader{
                     break;
 
                 case Exchange::Btce:
-                    $accounts[Exchange::Btce] = new BtceExchange(
+                    $accounts[Exchange::Btce] = new Btce(
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );

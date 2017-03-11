@@ -26,7 +26,7 @@ class TradeDataDumper extends ActionProcess {
 
         foreach($this->exchanges as $mkt)
         {
-            if(!$mkt instanceof BitstampExchange)
+            if(!$mkt instanceof Bitstamp)
                 continue;
 
             foreach($mkt->tradeHistory() as $tx){

@@ -13,6 +13,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
 
     protected $supportedPairs = array();
     protected $minOrderSizes = array(); //assoc array pair->minordersize
+    protected $quotePrecisions = array(); //assoc array pair->precision
 
     public function __construct($key, $secret){
         $this->key = $key;
@@ -34,8 +35,10 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
         $minOrderSizes = curl_query($this->getApiUrl() . 'symbols_details');
         foreach($minOrderSizes as $symbolDetail){
             $pairName = mb_strtoupper($symbolDetail['pair']);
-            if($this->supports($pairName))
+            if($this->supports($pairName)) {
                 $this->minOrderSizes[$pairName] = $symbolDetail['minimum_order_size'];
+                $this->quotePrecisions[$pairName] = $symbolDetail['price_precision'];
+            }
         }
     }
 
@@ -247,6 +250,14 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
     public function minimumOrderSize($pair, $pairRate)
     {
         return $this->minOrderSizes[$pair];
+    }
+
+    public function quotePrecision($pair, $pairRate)
+    {
+        // quotePrecisions only gives the total number of significant figures, 
+        // not the actual precision, so pair rate is needed to calculate it
+        $order_of_magnitude = intval(floor(log10($pairRate))) + 1;
+        return $this->quotePrecisions[$pair] - $order_of_magnitude;
     }
 
     protected function authQuery($method, array $req = array()) {
