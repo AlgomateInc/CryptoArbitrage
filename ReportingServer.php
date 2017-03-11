@@ -40,7 +40,9 @@ class ReportingServer extends ActionProcess
         if(!$this->reporter instanceof IReporter)
             throw new Exception();
 
-        $pkt = stream_socket_recvfrom($this->socket, 1500);
+        $pkt = stream_socket_recvfrom($this->socket, 150000);
+        if($pkt === false)
+            throw new Exception('stream_socket_recvfrom returned false');
 
         $pktJson = json_decode($pkt);
         $err = json_last_error();
@@ -48,7 +50,8 @@ class ReportingServer extends ActionProcess
             throw new Exception("Invalid data received\nError: $err\nServer returned:\n $pkt");
 
         $method = $pktJson[0];
-        $params = array_slice($pktJson, 1);
+        $rawParams = array_slice($pktJson, 1);
+        $params = $this->processParams($method, $rawParams);
         call_user_func_array(array($this->reporter, $method), $params);
     }
 
@@ -56,6 +59,23 @@ class ReportingServer extends ActionProcess
     {
         if($this->socket != null)
             fclose($this->socket);
+    }
+
+    private function processParams($method, $params)
+    {
+        switch($method)
+        {
+            case 'depth':
+                if(count($params) != 3)
+                    throw new Exception('Invalid parameters in depth call');
+                $ret = array();
+                $ret[] = $params[0];
+                $ret[] = $params[1];
+                $ret[] = new OrderBook((array)$params[2]);
+                return $ret;
+            default:
+                return $params;
+        }
     }
 }
 
