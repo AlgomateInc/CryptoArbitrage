@@ -16,39 +16,58 @@ class SocketReporter implements IReporter, IListener {
 
     private $canListen;
 
+    private $lastRetryTime = 0;
+    private $reconnectCount = 0;
+    private $retryBuffer = array();
+    const RETRY_TIMEOUT_SECS = 5;
+    const RETRY_RECONNECT_COUNT = 2880; //4hrs
+
     public function __construct($host, $port, $listen = false)
     {
         $this->canListen = $listen;
 
         ///////////////////
+        $this->host = $host;
+        $this->port = $port;
+    }
+
+    function __destruct()
+    {
+        $this->disconnect();
+    }
+
+    private function connect()
+    {
+        $this->disconnect();
+
+        //create new socket
         $sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         if($sock === false){
             $err = socket_last_error();
             $errStr = socket_strerror($err);
             throw new Exception("Socket creation failed with code $err: $errStr");
         }
-        $this->socket = $sock;
-        $this->host = $host;
-        $this->port = $port;
 
         //connect to the destination server
-        $address = gethostbyname($host);
-        $result = @socket_connect($sock, $address, $port);
+        $address = gethostbyname($this->host);
+        $result = @socket_connect($sock, $address, $this->port);
         if($result === false){
             $err = socket_last_error($sock);
+            socket_close($sock);
             $errStr = socket_strerror($err);
             throw new Exception("Socket connection failed with code $err: $errStr");
         }
+
+        $this->socket = $sock;
         $this->sendLoginMessage();
     }
 
-    function __destruct()
+    private function disconnect()
     {
         if($this->socket != null){
-            $this->sendLogoffMessage();
-            sleep(1); //massive hack...gives server time to process logoff message
-            //before we kill socket...ideally we wait for response from server...oh well
+            socket_shutdown($this->socket);
             socket_close($this->socket);
+            $this->socket = null;
         }
     }
 
@@ -59,18 +78,43 @@ class SocketReporter implements IReporter, IListener {
             'Identifier' => gethostname(),
             'Listener' => $this->canListen
         );
-        $this->send($data);
-    }
-
-    private function sendLogoffMessage()
-    {
-        $data = array(
-            'MessageType' => 'Logoff'
-        );
-        $this->send($data);
+        $this->sendUnbuffered($data);
     }
 
     private function send($data)
+    {
+        $this->retryBuffer[] = json_encode($data) . "\n";
+
+        if(time() < $this->lastRetryTime + self::RETRY_TIMEOUT_SECS)
+            return;
+
+        //connect the socket if needed
+        if($this->socket == null){
+            try{
+                $this->connect();
+            }catch (Exception $e){
+                $this->lastRetryTime = time();
+                $this->reconnectCount++;
+                if($this->reconnectCount > self::RETRY_RECONNECT_COUNT)
+                    throw $e;
+                return;
+            }
+        }
+
+        //send all the data in the buffer
+        while(count($this->retryBuffer) > 0)
+        {
+            $msg = array_shift($this->retryBuffer);
+
+            $res = @socket_write($this->socket, $msg);
+            if($res === FALSE)            {
+                array_unshift($this->retryBuffer, $msg);
+                $this->disconnect();
+            }
+        }
+    }
+
+    private function sendUnbuffered($data)
     {
         $msg = json_encode($data) . "\n";
 
