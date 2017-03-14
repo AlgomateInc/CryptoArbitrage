@@ -48,6 +48,18 @@ class GdaxTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testOrderIncrements()
+    {
+        $this->assertTrue($this->mkt instanceof Gdax);
+        $pair = CurrencyPair::BTCUSD;
+        $ticker = $this->mkt->ticker($pair);
+        $pairRate = $ticker->bid;
+        $minIncrement = $this->mkt->minimumOrderIncrement($pair, $pairRate);
+        $minOrder = $this->mkt->minimumOrderSize($pair, $pairRate);
+        $ret = $this->mkt->buy(CurrencyPair::BTCUSD, $minOrder + $minIncrement, $pairRate * 0.5);
+        $this->checkAndCancelOrder($ret);
+    }
+
     public function testBalances()
     {
         $this->assertTrue($this->mkt instanceof Gdax);

@@ -72,6 +72,34 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testMinOrders()
+    {
+        $this->assertTrue($this->mkt instanceof Yunbi);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $price = $ticker->bid * 0.5;
+            $minOrder = $this->mkt->minimumOrderSize($pair, $price);
+            $ret = $this->mkt->buy($pair, $minOrder, $price);
+            $this->checkAndCancelOrder($ret);
+        }
+    }
+
+    public function testMinOrdersAreSame()
+    {
+        $this->assertTrue($this->mkt instanceof Yunbi);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $price = $ticker->bid * 0.5;
+            $minOrder = $this->mkt->minimumOrderSize($pair, $price) * 0.1;
+            try {
+                $ret = $this->mkt->buy($pair, $minOrder, $price);
+                // should throw an error, so we never get here
+                $this->assertTrue(false, "Pair $pair has a smaller minimum order than expected, hardcoded value needs to change");
+            } catch (Exception $e) {
+            }
+        }
+    }
+
     public function testQuoteLimits()
     {
         $this->assertTrue($this->mkt instanceof Yunbi);
@@ -168,7 +196,6 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
     {
         $this->assertTrue($this->mkt instanceof Yunbi);
         $ret = $this->mkt->getOrderExecutions(array('id'=>404653556));
-        var_dump($ret);
     }
      */
 

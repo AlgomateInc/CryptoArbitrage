@@ -25,6 +25,13 @@ interface IExchange extends IAccount
     /**
      * @param $pair String The CurrencyPair pair we want to get minimum order size for
      * @param $pairRate float Supply a price for the pair, in case the rate is based on quote currency
+     * @return mixed The minimum order increment, in the base currency of the pair
+     */
+    public function minimumOrderIncrement($pair, $pairRate);
+
+    /**
+     * @param $pair String The CurrencyPair pair we want to get minimum order size for
+     * @param $pairRate float Supply a price for the pair, in case the rate is based on quote currency
      * @return int The precision (number of decimals) in the pair rate
      */
     public function quotePrecision($pair, $pairRate);

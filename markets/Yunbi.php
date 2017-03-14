@@ -15,6 +15,7 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
 
     private $supportedPairs = array();
     private $productId = array(); //assoc array pair->productid
+    private $minimumOrderSizes = array(); //assoc array pair->min order size
 
     public function __construct($key, $secret) {
         $this->key = $key;
@@ -34,6 +35,18 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
                 $this->productId[$pair] = $pairInfo['id'];
             }catch(Exception $e){}
         }
+
+        $this->minimumOrderSizes[CurrencyPair::BTCCNY] = 0.0001;
+        $this->minimumOrderSizes[CurrencyPair::DCSCNY] = 0.01;
+        $this->minimumOrderSizes[CurrencyPair::SCCNY] = 1;
+        $this->minimumOrderSizes[CurrencyPair::FSTCNY] = 0.001;
+        $this->minimumOrderSizes[CurrencyPair::REPCNY] = 0.001;
+        $this->minimumOrderSizes[CurrencyPair::ANSCNY] = 0.001;
+        $this->minimumOrderSizes[CurrencyPair::ZECCNY] = 0.001;
+        $this->minimumOrderSizes[CurrencyPair::ZMCCNY] = 0.01;
+        $this->minimumOrderSizes[CurrencyPair::GNTCNY] = 1;
+        $this->minimumOrderSizes[CurrencyPair::BTSCNY] = 0.01;
+        $this->minimumOrderSizes[CurrencyPair::BITCNYCNY] = 0.001;
     }
 
     public function Name()
@@ -68,8 +81,15 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
 
     public function minimumOrderSize($pair, $pairRate)
     {
-        // 0.01 CNY minimum total price
-        return 0.01 / $pairRate;
+        if (array_key_exists($pair, $this->minimumOrderSizes)) {
+            return $this->minimumOrderSizes[$pair];
+        }
+        return $this->minimumOrderSizes[CurrencyPair::BTCCNY];
+    }
+
+    public function minimumOrderIncrement($pair, $pairRate)
+    {
+        return minimumOrderSize($pair, $pairRate);
     }
 
     public function quotePrecision($pair, $pairRate)
