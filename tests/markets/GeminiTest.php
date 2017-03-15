@@ -28,6 +28,14 @@ class GeminiTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals(5, $this->mkt->quotePrecision(CurrencyPair::ETHBTC, 1));
     }
 
+    public function testOrderIncrements()
+    {
+        $this->assertTrue($this->mkt instanceof Gemini);
+        $this->assertEquals(0.00000001, $this->mkt->minimumOrderIncrement(CurrencyPair::BTCUSD, 1));
+        $this->assertEquals(0.000001, $this->mkt->minimumOrderIncrement(CurrencyPair::ETHUSD, 1));
+        $this->assertEquals(0.000001, $this->mkt->minimumOrderIncrement(CurrencyPair::ETHBTC, 1));
+    }
+
     public function testBalances()
     {
         if($this->mkt instanceof Gemini)
