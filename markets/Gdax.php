@@ -77,6 +77,17 @@ class Gdax extends BaseExchange implements ILifecycleHandler
         return $this->minOrderSizes[$pair];
     }
 
+    public function basePrecision($pair, $pairRate)
+    {
+        $base = CurrencyPair::Base($pair);
+        $quote = CurrencyPair::Quote($pair);
+        if (false == Currency::isFiat($base) && false == Currency::isFiat($quote)) {
+            return $this->quotePrecision($pair, $pairRate);
+        } else {
+            return parent::basePrecision($pair, $pairRate);
+        }
+    }
+
     public function quotePrecision($pair, $pairRate)
     {
         return $this->quotePrecisions[$pair];

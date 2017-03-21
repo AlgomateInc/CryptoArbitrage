@@ -43,18 +43,48 @@ class BitstampTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testMinOrders()
+    {
+        $this->assertTrue($this->mkt instanceof Bitstamp);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $quotePrecision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $price = round($ticker->bid * 0.9, $quotePrecision);
+            $minOrder = $this->mkt->minimumOrderSize($pair, $price);
+            $ret = $this->mkt->buy($pair, $minOrder, $price);
+            $this->checkAndCancelOrder($ret);
+        }
+    }
+
+    public function testBasePrecision()
+    {
+        $this->assertTrue($this->mkt instanceof Bitstamp);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $quotePrecision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $price = round($ticker->bid * 0.9, $quotePrecision);
+
+            $minOrder = $this->mkt->minimumOrderSize($pair, $price);
+            $basePrecision = $this->mkt->basePrecision($pair, $ticker->bid);
+            $minOrder += bcpow(10, -1 * $basePrecision, $basePrecision);
+
+            $ret = $this->mkt->buy($pair, $minOrder, $price);
+            $this->checkAndCancelOrder($ret);
+        }
+    }
+
     public function testBTCUSDOrder()
     {
         $this->assertTrue($this->mkt instanceof Bitstamp);
         $response = $this->mkt->sell(CurrencyPair::BTCUSD, 0.01, 100000);
-        $this->testAndCancelOrder($response);
+        $this->checkAndCancelOrder($response);
     }
 
     public function testBTCEUROrder()
     {
         $this->assertTrue($this->mkt instanceof Bitstamp);
         $response = $this->mkt->sell(CurrencyPair::BTCEUR, 0.01, 100000);
-        $this->testAndCancelOrder($response);
+        $this->checkAndCancelOrder($response);
     }
 
     public function testActiveOrders()
@@ -63,7 +93,7 @@ class BitstampTest extends PHPUnit_Framework_TestCase {
         $response = $this->mkt->sell(CurrencyPair::BTCEUR, 0.01, 100000);
         $this->assertNotEmpty($this->mkt->activeOrders());
         $this->assertTrue($this->mkt->isOrderOpen($response));
-        $this->testAndCancelOrder($response);
+        $this->checkAndCancelOrder($response);
     }
 
     public function testOrderExecutions()
@@ -102,7 +132,7 @@ class BitstampTest extends PHPUnit_Framework_TestCase {
         }
     }
 
-    private function testAndCancelOrder($response)
+    private function checkAndCancelOrder($response)
     {
         $this->assertNotNull($response);
 

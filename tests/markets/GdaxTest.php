@@ -48,16 +48,36 @@ class GdaxTest extends PHPUnit_Framework_TestCase {
         }
     }
 
-    public function testOrderIncrements()
+    public function testMinOrders()
     {
         $this->assertTrue($this->mkt instanceof Gdax);
-        $pair = CurrencyPair::BTCUSD;
-        $ticker = $this->mkt->ticker($pair);
-        $pairRate = $ticker->bid;
-        $minIncrement = $this->mkt->minimumOrderIncrement($pair, $pairRate);
-        $minOrder = $this->mkt->minimumOrderSize($pair, $pairRate);
-        $ret = $this->mkt->buy(CurrencyPair::BTCUSD, $minOrder + $minIncrement, $pairRate * 0.5);
-        $this->checkAndCancelOrder($ret);
+        $availablePairsInUSA = array("ETHUSD","ETHBTC","LTCUSD", "LTCBTC", "BTCUSD");
+        foreach ($availablePairsInUSA as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $quotePrecision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $price = round($ticker->bid * 0.9, $quotePrecision);
+            $minOrder = $this->mkt->minimumOrderSize($pair, $price);
+            $ret = $this->mkt->buy($pair, $minOrder, $price);
+            $this->checkAndCancelOrder($ret);
+        }
+    }
+
+    public function testBasePrecision()
+    {
+        $this->assertTrue($this->mkt instanceof Gdax);
+        $availablePairsInUSA = array("ETHUSD","ETHBTC","LTCUSD", "LTCBTC", "BTCUSD");
+        foreach ($availablePairsInUSA as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $quotePrecision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $price = round($ticker->bid * 0.9, $quotePrecision);
+
+            $minOrder = $this->mkt->minimumOrderSize($pair, $price);
+            $basePrecision = $this->mkt->basePrecision($pair, $ticker->bid);
+            $minOrder += bcpow(10, -1 * $basePrecision, $basePrecision);
+
+            $ret = $this->mkt->buy($pair, $minOrder, $price);
+            $this->checkAndCancelOrder($ret);
+        }
     }
 
     public function testBalances()
