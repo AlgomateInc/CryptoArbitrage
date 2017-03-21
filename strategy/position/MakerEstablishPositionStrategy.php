@@ -41,8 +41,10 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
             $insideAsk = $depth->asks[0];
 
             if ($insideBid instanceof DepthItem && $insideAsk instanceof DepthItem) {
-                //default to midpoint price
                 $pricePrecision = $market->quotePrecision($soi->currencyPair, $insideBid->price);
+                $sizePrecision = $market->basePrecision($soi->currencyPair, $insideBid->price);
+
+                //default to midpoint price
                 $tgtPrice = Currency::FloorValue(($insideAsk->price + $insideBid->price) / 2.0,
                     $quoteCurrency, $pricePrecision);
 
@@ -71,7 +73,7 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
                     //this is so we don't keep putting the same size orders on the book
                     $windowSize = $soi->sizeRangePct / 100.0 * $soi->size;
                     $sizeAdjustment = lcg_value() * $windowSize - $windowSize / 2.0;
-                    $ret->size = Currency::FloorValue($ret->size + $sizeAdjustment, $baseCurrency);
+                    $ret->size = Currency::FloorValue($ret->size + $sizeAdjustment, $baseCurrency, $sizePrecision);
 
                     //check the size against current balance
                     $neededCurrency = ($ret->type == OrderType::BUY)? $quoteCurrency : $baseCurrency;
@@ -80,8 +82,8 @@ class MakerEstablishPositionStrategy extends BaseStrategy {
                         $neededCurrencyBalance = $balances[$soi->exchange][$neededCurrency];
                     if($neededCurrencyBalance <= 0)
                         return null;
-                    $ret->size = min($ret->size, ($ret->type == OrderType::BUY)?
-                        Currency::FloorValue(bcdiv($neededCurrencyBalance, $tgtPrice, Currency::getPrecision($baseCurrency)), $baseCurrency) :
+                    $ret->size = min($ret->size,
+                        ($ret->type == OrderType::BUY)? bcdiv($neededCurrencyBalance, $tgtPrice, $sizePrecision) :
                         $neededCurrencyBalance);
 
                     if($ret->size < $market->minimumOrderSize($soi->currencyPair, $tgtPrice))
