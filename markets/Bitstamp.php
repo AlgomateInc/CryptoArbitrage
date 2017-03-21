@@ -48,13 +48,27 @@ class Bitstamp extends BaseExchange implements ILifecycleHandler
         return $this->supportedPairs;
     }
 
+    public function quotePrecision($pair, $pairRate)
+    {
+        $base = CurrencyPair::Base($pair);
+        if ($base === Currency::XRP) {
+            return max(5, parent::quotePrecision($pair, $pairRate));
+        } else {
+            return parent::quotePrecision($pair, $pairRate);
+        }
+    }
+
     /**
      * @param $pair The pair we want to get minimum order size for
      * @return mixed The minimum order size
      */
     public function minimumOrderSize($pair, $pairRate)
     {
-        return 5.0/$pairRate; //minimum is 5 units of fiat currency, e.g. $5
+        $basePrecision = $this->basePrecision($pair, $pairRate);
+        $quotePrecision = $this->quotePrecision($pair, $pairRate);
+        $stringRate = number_format($pairRate, $quotePrecision, '.', '');
+        //minimum is 5 units of fiat currency, e.g. $5
+        return bcdiv(5.0, $stringRate, $basePrecision) + bcpow(10, -1 * $basePrecision, $basePrecision);
     }
 
     public function balances()

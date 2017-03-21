@@ -36,21 +36,25 @@ class KrakenTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testMinOrders()
+    {
+        $this->assertTrue($this->mkt instanceof Kraken);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $quotePrecision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $price = round($ticker->bid * 0.9, $quotePrecision);
+            $minOrder = $this->mkt->minimumOrderSize($pair, $price);
+            $ret = $this->mkt->buy($pair, $minOrder, $price);
+            $this->checkAndCancelOrder($ret);
+        }
+    }
+
     public function testOrderSubmitAndCancel()
     {
         if($this->mkt instanceof Kraken)
         {
             $res = $this->mkt->sell(CurrencyPair::ETHBTC, 0.1, 1);
-
-            $this->assertTrue($this->mkt->isOrderAccepted($res));
-
-            $this->assertTrue($this->mkt->isOrderOpen($res));
-
-            $cres = $this->mkt->cancel($this->mkt->getOrderID($res));
-
-            $this->assertTrue($cres['count'] == 1);
-
-            $this->assertFalse($this->mkt->isOrderOpen($res));
+            $this->checkAndCancelOrder($res);
         }
     }
 
@@ -70,6 +74,20 @@ class KrakenTest extends PHPUnit_Framework_TestCase {
 
             $this->assertTrue(count($oe) > 1);
         }
+    }
+
+    private function checkAndCancelOrder($response)
+    {
+        $this->assertTrue($this->mkt->isOrderAccepted($response));
+
+        //give time to put order on book
+        sleep(1);
+        $this->assertTrue($this->mkt->isOrderOpen($response));
+
+        $cres = $this->mkt->cancel($this->mkt->getOrderID($response));
+        $this->assertTrue($cres['count'] == 1);
+
+        $this->assertFalse($this->mkt->isOrderOpen($response));
     }
 }
  

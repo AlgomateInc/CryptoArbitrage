@@ -44,6 +44,36 @@ class BtceTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testMinOrders()
+    {
+        $this->assertTrue($this->mkt instanceof Btce);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $quotePrecision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $price = round($ticker->bid * 0.9, $quotePrecision);
+            $minOrder = $this->mkt->minimumOrderSize($pair, $price);
+            $ret = $this->mkt->buy($pair, $minOrder, $price);
+            $this->checkAndCancelOrder($ret);
+        }
+    }
+
+    public function testBasePrecision()
+    {
+        $this->assertTrue($this->mkt instanceof Btce);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $quotePrecision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $price = round($ticker->bid * 0.9, $quotePrecision);
+
+            $minOrder = $this->mkt->minimumOrderSize($pair, $price);
+            $basePrecision = $this->mkt->basePrecision($pair, $ticker->bid);
+            $minOrder += bcpow(10, -1 * $basePrecision, $basePrecision);
+
+            $ret = $this->mkt->buy($pair, $minOrder, $price);
+            $this->checkAndCancelOrder($ret);
+        }
+    }
+
     public function testBTCEUROrder()
     {
         $res = $this->mkt->sell(CurrencyPair::BTCEUR, 0.01, 3000.12345);
@@ -76,6 +106,17 @@ class BtceTest extends PHPUnit_Framework_TestCase {
             $this->assertTrue(is_array($res));
             $this->assertCount(5, $res);
         }
+    }
+
+    private function checkAndCancelOrder($response)
+    {
+        $this->assertNotNull($response);
+        $this->assertTrue($this->mkt->isOrderAccepted($response));
+
+        //give time to put order on book
+        sleep(1);
+
+        $cres = $this->mkt->cancel($response['return']['order_id']);
     }
 }
  

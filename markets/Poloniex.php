@@ -71,7 +71,13 @@ class Poloniex extends BaseExchange {
         // otherwise minimum "amount" is 0.000001
         $MIN_TOTAL = 0.0001;
         $MIN_AMOUNT = 0.000001;
-        return max($MIN_TOTAL / $pairRate, $MIN_AMOUNT);
+
+        $basePrecision = $this->basePrecision($pair, $pairRate);
+        $minIncrement = bcpow(10, -1 * $basePrecision, $basePrecision);
+        $stringRate = number_format($pairRate, $basePrecision, '.', '');
+        $minOrder = bcdiv($MIN_TOTAL, $stringRate, $basePrecision) + $minIncrement;
+
+        return max($minOrder, $MIN_AMOUNT);
     }
 
     public function ticker($pair)

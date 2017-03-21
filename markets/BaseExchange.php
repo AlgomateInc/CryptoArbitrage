@@ -48,11 +48,9 @@ abstract class BaseExchange implements IExchange {
         return $ret;
     }
 
-    public function minimumOrderIncrement($pair, $pairRate)
+    public function basePrecision($pair, $pairRate)
     {
-        $basePrecision = Currency::getPrecision(CurrencyPair::Base($pair));
-        return max(pow(10, -1 * $basePrecision),
-            round(pow(10, -1 * $this->quotePrecision($pair, $pairRate)) / $pairRate, $basePrecision));
+        return Currency::getPrecision(CurrencyPair::Base($pair));
     }
 
     public function quotePrecision($pair, $pairRate)

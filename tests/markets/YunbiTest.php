@@ -77,14 +77,33 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
         $this->assertTrue($this->mkt instanceof Yunbi);
         foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
             $ticker = $this->mkt->ticker($pair);
-            $price = $ticker->bid * 0.5;
+            $quotePrecision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $price = round($ticker->bid * 0.9, $quotePrecision);
             $minOrder = $this->mkt->minimumOrderSize($pair, $price);
+
             $ret = $this->mkt->buy($pair, $minOrder, $price);
             $this->checkAndCancelOrder($ret);
         }
     }
 
-    public function testMinOrdersAreSame()
+    public function testBasePrecision()
+    {
+        $this->assertTrue($this->mkt instanceof Yunbi);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $quotePrecision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $price = round($ticker->bid * 0.9, $quotePrecision);
+
+            $minOrder = $this->mkt->minimumOrderSize($pair, $price);
+            $basePrecision = $this->mkt->basePrecision($pair, $ticker->bid);
+            $minOrder += bcpow(10, -1 * $basePrecision, $basePrecision);
+
+            $ret = $this->mkt->buy($pair, $minOrder, $price);
+            $this->checkAndCancelOrder($ret);
+        }
+    }
+
+    public function testBelowMinOrders()
     {
         $this->assertTrue($this->mkt instanceof Yunbi);
         foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
@@ -215,7 +234,9 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
         $this->assertTrue($this->mkt->isOrderAccepted($response));
         $this->assertTrue($this->mkt->isOrderOpen($response));
 
+        sleep(1);
         $this->assertNotNull($this->mkt->cancel($response['id']));
+        sleep(5);
         $this->assertFalse($this->mkt->isOrderOpen($response));
     }
 

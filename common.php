@@ -25,6 +25,12 @@ class Currency{
     const CNY = 'CNY';
     const RUR = 'RUR';
 
+    const FIAT_CURRENCIES = array(Currency::USD,
+        Currency::EUR,
+        Currency::GBP,
+        Currency::CNY,
+        Currency::RUR);
+
     // Crypto-currencies
     const BTC = 'BTC';
     const FTC = 'FTC';
@@ -33,25 +39,23 @@ class Currency{
     const NXT = 'NXT';
     const XMR = 'XMR';
     const XCP = 'XCP';
+    const XRP = 'XRP';
     const ETH = 'ETH';
     const DAO = 'DAO';
     const ETC = 'ETC';
 
+    public static function isFiat($currency)
+    {
+        return in_array($currency, Currency::FIAT_CURRENCIES);
+    }
+
     public static function getPrecision($currency)
     {
-        $precision = array(
-            static::USD => 2,
-            static::EUR => 2,
-            static::GBP => 2,
-            static::CNY => 2,
-            static::RUR => 2,
-            static::BTC => 8,
-        );
-
-        if(array_key_exists($currency, $precision))
-            return $precision[$currency];
-
-        return $precision[static::BTC]; //return BTC precison for all else
+        if (Currency::isFiat($currency)) {
+            return 2;
+        } else {
+            return 8;
+        }
     }
 
     public static function GetMinimumValue($currency, $currencyPrecision = -INF)

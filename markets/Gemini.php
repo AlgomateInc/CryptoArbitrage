@@ -13,7 +13,7 @@ class Gemini extends Bitfinex
         return "Gemini";
     }
 
-    protected $minOrderIncrements = array(); //assoc array pair->minIncrement
+    protected $basePrecisions = array(); //assoc array pair->minIncrement
 
     function init()
     {
@@ -27,9 +27,9 @@ class Gemini extends Bitfinex
         $this->minOrderSizes[CurrencyPair::ETHUSD] = 0.001;
         $this->minOrderSizes[CurrencyPair::ETHBTC] = 0.001;
 
-        $this->minOrderIncrements[CurrencyPair::BTCUSD] = 0.00000001;
-        $this->minOrderIncrements[CurrencyPair::ETHUSD] = 0.000001;
-        $this->minOrderIncrements[CurrencyPair::ETHBTC] = 0.000001;
+        $this->basePrecisions[CurrencyPair::BTCUSD] = 8;
+        $this->basePrecisions[CurrencyPair::ETHUSD] = 6;
+        $this->basePrecisions[CurrencyPair::ETHBTC] = 6;
 
         $this->quotePrecisions[CurrencyPair::BTCUSD] = 2;
         $this->quotePrecisions[CurrencyPair::ETHUSD] = 2;
@@ -55,9 +55,9 @@ class Gemini extends Bitfinex
         return $t;
     }
 
-    public function minimumOrderIncrement($pair, $pairRate)
+    public function basePrecision($pair, $pairRate)
     {
-        return $this->minOrderIncrements[$pair];
+        return $this->basePrecisions[$pair];
     }
 
     public function quotePrecision($pair, $pairRate)

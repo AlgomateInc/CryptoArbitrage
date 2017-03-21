@@ -15,7 +15,7 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
 
     private $supportedPairs = array();
     private $productId = array(); //assoc array pair->productid
-    private $minimumOrderSizes = array(); //assoc array pair->min order size
+    private $basePrecisions = array(); //assoc array pair->min order size
 
     public function __construct($key, $secret) {
         $this->key = $key;
@@ -36,17 +36,17 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
             }catch(Exception $e){}
         }
 
-        $this->minimumOrderSizes[CurrencyPair::BTCCNY] = 0.0001;
-        $this->minimumOrderSizes[CurrencyPair::DCSCNY] = 0.01;
-        $this->minimumOrderSizes[CurrencyPair::SCCNY] = 1;
-        $this->minimumOrderSizes[CurrencyPair::FSTCNY] = 0.001;
-        $this->minimumOrderSizes[CurrencyPair::REPCNY] = 0.001;
-        $this->minimumOrderSizes[CurrencyPair::ANSCNY] = 0.001;
-        $this->minimumOrderSizes[CurrencyPair::ZECCNY] = 0.001;
-        $this->minimumOrderSizes[CurrencyPair::ZMCCNY] = 0.01;
-        $this->minimumOrderSizes[CurrencyPair::GNTCNY] = 1;
-        $this->minimumOrderSizes[CurrencyPair::BTSCNY] = 0.01;
-        $this->minimumOrderSizes[CurrencyPair::BITCNYCNY] = 0.001;
+        $this->basePrecisions[CurrencyPair::BTCCNY] = 4;
+        $this->basePrecisions[CurrencyPair::DCSCNY] = 2;
+        $this->basePrecisions[CurrencyPair::SCCNY] = 0;
+        $this->basePrecisions[CurrencyPair::FSTCNY] = 3;
+        $this->basePrecisions[CurrencyPair::REPCNY] = 3;
+        $this->basePrecisions[CurrencyPair::ANSCNY] = 3;
+        $this->basePrecisions[CurrencyPair::ZECCNY] = 3;
+        $this->basePrecisions[CurrencyPair::ZMCCNY] = 2;
+        $this->basePrecisions[CurrencyPair::GNTCNY] = 0;
+        $this->basePrecisions[CurrencyPair::BTSCNY] = 2;
+        $this->basePrecisions[CurrencyPair::BITCNYCNY] = 3;
     }
 
     public function Name()
@@ -81,15 +81,16 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
 
     public function minimumOrderSize($pair, $pairRate)
     {
-        if (array_key_exists($pair, $this->minimumOrderSizes)) {
-            return $this->minimumOrderSizes[$pair];
-        }
-        return $this->minimumOrderSizes[CurrencyPair::BTCCNY];
+        $basePrecision = $this->basePrecision($pair, $pairRate);
+        return bcpow(10, -1 * $basePrecision, $basePrecision);
     }
 
-    public function minimumOrderIncrement($pair, $pairRate)
+    public function basePrecision($pair, $pairRate)
     {
-        return minimumOrderSize($pair, $pairRate);
+        if (array_key_exists($pair, $this->basePrecisions)) {
+            return $this->basePrecisions[$pair];
+        }
+        return $this->basePrecisions[CurrencyPair::BTCCNY];
     }
 
     public function quotePrecision($pair, $pairRate)
