@@ -131,10 +131,11 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
 
     private function submitOrder($side, $type, $pair, $quantity, $price)
     {
+        $quotePrecision = $this->quotePrecision($pair, $price);
         $result = $this->authQuery('order/new',array(
             'symbol' => mb_strtolower($pair),
             'amount' => "$quantity",
-            'price' => "$price",
+            'price' => number_format($price, $quotePrecision, '.', ''),
             'exchange' => mb_strtolower($this->Name()),
             'side' => "$side",
             'type' => "$type"

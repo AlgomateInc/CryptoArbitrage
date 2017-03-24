@@ -37,6 +37,37 @@ class GeminiTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testMinOrders()
+    {
+        $this->assertTrue($this->mkt instanceof Gemini);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $quotePrecision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $price = round($ticker->bid * 0.9, $quotePrecision);
+            $minOrder = $this->mkt->minimumOrderSize($pair, $price);
+
+            $ret = $this->mkt->buy($pair, $minOrder, $price);
+            $this->checkAndCancelOrder($ret);
+        }
+    }
+
+    public function testBasePrecision()
+    {
+        $this->assertTrue($this->mkt instanceof Bitfinex);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $quotePrecision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $price = round($ticker->bid * 0.9, $quotePrecision);
+
+            $minOrder = $this->mkt->minimumOrderSize($pair, $price);
+            $basePrecision = $this->mkt->basePrecision($pair, $ticker->bid);
+            $minOrder += bcpow(10, -1 * $basePrecision, $basePrecision);
+
+            $ret = $this->mkt->buy($pair, $minOrder, $price);
+            $this->checkAndCancelOrder($ret);
+        }
+    }
+
     public function testBuyOrderSubmission()
     {
         if($this->mkt instanceof Gemini)

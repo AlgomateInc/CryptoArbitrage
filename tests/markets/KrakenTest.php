@@ -49,6 +49,23 @@ class KrakenTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testBasePrecision()
+    {
+        $this->assertTrue($this->mkt instanceof Kraken);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $quotePrecision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $price = round($ticker->bid * 0.9, $quotePrecision);
+
+            $minOrder = $this->mkt->minimumOrderSize($pair, $price);
+            $basePrecision = $this->mkt->basePrecision($pair, $ticker->bid);
+            $minOrder += bcpow(10, -1 * $basePrecision, $basePrecision);
+
+            $ret = $this->mkt->buy($pair, $minOrder, $price);
+            $this->checkAndCancelOrder($ret);
+        }
+    }
+
     public function testOrderSubmitAndCancel()
     {
         if($this->mkt instanceof Kraken)

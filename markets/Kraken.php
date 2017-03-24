@@ -100,7 +100,26 @@ class Kraken extends BaseExchange implements ILifecycleHandler
     public function minimumOrderSize($pair, $pairRate)
     {
         // From https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-
-        return 0.01;
+        $MIN_SIZE = 0.01;
+        $MIN_CRYPTO_TOTAL = 0.0001;
+        $MIN_FIAT_TOTAL = 0.1;
+
+        $quote = CurrencyPair::Quote($pair);
+
+        $basePrecision = $this->basePrecision($pair, $pairRate);
+        $quotePrecision = $this->quotePrecision($pair, $pairRate);
+        $stringRate = number_format($pairRate, $quotePrecision, '.', '');
+
+        if (Currency::isFiat($quote)) {
+            if ($MIN_SIZE * $pairRate < $MIN_FIAT_TOTAL) {
+                return bcdiv($MIN_FIAT_TOTAL, $stringRate, $basePrecision) + bcpow(10, -1 * $basePrecision, $basePrecision);
+            }
+        } else {
+            if ($MIN_SIZE * $pairRate < $MIN_CRYPTO_TOTAL) {
+                return bcdiv($MIN_CRYPTO_TOTAL, $stringRate, $basePrecision) + bcpow(10, -1 * $basePrecision, $basePrecision);
+            }
+        }
+        return $MIN_SIZE;
     }
 
     public function quotePrecision($pair, $pairRate)
@@ -234,21 +253,22 @@ class Kraken extends BaseExchange implements ILifecycleHandler
 
     public function buy($pair, $quantity, $price)
     {
-        $request['pair'] = $this->marketMapping[$pair];
-        $request['type'] = 'buy';
-        $request['ordertype'] = 'limit';
-        $request['price'] = $price;
-        $request['volume'] = $quantity;
-
-        return $this->privateQuery('AddOrder', $request);
+        return $this->submitOrder('buy', $pair, $quantity, $price);
     }
 
     public function sell($pair, $quantity, $price)
     {
+        return $this->submitOrder('sell', $pair, $quantity, $price);
+    }
+
+    private function submitOrder($type, $pair, $quantity, $price)
+    {
+        $quotePrecision = $this->quotePrecision($pair, $price);
+
         $request['pair'] = $this->marketMapping[$pair];
-        $request['type'] = 'sell';
+        $request['type'] = $type;
         $request['ordertype'] = 'limit';
-        $request['price'] = $price;
+        $request['price'] = number_format($price, $quotePrecision, '.', '');
         $request['volume'] = $quantity;
 
         return $this->privateQuery('AddOrder', $request);

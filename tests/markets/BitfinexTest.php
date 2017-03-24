@@ -10,69 +10,100 @@ require_once('ConfigAccountLoader.php');
 
 class BitfinexTest extends PHPUnit_Framework_TestCase {
 
-    protected $bf;
+    protected $mkt;
     public function setUp()
     {
         error_reporting(error_reporting() ^ E_NOTICE);
 
         $cal = new ConfigAccountLoader();
         $exchanges = $cal->getAccounts(array(Exchange::Bitfinex));
-        $this->bf = $exchanges[Exchange::Bitfinex];
-        $this->bf->init();
+        $this->mkt = $exchanges[Exchange::Bitfinex];
+        $this->mkt->init();
     }
 
     public function testPrecision()
     {
-        $this->assertTrue($this->bf instanceof Bitfinex);
+        $this->assertTrue($this->mkt instanceof Bitfinex);
         $pair = CurrencyPair::BTCUSD;
-        $this->assertEquals(4, $this->bf->quotePrecision($pair, 1.0));
-        $this->assertEquals(5, $this->bf->quotePrecision($pair, 0.1));
-        $this->assertEquals(1, $this->bf->quotePrecision($pair, 1000.0));
-        $this->assertEquals(-2, $this->bf->quotePrecision($pair, 1000000.0));
+        $this->assertEquals(4, $this->mkt->quotePrecision($pair, 1.0));
+        $this->assertEquals(5, $this->mkt->quotePrecision($pair, 0.1));
+        $this->assertEquals(1, $this->mkt->quotePrecision($pair, 1000.0));
+        $this->assertEquals(-2, $this->mkt->quotePrecision($pair, 1000000.0));
     }
 
     public function testBalances()
     {
-        if($this->bf instanceof Bitfinex)
+        if($this->mkt instanceof Bitfinex)
         {
-            $ret = $this->bf->balances();
+            $ret = $this->mkt->balances();
 
             $this->assertNotEmpty($ret);
         }
     }
 
+    public function testMinOrders()
+    {
+        $this->assertTrue($this->mkt instanceof Bitfinex);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $quotePrecision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $price = round($ticker->bid * 0.9, $quotePrecision);
+            $minOrder = $this->mkt->minimumOrderSize($pair, $price);
+
+            $ret = $this->mkt->buy($pair, $minOrder, $price);
+            $this->checkAndCancelOrder($ret);
+        }
+    }
+
+    public function testBasePrecision()
+    {
+        $this->assertTrue($this->mkt instanceof Bitfinex);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $ticker = $this->mkt->ticker($pair);
+            $quotePrecision = $this->mkt->quotePrecision($pair, $ticker->bid);
+            $price = round($ticker->bid * 0.9, $quotePrecision);
+
+            $minOrder = $this->mkt->minimumOrderSize($pair, $price);
+            $basePrecision = $this->mkt->basePrecision($pair, $ticker->bid);
+            $minOrder += bcpow(10, -1 * $basePrecision, $basePrecision);
+
+            $ret = $this->mkt->buy($pair, $minOrder, $price);
+            $this->checkAndCancelOrder($ret);
+        }
+    }
+
     public function testBuyOrderSubmission()
     {
-        if($this->bf instanceof Bitfinex)
+        if($this->mkt instanceof Bitfinex)
         {
-            $response = $this->bf->buy(CurrencyPair::BTCUSD, 1, 1);
+            $response = $this->mkt->buy(CurrencyPair::BTCUSD, 1, 1);
             $this->checkAndCancelOrder($response);
         }
     }
 
     public function testSellOrderSubmission()
     {
-        if($this->bf instanceof Bitfinex)
+        if($this->mkt instanceof Bitfinex)
         {
-            $response = $this->bf->sell(CurrencyPair::BTCUSD, 1, 10000);
+            $response = $this->mkt->sell(CurrencyPair::BTCUSD, 1, 10000);
             $this->checkAndCancelOrder($response);
         }
     }
 
     public function testMyTrades()
     {
-        if($this->bf instanceof Bitfinex)
+        if($this->mkt instanceof Bitfinex)
         {
-            $res = $this->bf->tradeHistory(50);
+            $res = $this->mkt->tradeHistory(50);
             $this->assertNotNull($res);
         }
     }
 
     public function testPublicTrades()
     {
-        if($this->bf instanceof Bitfinex)
+        if($this->mkt instanceof Bitfinex)
         {
-            $res = $this->bf->trades(CurrencyPair::BTCUSD, time()-60);
+            $res = $this->mkt->trades(CurrencyPair::BTCUSD, time()-60);
             $this->assertNotNull($res);
         }
     }
@@ -81,11 +112,12 @@ class BitfinexTest extends PHPUnit_Framework_TestCase {
     {
         $this->assertNotNull($response);
 
-        $this->assertTrue($this->bf->isOrderAccepted($response));
-        $this->assertTrue($this->bf->isOrderOpen($response));
+        $this->assertTrue($this->mkt->isOrderAccepted($response));
+        $this->assertTrue($this->mkt->isOrderOpen($response));
 
-        $this->assertNotNull($this->bf->cancel($response['order_id']));
-        $this->assertFalse($this->bf->isOrderOpen($response));
+        $this->assertNotNull($this->mkt->cancel($response['order_id']));
+        sleep(1);
+        $this->assertFalse($this->mkt->isOrderOpen($response));
     }
 }
  
