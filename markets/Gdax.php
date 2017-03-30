@@ -64,7 +64,8 @@ class Gdax extends BaseExchange implements ILifecycleHandler
 
     public function tradingFee($pair, $tradingRole, $volume)
     {
-        // TODO
+        // From https://docs.gdax.com/#fees
+        // TODO get historic volumes and compare given volume to percentage
     }
 
     public function currentTradingFee($pair, $tradingRole)

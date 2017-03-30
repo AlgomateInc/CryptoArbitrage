@@ -81,6 +81,7 @@ class Currency{
 }
 
 class CurrencyPair{
+    // Crypto currency pairs
     const BTCUSD = 'BTCUSD';
     const BTCEUR = 'BTCEUR';
     const XRPUSD = 'XRPUSD';
@@ -113,6 +114,9 @@ class CurrencyPair{
     const ZECCNY = 'ZECCNY';
     const ZMCCNY = 'ZMCCNY';
     const GNTCNY = 'GNTCNY';
+
+    // Fiat currency pairs
+    const EURUSD = 'EURUSD';
 
     public static function Base($strPair){
         $parts = explode('/', $strPair);
@@ -463,6 +467,11 @@ class FeeScheduleItem {
     {
         return new FeeScheduleItem(0.0, INF, $takerFee, $makerFee);
     }
+
+    public static function newWithoutRole($lowerRange, $upperRange, $fee)
+    {
+        return new FeeScheduleItem($lowerRange, $upperRange, $fee, $fee);
+    }
 }
 
 class FeeScheduleList{
@@ -497,37 +506,43 @@ class FeeScheduleList{
 
 class FeeSchedule{
     public $fallbackFees; // generic fallback, in %
+    public $pairFees = array(); // assoc pair=>array(FeeScheduleItem)
 
-    public $pairFees; // assoc pair=>array(FeeScheduleItem)
+    public function setFallbackFee($takerFee, $makerFee)
+    {
+        $this->fallbackFees = new FeeScheduleList();
+        $this->fallbackFees->push(FeeScheduleItem::newWithoutRange($takerFee, $makerFee));
+    }
 
-    public function __construct($genericFeeSchedule)
+    public function setFallbackFees($genericFeeSchedule)
     {
         $this->fallbackFees = $genericFeeSchedule;
     }
 
     public function addPairFee($pair, $takerFee, $makerFee)
     {
-        if (array_key_exists($pair, $fees)) {
+        if (array_key_exists($pair, $this->pairFees)) {
             throw new Exception("Pair $pair added twice");
         }
-        $this->fees[$pair] = array(FeeScheduleItem::newWithoutRange($takerFee, $makerFee));
+        $this->pairFees[$pair] = new FeeScheduleList();
+        $this->pairFees[$pair]->push(FeeScheduleItem::newWithoutRange($takerFee, $makerFee));
     }
 
     public function addPairFees($pair, $feeScheduleList)
     {
-        if (array_key_exists($pair, $fees)) {
+        if (array_key_exists($pair, $this->pairFees)) {
             throw new Exception("Pair $pair added twice");
         }
-        $this->fees[$pair] = $feeScheduleList;
+        $this->pairFees[$pair] = $feeScheduleList;
     }
 
     public function getFee($pair, $tradingRole, $volume = 0.0)
     {
-        if (empty($this->fees) || 
-            false == array_key_exists($pair, $this->fees)) {
+        if (empty($this->pairFees) || 
+            false == array_key_exists($pair, $this->pairFees)) {
             return $this->fallbackFees->getFee($volume, $tradingRole);
         } else {
-            return $this->fees[$pair]->getFee($volume, $tradingRole);
+            return $this->pairFees[$pair]->getFee($volume, $tradingRole);
         }
     }
 }

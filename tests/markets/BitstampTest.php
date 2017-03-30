@@ -43,6 +43,19 @@ class BitstampTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testFees()
+    {
+        $this->assertTrue($this->mkt instanceof Bitstamp);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            if (strpos($pair, 'XRP') !== false) {
+                $this->assertEquals(0.125, $this->mkt->currentTradingFee($pair, TradingRole::Taker));
+            } else {
+                $this->assertEquals(0.25, $this->mkt->currentTradingFee($pair, TradingRole::Taker));
+            }
+            $this->assertEquals(0.13, $this->mkt->tradingFee($pair, TradingRole::Taker, 1.1e6));
+        }
+    }
+
     public function testMinOrders()
     {
         $this->assertTrue($this->mkt instanceof Bitstamp);

@@ -23,6 +23,7 @@ class Kraken extends BaseExchange implements ILifecycleHandler
     private $supportedPairs = array();
     private $supportedKrakenPairs = array();
     private $quotePrecisions = array(); //maps pair -> precision
+    private $feeSchedule;
 
     public function __construct($key, $secret){
         $this->key = $key;
@@ -46,6 +47,7 @@ class Kraken extends BaseExchange implements ILifecycleHandler
             $krakenCurrencyMapping[$krakenName] = $altName;
         }
 
+        $this->feeSchedule = new FeeSchedule();
         $assetPairs = $this->publicQuery('AssetPairs');
         foreach ($assetPairs as $krakenPairName => $krakenPairInfo)
         {
@@ -64,6 +66,38 @@ class Kraken extends BaseExchange implements ILifecycleHandler
             $this->marketMapping[$pair] = $krakenPairName;
             $this->krakenMarketMapping[$krakenPairName] = $pair;
             $this->quotePrecisions[$pair] = $krakenPairInfo['pair_decimals'];
+
+            $pairSchedule = new FeeScheduleList();
+            if (isset($krakenPairInfo['fees_maker'])) {
+                $numElements = count($krakenPairInfo['fees']);
+                if (count($krakenPairInfo['fees_maker']) != $numElements) {
+                    throw new Exception("Pair $pair has different fee structure for maker and taker, investigate.");
+                }
+                for($i = 0; $i < $numElements; $i++) {
+                    $curVolume = $krakenPairInfo['fees'][$i][0];
+                    if ($curVolume != $krakenPairInfo['fees_maker'][$i][0]) {
+                        throw new Exception("Pair $pair has different fee band for maker and taker, investigate.");
+                    }
+                    $nextVolume = INF;
+                    if ($i + 1 < $numElements) {
+                        $nextVolume = $krakenPairInfo['fees'][$i + 1][0];
+                    }
+                    $pairSchedule->push(new FeeScheduleItem($curVolume,
+                        $nextVolume,
+                        $krakenPairInfo['fees'][$i][1],
+                        $krakenPairInfo['fees_maker'][$i][1]));
+                }
+            } else {
+                foreach ($krakenPairInfo['fees'] as $i=>$feeItem) {
+                    $nextVolume = INF;
+                    if ($i + 1 < count($krakenPairInfo['fees'])) {
+                        $nextVolume = $krakenPairInfo['fees'][$i + 1][0];
+                    }
+                    $pairSchedule->push(FeeScheduleItem::newWithoutRole($feeItem[0], $nextVolume, $feeItem[1]));
+                }
+            }
+            $this->feeSchedule->addPairFees($pair, $pairSchedule);
+
         }
     }
 
@@ -89,12 +123,19 @@ class Kraken extends BaseExchange implements ILifecycleHandler
 
     public function tradingFee($pair, $tradingRole, $volume)
     {
-        // TODO
+        return $this->feeSchedule->getFee($pair, $tradingRole, $volume);
     }
 
     public function currentTradingFee($pair, $tradingRole)
     {
-        // TODO
+        $krakenName = $this->marketMapping[$pair];
+        $pairInfo = array('pair' => $krakenName);
+        $volumeInfo = $this->privateQuery('TradeVolume', $pairInfo);
+        if ($tradingRole == TradingRole::Maker && isset($volumeInfo['fees_maker'])) {
+            return $volumeInfo['fees_maker'][$krakenName]['fee'];
+        } else {
+            return $volumeInfo['fees'][$krakenName]['fee'];
+        }
     }
 
     public function transactions()

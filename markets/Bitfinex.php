@@ -55,7 +55,8 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
         $genericFeeSchedule->push(new FeeScheduleItem(2.0e7, 2.5e7, 0.14, 0.0));
         $genericFeeSchedule->push(new FeeScheduleItem(2.5e7, 3.0e7, 0.12, 0.0));
         $genericFeeSchedule->push(new FeeScheduleItem(3.0e7, INF, 0.10, 0.0));
-        $this->feeSchedule = new FeeSchedule($genericFeeSchedule);
+        $this->feeSchedule = new FeeSchedule();
+        $this->feeSchedule->setFallbackFees($genericFeeSchedule);
     }
 
     public function Name()

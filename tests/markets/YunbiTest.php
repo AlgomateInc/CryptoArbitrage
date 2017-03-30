@@ -138,6 +138,19 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
         $this->assertNotEmpty($ret);
     }
 
+    public function testFees()
+    {
+        $this->assertTrue($this->mkt instanceof Yunbi);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $expectedRate = 0.1;
+            if ($pair == CurrencyPair::BTCCNY) {
+                $expectedRate = 0.2;
+            }
+            $this->assertEquals($expectedRate, $this->mkt->currentTradingFee($pair, TradingRole::Maker));
+            $this->assertEquals($expectedRate, $this->mkt->currentTradingFee($pair, TradingRole::Taker));
+        }
+    }
+
     public function testTrades()
     {
         $this->assertTrue($this->mkt instanceof Yunbi);

@@ -11,6 +11,7 @@ class Btce extends BtceStyleExchange implements ILifecycleHandler
     private $minOrderSizes = array(); //associative, pair->size
     private $quotePrecisions = array(); //associative, pair->precision
     private $minPrices = array(); //associative, pair->minPrice
+    private $feeSchedule; //FeeSchedule
 
     protected function getAuthQueryUrl(){
         return 'https://btc-e.com/tapi/';
@@ -22,6 +23,7 @@ class Btce extends BtceStyleExchange implements ILifecycleHandler
 
     function init()
     {
+        $this->feeSchedule = new FeeSchedule();
         $marketsInfo = curl_query('https://btc-e.com/api/3/info');
         foreach($marketsInfo['pairs'] as $pair => $info){
             $pairName = mb_strtoupper(str_replace('_', '', $pair));
@@ -29,6 +31,7 @@ class Btce extends BtceStyleExchange implements ILifecycleHandler
             $this->minOrderSizes[$pairName] = $info['min_amount'];
             $this->quotePrecisions[$pairName] = $info['decimal_places'];
             $this->minPrices[$pairName] = $info['min_price'];
+            $this->feeSchedule->addPairFee($pairName, $info['fee'], $info['fee']);
         }
     }
 
@@ -46,12 +49,12 @@ class Btce extends BtceStyleExchange implements ILifecycleHandler
 
     public function tradingFee($pair, $tradingRole, $volume)
     {
-        // TODO
+        return $this->feeSchedule->getFee($pair, $tradingRole, $volume);
     }
 
     public function currentTradingFee($pair, $tradingRole)
     {
-        // TODO
+        return $this->feeSchedule->getFee($pair, $tradingRole);
     }
 
     public function supportedCurrencyPairs(){

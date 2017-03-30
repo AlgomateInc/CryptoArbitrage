@@ -92,6 +92,12 @@ class GdaxTest extends PHPUnit_Framework_TestCase {
         $this->assertNotEmpty($ret);
     }
 
+    public function testFees()
+    {
+        $this->assertTrue($this->mkt instanceof Gdax);
+        $this->assertEquals(0.16, $this->mkt->tradingFee(CurrencyPair::BTCUSD, TradingRole::Maker, 10.0));
+    }
+
     public function testBuyOrderSubmission()
     {
         $this->assertTrue($this->mkt instanceof Gdax);

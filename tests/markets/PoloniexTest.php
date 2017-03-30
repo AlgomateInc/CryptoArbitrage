@@ -69,6 +69,27 @@ class PoloniexTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testFees()
+    {
+        $this->assertTrue($this->mkt instanceof Poloniex);
+        $usdMakerFee = $this->mkt->currentTradingFee(CurrencyPair::BTCUSD, TradingRole::Maker);
+        $eurMakerFee = $this->mkt->currentTradingFee(CurrencyPair::BTCEUR, TradingRole::Maker);
+        $this->assertEquals($usdMakerFee, $eurMakerFee);
+        $this->assertEquals(0.15, $eurMakerFee);
+        $usdTakerFee = $this->mkt->currentTradingFee(CurrencyPair::BTCUSD, TradingRole::Taker);
+        $eurTakerFee = $this->mkt->currentTradingFee(CurrencyPair::BTCEUR, TradingRole::Taker);
+        $this->assertEquals($usdTakerFee, $eurTakerFee);
+        $this->assertEquals(0.25, $eurTakerFee);
+
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $quote = CurrencyPair::Quote($pair);
+            if ($quote == Currency::BTC) {
+                $this->assertEquals(0.1, $this->mkt->tradingFee($pair, TradingRole::Taker, 3.0e4));
+                $this->assertEquals(0.0, $this->mkt->tradingFee($pair, TradingRole::Maker, 3.0e4));
+            }
+        }
+    }
+
     public function testBuyOrderSubmission()
     {
         if($this->mkt instanceof Poloniex)
