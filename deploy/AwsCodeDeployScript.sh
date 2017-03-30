@@ -8,7 +8,7 @@ function add_line_to_file() {
 
 if [ "$LIFECYCLE_EVENT" == "ApplicationStop" ]
 then
-    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ]
+    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
     then
         # Stop the database
         sudo service mongod stop
@@ -17,7 +17,7 @@ fi
 
 if [ "$LIFECYCLE_EVENT" == "BeforeInstall" ]
 then
-    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ]
+    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
     then
         # Install mongodb 3.2
         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
@@ -72,20 +72,20 @@ then
     echo $PWD
     cp config.example.php config.php
 
-    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ]
+    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
     then
         # Set the mongodb uri config to 'localhost' for local deployment
         sed -i "s#mongodb_uri = .*#mongodb_uri = 'mongodb://localhost';#" config.php
     fi
 
     # Install the supervisor configuration files
-    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitor" ] || [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ]
+    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitor" ] || [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
     then
         sudo cp deploy/market_monitor.conf /etc/supervisor/conf.d/
         sudo cp deploy/report_server.conf /etc/supervisor/conf.d/
     fi
 
-    if [ "$DEPLOYMENT_GROUP_NAME" == "StrategyProcessor" ]
+    if [ "$DEPLOYMENT_GROUP_NAME" == "StrategyProcessor" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
     then
         sudo cp deploy/crypto_arbitrage.conf /etc/supervisor/conf.d/
     fi
@@ -93,7 +93,7 @@ fi
 
 if [ "$LIFECYCLE_EVENT" == "ApplicationStart" ]
 then
-    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ]
+    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
     then
         sudo service mongod start
     fi
