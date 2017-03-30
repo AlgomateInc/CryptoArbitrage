@@ -44,6 +44,16 @@ class Btce extends BtceStyleExchange implements ILifecycleHandler
         return $balances;
     }
 
+    public function tradingFee($pair, $tradingRole, $volume)
+    {
+        // TODO
+    }
+
+    public function currentTradingFee($pair, $tradingRole)
+    {
+        // TODO
+    }
+
     public function supportedCurrencyPairs(){
         return array_keys($this->supportedPairs);
     }

@@ -46,4 +46,9 @@ abstract class MultiSourcedAccount implements IAccount
 
         return $val;
     }
+
+    public function currentTradingFee($pair, $tradingRole)
+    {
+        // TODO Implement function
+    }
 }

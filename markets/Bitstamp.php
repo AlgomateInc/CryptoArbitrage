@@ -83,6 +83,16 @@ class Bitstamp extends BaseExchange implements ILifecycleHandler
         return $balances;
     }
 
+    public function tradingFee($pair, $tradingRole, $volume)
+    {
+        // TODO
+    }
+
+    public function currentTradingFee($pair, $tradingRole)
+    {
+        // TODO
+    }
+
     public function depth($currencyPair)
     {
         $this->assertValidCurrencyPair($currencyPair);

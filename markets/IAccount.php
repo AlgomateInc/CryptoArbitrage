@@ -13,4 +13,6 @@ interface IAccount {
     public function balances();
     public function transactions();
 
+
+    public function currentTradingFee($pair, $tradingRole);
 }

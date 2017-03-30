@@ -91,6 +91,16 @@ class TestMarket extends BaseExchange
         return $balances;
     }
 
+    public function tradingFee($pair, $tradingRole, $volume)
+    {
+        return 0.02;
+    }
+
+    public function currentTradingFee($pair, $tradingRole)
+    {
+        return 0.02;
+    }
+
     public function transactions()
     {
         // TODO: Implement transactions() method.

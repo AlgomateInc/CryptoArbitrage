@@ -14,6 +14,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
     protected $supportedPairs = array();
     protected $minOrderSizes = array(); //assoc array pair->minordersize
     protected $quotePrecisions = array(); //assoc array pair->precision
+    protected $feeSchedule; // FeeSchedule structure
 
     public function __construct($key, $secret){
         $this->key = $key;
@@ -40,6 +41,21 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
                 $this->quotePrecisions[$pairName] = $symbolDetail['price_precision'];
             }
         }
+
+        // From https://www.bitfinex.com/fees
+        $genericFeeSchedule = new FeeScheduleList();
+        $genericFeeSchedule->push(new FeeScheduleItem(0.0, 5.0e5, 0.2, 0.1));
+        $genericFeeSchedule->push(new FeeScheduleItem(5.0e5, 1.0e6, 0.2, 0.08));
+        $genericFeeSchedule->push(new FeeScheduleItem(1.0e6, 2.5e6, 0.2, 0.06));
+        $genericFeeSchedule->push(new FeeScheduleItem(2.5e6, 5.0e6, 0.2, 0.04));
+        $genericFeeSchedule->push(new FeeScheduleItem(5.0e6, 7.5e6, 0.2, 0.02));
+        $genericFeeSchedule->push(new FeeScheduleItem(7.5e6, 1.0e7, 0.2, 0.0));
+        $genericFeeSchedule->push(new FeeScheduleItem(1.0e7, 1.5e7, 0.18, 0.0));
+        $genericFeeSchedule->push(new FeeScheduleItem(1.5e7, 2.0e7, 0.16, 0.0));
+        $genericFeeSchedule->push(new FeeScheduleItem(2.0e7, 2.5e7, 0.14, 0.0));
+        $genericFeeSchedule->push(new FeeScheduleItem(2.5e7, 3.0e7, 0.12, 0.0));
+        $genericFeeSchedule->push(new FeeScheduleItem(3.0e7, INF, 0.10, 0.0));
+        $this->feeSchedule = new FeeSchedule($genericFeeSchedule);
     }
 
     public function Name()
@@ -65,6 +81,32 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
     public function transactions()
     {
         // TODO: Implement transactions() method.
+    }
+
+    public function tradingFee($pair, $tradingRole, $volume)
+    {
+        return $this->feeSchedule->getFee($pair, $tradingRole, $volume);
+    }
+
+    public function currentTradingFee($pair, $tradingRole)
+    {
+        $account_infos = $this->authQuery("account_infos")[0];
+        $base = CurrencyPair::Base($pair);
+        foreach ($account_infos['fees'] as $pair_fees) {
+            if ($pair_fees['pairs'] == $base) {
+                if ($tradingRole == TradingRole::Maker) {
+                    return $pair_fees['maker_fees'];
+                } else if ($tradingRole == TradingRole::Taker) {
+                    return $pair_fees['taker_fees'];
+                }
+            }
+        }
+        // base currency not found, return fallback 
+        if ($tradingRole == TradingRole::Maker) {
+            return $account_infos['maker_fees'];
+        } else if ($tradingRole == TradingRole::Taker) {
+            return $account_infos['taker_fees'];
+        }
     }
 
     public function ticker($pair)

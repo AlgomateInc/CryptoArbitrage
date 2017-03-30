@@ -72,6 +72,16 @@ class BitfinexTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testFees()
+    {
+        $this->assertTrue($this->mkt instanceof Bitfinex);
+        $this->assertEquals('0.2', $this->mkt->tradingFee(CurrencyPair::BTCUSD, TradingRole::Taker, 0.0));
+        $this->assertEquals('0.08', $this->mkt->tradingFee(CurrencyPair::BTCUSD, TradingRole::Maker, 5.0e5));
+
+        $this->assertEquals('0.1', $this->mkt->currentTradingFee(CurrencyPair::BTCUSD, TradingRole::Maker));
+        $this->assertEquals('0.2', $this->mkt->currentTradingFee(CurrencyPair::BTCUSD, TradingRole::Taker));
+    }
+
     public function testBuyOrderSubmission()
     {
         if($this->mkt instanceof Bitfinex)

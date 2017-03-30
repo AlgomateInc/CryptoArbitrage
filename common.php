@@ -444,3 +444,90 @@ class DepthItem{
 
     public $stats;
 }
+
+class FeeScheduleItem {
+    public $lowerRange; // start of volume where fee applies
+    public $upperRange; // end of volume where fee applies
+    public $takerFee; // fee, in %
+    public $makerFee; // fee, in %
+
+    public function __construct($lowerRange, $upperRange, $takerFee, $makerFee)
+    {
+        $this->lowerRange = $lowerRange;
+        $this->upperRange = $upperRange;
+        $this->takerFee = $takerFee;
+        $this->makerFee = $makerFee;
+    }
+
+    public static function newWithoutRange($takerFee, $makerFee)
+    {
+        return new FeeScheduleItem(0.0, INF, $takerFee, $makerFee);
+    }
+}
+
+class FeeScheduleList{
+    public $fees; // array of fees
+
+    public function __construct()
+    {
+        $this->fees = array();
+    }
+
+    public function push($feeScheduleItem)
+    {
+        array_push($this->fees, $feeScheduleItem);
+    }
+
+    public function getFee($volume, $tradingRole)
+    {
+        foreach($this->fees as $feeScheduleItem) {
+            if ($volume >= $feeScheduleItem->lowerRange &&
+                $volume < $feeScheduleItem->upperRange) {
+                if ($tradingRole == TradingRole::Maker) {
+                    return $feeScheduleItem->makerFee;
+                } else if ($tradingRole == TradingRole::Taker) {
+                    return $feeScheduleItem->takerFee;
+                }
+            }
+        }
+
+        throw new Exception("No fee found for $volume, $tradingRole");
+    }
+}
+
+class FeeSchedule{
+    public $fallbackFees; // generic fallback, in %
+
+    public $pairFees; // assoc pair=>array(FeeScheduleItem)
+
+    public function __construct($genericFeeSchedule)
+    {
+        $this->fallbackFees = $genericFeeSchedule;
+    }
+
+    public function addPairFee($pair, $takerFee, $makerFee)
+    {
+        if (array_key_exists($pair, $fees)) {
+            throw new Exception("Pair $pair added twice");
+        }
+        $this->fees[$pair] = array(FeeScheduleItem::newWithoutRange($takerFee, $makerFee));
+    }
+
+    public function addPairFees($pair, $feeScheduleList)
+    {
+        if (array_key_exists($pair, $fees)) {
+            throw new Exception("Pair $pair added twice");
+        }
+        $this->fees[$pair] = $feeScheduleList;
+    }
+
+    public function getFee($pair, $tradingRole, $volume = 0.0)
+    {
+        if (empty($this->fees) || 
+            false == array_key_exists($pair, $this->fees)) {
+            return $this->fallbackFees->getFee($volume, $tradingRole);
+        } else {
+            return $this->fees[$pair]->getFee($volume, $tradingRole);
+        }
+    }
+}
