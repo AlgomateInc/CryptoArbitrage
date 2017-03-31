@@ -58,11 +58,6 @@ class JPMChase implements IAccount
         return $balances;
     }
 
-    public function currentTradingFee($pair, $tradingRole)
-    {
-        // TODO
-    }
-
     public function transactions()
     {
         $transactions = array();

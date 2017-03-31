@@ -45,6 +45,13 @@ interface IExchange extends IAccount
     public function tradingFee($pair, $tradingRole, $volume);
 
     /**
+     * @param $pair String The CurrencyPair pair we want to get minimum order size for
+     * @param $tradingRole String 'Maker' or 'Taker' as specified in TradingRole
+     * @return float The current user's fee for the trade
+     */
+    public function currentTradingFee($pair, $tradingRole);
+
+    /**
      * @return string[] Provides an array of strings listing supported currencies
      */
     public function supportedCurrencies();

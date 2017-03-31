@@ -48,11 +48,6 @@ class EthereumAccount extends MultiSourcedAccount
     }
 
 
-    public function currentTradingFee($pair, $tradingRole)
-    {
-        // TODO Implement function
-    }
-
     public function transactions()
     {
         // TODO: Implement transactions() method.
