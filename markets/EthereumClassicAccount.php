@@ -39,6 +39,11 @@ class EthereumClassicAccount extends MultiSourcedAccount
             {
                 $raw = curl_query('https://etcchain.com/api/v1/getAddressBalance?address=' . trim($addr));
                 return $raw['balance'];
+            },
+            function ($addr)
+            {
+                $raw = curl_query('https://api.gastracker.io/addr/' . trim($addr));
+                return $raw['balance']['ether'];
             }
         );
     }
