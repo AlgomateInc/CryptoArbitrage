@@ -47,6 +47,7 @@ class EthereumAccount extends MultiSourcedAccount
         return $balances;
     }
 
+
     public function transactions()
     {
         // TODO: Implement transactions() method.

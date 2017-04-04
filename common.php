@@ -81,6 +81,7 @@ class Currency{
 }
 
 class CurrencyPair{
+    // Crypto currency pairs
     const BTCUSD = 'BTCUSD';
     const BTCEUR = 'BTCEUR';
     const XRPUSD = 'XRPUSD';
@@ -113,6 +114,9 @@ class CurrencyPair{
     const ZECCNY = 'ZECCNY';
     const ZMCCNY = 'ZMCCNY';
     const GNTCNY = 'GNTCNY';
+
+    // Fiat currency pairs
+    const EURUSD = 'EURUSD';
 
     public static function Base($strPair){
         $parts = explode('/', $strPair);
@@ -443,4 +447,102 @@ class DepthItem{
     public $timestamp;
 
     public $stats;
+}
+
+class FeeScheduleItem {
+    public $lowerRange; // start of volume where fee applies
+    public $upperRange; // end of volume where fee applies
+    public $takerFee; // fee, in %
+    public $makerFee; // fee, in %
+
+    public function __construct($lowerRange, $upperRange, $takerFee, $makerFee)
+    {
+        $this->lowerRange = $lowerRange;
+        $this->upperRange = $upperRange;
+        $this->takerFee = $takerFee;
+        $this->makerFee = $makerFee;
+    }
+
+    public static function newWithoutRange($takerFee, $makerFee)
+    {
+        return new FeeScheduleItem(0.0, INF, $takerFee, $makerFee);
+    }
+
+    public static function newWithoutRole($lowerRange, $upperRange, $fee)
+    {
+        return new FeeScheduleItem($lowerRange, $upperRange, $fee, $fee);
+    }
+}
+
+class FeeScheduleList{
+    public $fees; // array of fees
+
+    public function __construct()
+    {
+        $this->fees = array();
+    }
+
+    public function push($feeScheduleItem)
+    {
+        array_push($this->fees, $feeScheduleItem);
+    }
+
+    public function getFee($volume, $tradingRole)
+    {
+        foreach($this->fees as $feeScheduleItem) {
+            if ($volume >= $feeScheduleItem->lowerRange &&
+                $volume < $feeScheduleItem->upperRange) {
+                if ($tradingRole == TradingRole::Maker) {
+                    return $feeScheduleItem->makerFee;
+                } else if ($tradingRole == TradingRole::Taker) {
+                    return $feeScheduleItem->takerFee;
+                }
+            }
+        }
+
+        throw new Exception("No fee found for $volume, $tradingRole");
+    }
+}
+
+class FeeSchedule{
+    public $fallbackFees; // generic fallback, in %
+    public $pairFees = array(); // assoc pair=>array(FeeScheduleItem)
+
+    public function setFallbackFee($takerFee, $makerFee)
+    {
+        $this->fallbackFees = new FeeScheduleList();
+        $this->fallbackFees->push(FeeScheduleItem::newWithoutRange($takerFee, $makerFee));
+    }
+
+    public function setFallbackFees($genericFeeSchedule)
+    {
+        $this->fallbackFees = $genericFeeSchedule;
+    }
+
+    public function addPairFee($pair, $takerFee, $makerFee)
+    {
+        if (array_key_exists($pair, $this->pairFees)) {
+            throw new Exception("Pair $pair added twice");
+        }
+        $this->pairFees[$pair] = new FeeScheduleList();
+        $this->pairFees[$pair]->push(FeeScheduleItem::newWithoutRange($takerFee, $makerFee));
+    }
+
+    public function addPairFees($pair, $feeScheduleList)
+    {
+        if (array_key_exists($pair, $this->pairFees)) {
+            throw new Exception("Pair $pair added twice");
+        }
+        $this->pairFees[$pair] = $feeScheduleList;
+    }
+
+    public function getFee($pair, $tradingRole, $volume = 0.0)
+    {
+        if (empty($this->pairFees) || 
+            false == array_key_exists($pair, $this->pairFees)) {
+            return $this->fallbackFees->getFee($volume, $tradingRole);
+        } else {
+            return $this->pairFees[$pair]->getFee($volume, $tradingRole);
+        }
+    }
 }

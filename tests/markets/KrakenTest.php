@@ -24,6 +24,16 @@ class KrakenTest extends PHPUnit_Framework_TestCase {
             $this->mkt->init();
     }
 
+    public function testFees()
+    {
+        $this->assertTrue($this->mkt instanceof Kraken);
+        $this->assertEquals(0.1, $this->mkt->tradingFee('ZECBTC', TradingRole::Taker, 100000000));
+        $this->assertEquals(0.12, $this->mkt->tradingFee('ZECBTC', TradingRole::Maker, 200000));
+
+        $this->assertEquals(0.26, $this->mkt->currentTradingFee('ZECBTC', TradingRole::Taker));
+        $this->assertEquals(0.16, $this->mkt->currentTradingFee('ZECBTC', TradingRole::Maker));
+    }
+
     public function testPrecisions()
     {
         $this->assertTrue($this->mkt instanceof Kraken);

@@ -16,6 +16,8 @@ class Bitstamp extends BaseExchange implements ILifecycleHandler
     private $supportedPairs = array();
     private $productIds = array();
 
+    private $feeSchedule;
+
     public function __construct($custid, $key, $secret)
     {
         $this->custid = $custid;
@@ -32,6 +34,39 @@ class Bitstamp extends BaseExchange implements ILifecycleHandler
         foreach($this->supportedPairs as $pair) {
             $this->productIds[$pair] = mb_strtolower($pair);
         }
+
+        // from https://www.bitstamp.net/fee_schedule/
+        $this->feeSchedule = new FeeSchedule();
+        $btceurSchedule = new FeeScheduleList();
+        $btceurSchedule->push(FeeScheduleItem::newWithoutRole(0.0, 1.8e4, 0.25));
+        $btceurSchedule->push(FeeScheduleItem::newWithoutRole(1.8e4, 9.0e4, 0.24));
+        $btceurSchedule->push(FeeScheduleItem::newWithoutRole(9.0e4, 1.8e5, 0.22));
+        $btceurSchedule->push(FeeScheduleItem::newWithoutRole(1.8e5, 3.6e5, 0.20));
+        $btceurSchedule->push(FeeScheduleItem::newWithoutRole(3.6e5, 5.4e5, 0.15));
+        $btceurSchedule->push(FeeScheduleItem::newWithoutRole(5.4e5, 9.0e5, 0.14));
+        $btceurSchedule->push(FeeScheduleItem::newWithoutRole(9.0e5, 1.8e6, 0.13));
+        $btceurSchedule->push(FeeScheduleItem::newWithoutRole(1.8e6, 3.6e6, 0.12));
+        $btceurSchedule->push(FeeScheduleItem::newWithoutRole(3.6e6, 1.8e7, 0.11));
+        $btceurSchedule->push(FeeScheduleItem::newWithoutRole(1.8e7, INF, 0.10));
+        $this->feeSchedule->addPairFees(CurrencyPair::BTCEUR, $btceurSchedule);
+        $this->feeSchedule->addPairFees(CurrencyPair::XRPEUR, $btceurSchedule);
+
+        $btcusdSchedule = new FeeScheduleList();
+        $btcusdSchedule->push(FeeScheduleItem::newWithoutRole(0.0, 2.0e4, 0.25));
+        $btcusdSchedule->push(FeeScheduleItem::newWithoutRole(2.0e4, 1.0e5, 0.24));
+        $btcusdSchedule->push(FeeScheduleItem::newWithoutRole(1.0e5, 2.0e5, 0.22));
+        $btcusdSchedule->push(FeeScheduleItem::newWithoutRole(2.0e5, 4.0e5, 0.20));
+        $btcusdSchedule->push(FeeScheduleItem::newWithoutRole(4.0e5, 6.0e5, 0.15));
+        $btcusdSchedule->push(FeeScheduleItem::newWithoutRole(6.0e5, 1.0e6, 0.14));
+        $btcusdSchedule->push(FeeScheduleItem::newWithoutRole(1.0e6, 2.0e6, 0.13));
+        $btcusdSchedule->push(FeeScheduleItem::newWithoutRole(2.0e6, 4.0e6, 0.12));
+        $btcusdSchedule->push(FeeScheduleItem::newWithoutRole(4.0e6, 2.0e7, 0.11));
+        $btcusdSchedule->push(FeeScheduleItem::newWithoutRole(2.0e7, INF, 0.10));
+        $this->feeSchedule->addPairFees(CurrencyPair::BTCUSD, $btcusdSchedule);
+        $this->feeSchedule->addPairFees(CurrencyPair::XRPUSD, $btcusdSchedule);
+
+        $this->feeSchedule->addPairFee(CurrencyPair::EURUSD, 0.2, 0.2);
+        $this->feeSchedule->setFallbackFees($btcusdSchedule);
     }
 
     public function init()
@@ -81,6 +116,18 @@ class Bitstamp extends BaseExchange implements ILifecycleHandler
         }
 
         return $balances;
+    }
+
+    public function tradingFee($pair, $tradingRole, $volume)
+    {
+        return $this->feeSchedule->getFee($pair, $tradingRole, $volume);
+    }
+
+    public function currentTradingFee($pair, $tradingRole)
+    {
+        $bstamp_pair = mb_strtolower($pair);
+        $bstamp_info = $this->assertSuccessResponse($this->authQuery('balance/'.$bstamp_pair));
+        return $bstamp_info['fee'];
     }
 
     public function depth($currencyPair)

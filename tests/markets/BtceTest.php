@@ -32,6 +32,15 @@ class BtceTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testFees()
+    {
+        $this->assertTrue($this->mkt instanceof Btce);
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $this->assertEquals(0.2, $this->mkt->currentTradingFee($pair, TradingRole::Taker));
+            $this->assertEquals(0.2, $this->mkt->currentTradingFee($pair, TradingRole::Maker));
+        }
+    }
+
     public function testPrecisions()
     {
         $this->assertTrue($this->mkt instanceof Btce);

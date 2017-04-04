@@ -69,6 +69,20 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
         return $balances;
     }
 
+    public function tradingFee($pair, $tradingRole, $volume)
+    {
+        return $this->currentTradingFee($pair, $tradingRole);
+    }
+
+    public function currentTradingFee($pair, $tradingRole)
+    {
+        // From https://yunbi.com/documents/price
+        if ($pair == CurrencyPair::BTCCNY) {
+            return 0.2;
+        }
+        return 0.1;
+    }
+
     public function transactions()
     {
         // TODO: Implement transactions() method.

@@ -15,11 +15,28 @@ class Poloniex extends BaseExchange {
     private $secret;
     private $nonceFactory;
 
+    private $feeSchedule;
+
     public function __construct($key, $secret){
         $this->key = $key;
         $this->secret = $secret;
 
         $this->nonceFactory = new NonceFactory();
+
+        // From https://poloniex.com/fees/
+        $this->feeSchedule = new FeeSchedule();
+        $fallbackSchedule = new FeeScheduleList();
+        $fallbackSchedule->push(new FeeScheduleItem(0.0, 6.0e2, 0.25, 0.15));
+        $fallbackSchedule->push(new FeeScheduleItem(6.0e2, 1.2e3, 0.24, 0.14));
+        $fallbackSchedule->push(new FeeScheduleItem(1.2e3, 2.4e3, 0.22, 0.12));
+        $fallbackSchedule->push(new FeeScheduleItem(2.4e3, 6.0e3, 0.20, 0.10));
+        $fallbackSchedule->push(new FeeScheduleItem(6.0e3, 1.2e4, 0.16, 0.08));
+        $fallbackSchedule->push(new FeeScheduleItem(1.2e4, 1.8e4, 0.14, 0.05));
+        $fallbackSchedule->push(new FeeScheduleItem(1.8e4, 2.4e4, 0.12, 0.02));
+        $fallbackSchedule->push(new FeeScheduleItem(2.4e4, 6.0e4, 0.10, 0.00));
+        $fallbackSchedule->push(new FeeScheduleItem(6.0e4, 1.2e5, 0.08, 0.00));
+        $fallbackSchedule->push(new FeeScheduleItem(1.2e5, INF, 0.05, 0.00));
+        $this->feeSchedule->setFallbackFees($fallbackSchedule);
     }
 
     public function Name()
@@ -43,6 +60,30 @@ class Poloniex extends BaseExchange {
         }
 
         return $balances;
+    }
+
+    public function tradingFee($pair, $tradingRole, $volume)
+    {
+        // NOTE: all volumes are supposed to be in terms of BTC, so adjust 
+        // volume in terms of BTC if the quote currency is not BTC
+        $quote = CurrencyPair::Quote($pair);
+        if ($quote != Currency::BTC) {
+            $subPair = CurrencyPair::MakePair(Currency::BTC, $quote);
+            $ticker = $this->ticker($subPair);
+            $volume = $volume / $ticker->last;
+        } 
+
+        return $this->feeSchedule->getFee($pair, $tradingRole, $volume);
+    }
+
+    public function currentTradingFee($pair, $tradingRole)
+    {
+        $feeInfo = $this->query(array('command' => 'returnFeeInfo'));
+        if ($tradingRole == TradingRole::Maker) {
+            return floatval($feeInfo['makerFee']) * 100.0;
+        } else if ($tradingRole == TradingRole::Taker) {
+            return floatval($feeInfo['takerFee']) * 100.0;
+        }
     }
 
     public function transactions()

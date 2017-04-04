@@ -20,19 +20,47 @@ class Gdax extends BaseExchange implements ILifecycleHandler
     private $productIds = array(); //assoc array pair->productid
     private $quotePrecisions = array(); //assoc array pair->quotePrecision
 
+    private $feeSchedule; //assoc array pair->quotePrecision
+
     public function __construct($key, $secret, $passphrase) {
         $this->key = $key;
         $this->secret = $secret;
         $this->passphrase = $passphrase;
+
+        // From https://docs.gdax.com/#fees
+        // Note, these volume thresholds are in % of total
+        $genericFeeSchedule = new FeeScheduleList();
+        $genericFeeSchedule->push(new FeeScheduleItem(0.0, 1.0e-2, 0.25, 0.0));
+        $genericFeeSchedule->push(new FeeScheduleItem(1.0e-2, 2.5e-2, 0.24, 0.0));
+        $genericFeeSchedule->push(new FeeScheduleItem(2.5e-2, 5.0e-2, 0.22, 0.0));
+        $genericFeeSchedule->push(new FeeScheduleItem(5.0e-2, 1.0e-1, 0.19, 0.0));
+        $genericFeeSchedule->push(new FeeScheduleItem(1.0e-1, 2.0e-1, 0.15, 0.0));
+        $genericFeeSchedule->push(new FeeScheduleItem(2.0e-1, INF, 0.10, 0.0));
+
+        $this->feeSchedule = new FeeSchedule();
+        $this->feeSchedule->setFallbackFees($genericFeeSchedule);
     }
 
     function init()
     {
+        // From https://docs.gdax.com/#fees, all ETH markets have .30% fee at
+        // the first band.
+        $ethFeeSchedule = new FeeScheduleList();
+        $ethFeeSchedule->push(new FeeScheduleItem(0.0, 1.0, 0.30, 0.0));
+        $ethFeeSchedule->push(new FeeScheduleItem(1.0, 2.5, 0.24, 0.0));
+        $ethFeeSchedule->push(new FeeScheduleItem(2.5, 5.0, 0.22, 0.0));
+        $ethFeeSchedule->push(new FeeScheduleItem(5.0, 10.0, 0.19, 0.0));
+        $ethFeeSchedule->push(new FeeScheduleItem(10.0, 20.0, 0.15, 0.0));
+        $ethFeeSchedule->push(new FeeScheduleItem(20.0, INF, 0.10, 0.0));
+
         $pairs = curl_query($this->getApiUrl() . '/products');
         foreach($pairs as $pairInfo){
             try{
                 $pair = $pairInfo['base_currency'] . $pairInfo['quote_currency'];
-                CurrencyPair::Base($pair); //checks the format
+                $base = CurrencyPair::Base($pair); //checks the format
+                if ($base == Currency::ETH) {
+                    $this->feeSchedule->addPairFees($pair, $ethFeeSchedule);
+                }
 
                 $this->supportedPairs[] = mb_strtoupper($pair);
                 $this->minOrderSizes[$pair] = $pairInfo['base_min_size'];
@@ -60,6 +88,50 @@ class Gdax extends BaseExchange implements ILifecycleHandler
         }
 
         return $balances;
+    }
+
+    public function tradingFee($pair, $tradingRole, $thirty_day_volume)
+    {
+        // From https://docs.gdax.com/#fees
+        // Makers are always 0.0
+        if ($tradingRole == TradingRole::Maker) {
+            return 0.0;
+        }
+
+        // For taker fees, first get the total traded volume for the pair over 
+        // the last 30 days, then have given volume as a percentage.
+        $SECONDS_PER_THIRTY = 30 * 24 * 60 * 60;
+        $SECONDS_PER_TEN = 10 * 24 * 60 * 60; // larger granularities fail
+        $FORMAT = "Y-m-d";
+        $nowTs = date($FORMAT, time());
+        $prevTs = date($FORMAT, time() - $SECONDS_PER_THIRTY);
+        $query = $this->getApiUrl() . '/products/' . $this->productIds[$pair] . 
+            "/candles?start=$prevTs&end=$nowTs&granularity=$SECONDS_PER_TEN";
+        $candles = curl_query($query);
+        $totalVolume = 0.0;
+        foreach ($candles as $candle){
+            $totalVolume += $candle[5];
+        }
+
+        $volumePercentage = $thirty_day_volume / $totalVolume;
+        return $this->feeSchedule->getFee($pair, $tradingRole, $volumePercentage);
+    }
+
+    public function currentTradingFee($pair, $tradingRole)
+    {
+        if ($tradingRole == TradingRole::Maker) {
+            return $this->tradingFee($pair, $tradingRole, 0.0);
+        }
+
+        // Get user's total traded volume in the pair over the last 30 days
+        $userVolumes = $this->authQuery('/users/self/trailing-volume', 'GET');
+        foreach ($userVolumes as $volume) {
+            if ($volume['product_id'] == $this->productIds[$pair]) {
+                $volumePercentage = floatval(bcdiv($volume['volume'] / $volume['exchange_volume']));
+                return $this->feeSchedule->getFee($pair, $tradingRole, $volumePercentage);
+            }
+        }
+        return $this->feeSchedule->getFee($pair, $tradingRole, 0.0);
     }
 
     public function transactions()
