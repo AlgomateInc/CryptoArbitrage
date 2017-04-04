@@ -1,0 +1,21 @@
+# Working with Docker to run and test CryptoArbitrage
+(Optional) using the provided Dockerfile, build the image using:
+    $ docker build .
+Run using the cloud tag "joncinque/cryptoarbitrage":
+    $ docker run \
+    -v /home/jon/dev/CryptoArbitrage:/CryptoArbitrage \
+    -it joncinque/cryptoarbitrage
+To investigate an image, use the following:
+    $ docker run --entrypoint=/bin/bash \
+    -v /home/jon/dev/CryptoArbitrage:/CryptoArbitrage \
+    -it joncinque/cryptoarbitrage
+To investigate a running image, get the container id from docker ps, then run:
+    $ docker exec -it <image_id> /bin/bash
+For running tests, use the following:
+    $ docker run --entrypoint=/usr/bin/phpunit  \
+    -v /home/jon/dev/CryptoArbitrage:/CryptoArbitrage \
+    -it joncinque/cryptoarbitrage \
+    --include-path /CryptoArbitrage \
+    --filter testName \
+    TestClassName \
+    /CryptoArbitrage/tests/markets/TestFile.php
