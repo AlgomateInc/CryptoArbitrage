@@ -95,7 +95,19 @@ class GdaxTest extends PHPUnit_Framework_TestCase {
     public function testFees()
     {
         $this->assertTrue($this->mkt instanceof Gdax);
-        $this->assertEquals(0.16, $this->mkt->tradingFee(CurrencyPair::BTCUSD, TradingRole::Maker, 10.0));
+        $this->assertEquals(0.10, $this->mkt->tradingFee(CurrencyPair::BTCEUR, TradingRole::Taker, 10000.0));
+        $this->assertEquals(0.25, $this->mkt->tradingFee(CurrencyPair::BTCEUR, TradingRole::Taker, 10.0));
+        $this->assertEquals(0.0, $this->mkt->tradingFee(CurrencyPair::BTCUSD, TradingRole::Maker, 0.1));
+        $this->assertEquals(0.0, $this->mkt->tradingFee(CurrencyPair::BTCUSD, TradingRole::Maker, 100000000000.0));
+        $this->assertEquals(0.30, $this->mkt->tradingFee(CurrencyPair::ETHUSD, TradingRole::Taker, 10.0));
+    }
+
+    public function testUserFees()
+    {
+        $this->assertTrue($this->mkt instanceof Gdax);
+        $this->assertEquals(0.25, $this->mkt->currentTradingFee(CurrencyPair::BTCEUR, TradingRole::Taker));
+        $this->assertEquals(0.0, $this->mkt->currentTradingFee(CurrencyPair::BTCUSD, TradingRole::Maker));
+        $this->assertEquals(0.30, $this->mkt->currentTradingFee(CurrencyPair::ETHUSD, TradingRole::Taker));
     }
 
     public function testBuyOrderSubmission()

@@ -37,6 +37,22 @@ class GeminiTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testFees()
+    {
+        $this->assertTrue($this->mkt instanceof Gemini);
+        $this->assertEquals(0.25, $this->mkt->tradingFee(CurrencyPair::BTCUSD, TradingRole::Taker, 1000.0));
+        $this->assertEquals(0.15, $this->mkt->tradingFee(CurrencyPair::BTCUSD, TradingRole::Taker, 10000.0));
+        $this->assertEquals(0.25, $this->mkt->tradingFee(CurrencyPair::ETHUSD, TradingRole::Taker, 10.0));
+        $this->assertEquals(0.15, $this->mkt->tradingFee(CurrencyPair::ETHUSD, TradingRole::Taker, 200000.0));
+    }
+
+    public function testUserFees()
+    {
+        $this->assertTrue($this->mkt instanceof Gemini);
+        $this->assertEquals(0.25, $this->mkt->currentTradingFee(CurrencyPair::BTCUSD, TradingRole::Taker));
+        $this->assertEquals(0.25, $this->mkt->currentTradingFee(CurrencyPair::ETHUSD, TradingRole::Maker));
+    }
+
     public function testMinOrders()
     {
         $this->assertTrue($this->mkt instanceof Gemini);

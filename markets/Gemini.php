@@ -17,9 +17,38 @@ class Gemini extends Bitfinex
 
     function init()
     {
+        $this->feeSchedule = new FeeSchedule();
+
+        // From https://gemini.com/fee-schedule/
+        $btcFeeSchedule = new FeeScheduleList();
+        $btcFeeSchedule->push(new FeeScheduleItem(0.0, 1.0e3, 0.25, 0.25));
+        $btcFeeSchedule->push(new FeeScheduleItem(1.0e3, 2.0e3, 0.25, 0.20));
+        $btcFeeSchedule->push(new FeeScheduleItem(2.0e3, 3.0e3, 0.25, 0.15));
+        $btcFeeSchedule->push(new FeeScheduleItem(3.0e3, 5.0e3, 0.25, 0.10));
+        $btcFeeSchedule->push(new FeeScheduleItem(5.0e3, 1.0e4, 0.25, 0.05));
+        $btcFeeSchedule->push(new FeeScheduleItem(1.0e4, INF, 0.15, 0.00));
+
+        $ethFeeSchedule = new FeeScheduleList();
+        $ethFeeSchedule->push(new FeeScheduleItem(0.0, 2.0e4, 0.25, 0.25));
+        $ethFeeSchedule->push(new FeeScheduleItem(2.0e4, 4.0e4, 0.25, 0.20));
+        $ethFeeSchedule->push(new FeeScheduleItem(4.0e4, 6.0e4, 0.25, 0.15));
+        $ethFeeSchedule->push(new FeeScheduleItem(6.0e4, 1.0e5, 0.25, 0.10));
+        $ethFeeSchedule->push(new FeeScheduleItem(1.0e5, 2.0e5, 0.25, 0.05));
+        $ethFeeSchedule->push(new FeeScheduleItem(2.0e5, INF, 0.15, 0.00));
+
         $pairs = curl_query($this->getApiUrl() . 'symbols');
-        foreach($pairs as $pair){
-            $this->supportedPairs[] = mb_strtoupper($pair);
+        foreach($pairs as $geminiPair){
+            $pair = mb_strtoupper($geminiPair);
+            $this->supportedPairs[] = $pair;
+
+            $base = CurrencyPair::Base($pair);
+            if ($base == Currency::BTC) {
+                $this->feeSchedule->addPairFees($pair, $btcFeeSchedule);
+            } else if ($base == Currency::ETH) {
+                $this->feeSchedule->addPairFees($pair, $ethFeeSchedule);
+            } else {
+                throw new Exception("Unsupported pair $pair in Gemini, implement proper fee structure");
+            }
         }
 
         // From https://docs.gemini.com/rest-api/#symbols-and-minimums
@@ -34,11 +63,47 @@ class Gemini extends Bitfinex
         $this->quotePrecisions[CurrencyPair::BTCUSD] = 2;
         $this->quotePrecisions[CurrencyPair::ETHUSD] = 2;
         $this->quotePrecisions[CurrencyPair::ETHBTC] = 5;
+
     }
 
     public function positions()
     {
         return array();
+    }
+
+    public function tradingFee($pair, $tradingRole, $volume)
+    {
+        return $this->feeSchedule->getFee($pair, $tradingRole, $volume);
+    }
+
+    public function currentTradingFee($pair, $tradingRole)
+    {
+        $volumes = $this->authQuery("tradevolume");
+        // From https://gemini.com/fee-schedule/
+        // This method takes into account the ratio of buy and sell orders, which
+        // can give further rebates for maker trades.
+        $rebate = 0.0;
+        $tradingVolume = 0.0;
+        foreach ($volumes as $volume) {
+            if (mb_strtoupper($volume['symbol']) == $pair) {
+                $tradingVolume = floatval($volume['total_volume_base']);
+                if ($tradingRole == TradingRole::Maker) {
+                    $buySellRatio = floatval($volume['maker_buy_sell_ratio']);
+                    if (0.65 >= $buySellRatio && $buySellRatio > 0.60) {
+                        $rebate = 0.05;
+                    } else if (0.60 >= $buySellRatio && $buySellRatio >= 0.55) {
+                        $rebate = 0.10;
+                    } else if (0.55 >= $buySellRatio && $buySellRatio >= 0.45) {
+                        $rebate = 0.15;
+                    } else if (0.45 > $buySellRatio && $buySellRatio >= 0.40) {
+                        $rebate = 0.10;
+                    } else if (0.40 > $buySellRatio && $buySellRatio >= 0.35) {
+                        $rebate = 0.05;
+                    }
+                }
+            }
+        }
+        return $this->tradingFee($pair, $tradingRole, $tradingVolume) - $rebate;
     }
 
     public function ticker($pair)
