@@ -67,6 +67,11 @@ class Cryptsy extends BtceStyleExchange implements ILifecycleHandler{
         // TODO
     }
 
+    public function currentFeeSchedule()
+    {
+        // TODO
+    }
+
     public function currentTradingFee($pair, $tradingRole)
     {
         // TODO

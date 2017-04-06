@@ -3,6 +3,7 @@
 interface IReporter
 {
     public function balance($exchange_name, $currency, $balance);
+    public function fees($exchange_name, $currencyPair, $takerFee, $makerFee);
     public function market($exchange_name, $currencyPair, $bid, $ask, $last, $vol);
     public function depth($exchange_name, $currencyPair, OrderBook $depth);
     public function trade($exchange_name, $currencyPair, $tradeId, $orderId, $orderType, $price, $quantity, $timestamp);

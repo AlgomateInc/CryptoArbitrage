@@ -151,6 +151,18 @@ class SocketReporter implements IReporter, IListener {
         $this->send($data);
     }
 
+    public function fees($exchange_name, $currencyPair, $takerFee, $makerFee)
+    {
+        $data = array(
+            'MessageType' => 'Fees',
+            'Exchange' => $exchange_name,
+            'CurrencyPair' => $currencyPair,
+            'TakerFee' => $takerFee,
+            'MakerFee' => $makerFee
+        );
+        $this->send($data);
+    }
+
     public function market($exchange_name, $currencyPair, $bid, $ask, $last, $vol)
     {
         $data = array(

@@ -52,6 +52,11 @@ class Btce extends BtceStyleExchange implements ILifecycleHandler
         return $this->feeSchedule->getFee($pair, $tradingRole, $volume);
     }
 
+    public function currentFeeSchedule()
+    {
+        return $this->feeSchedule;
+    }
+
     public function currentTradingFee($pair, $tradingRole)
     {
         return $this->feeSchedule->getFee($pair, $tradingRole);

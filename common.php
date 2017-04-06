@@ -519,6 +519,15 @@ class FeeSchedule{
         $this->fallbackFees = $genericFeeSchedule;
     }
 
+    public function replacePairFee($pair, $takerFee, $makerFee)
+    {
+        if (!array_key_exists($pair, $this->pairFees)) {
+            throw new Exception("Pair $pair not present");
+        }
+        $this->pairFees[$pair] = new FeeScheduleList();
+        $this->pairFees[$pair]->push(FeeScheduleItem::newWithoutRange($takerFee, $makerFee));
+    }
+
     public function addPairFee($pair, $takerFee, $makerFee)
     {
         if (array_key_exists($pair, $this->pairFees)) {
@@ -538,11 +547,17 @@ class FeeSchedule{
 
     public function getFee($pair, $tradingRole, $volume = 0.0)
     {
-        if (empty($this->pairFees) || 
-            false == array_key_exists($pair, $this->pairFees)) {
+        if (!empty($this->pairFees) && array_key_exists($pair, $this->pairFees)) {
+            return $this->pairFees[$pair]->getFee($volume, $tradingRole);
+        } else if (isset($this->fallbackFees)) {
             return $this->fallbackFees->getFee($volume, $tradingRole);
         } else {
-            return $this->pairFees[$pair]->getFee($volume, $tradingRole);
+            throw new Exception("Pair $pair has no fees associated");
         }
+    }
+
+    public function isEmpty()
+    {
+        return !isset($this->fallbackFees) && empty($this->pairFees);
     }
 }

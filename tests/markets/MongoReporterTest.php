@@ -19,6 +19,10 @@ class MongoReporterTest extends PHPUnit_Framework_TestCase {
         $this->mdb = $this->mongo->selectDB($mongodb_db);
     }
 
+    public function testFeeReporting()
+    {
+    }
+
     public function testCandleGenerationCorrect()
     {
         $candleCollection = $this->mdb->candles;

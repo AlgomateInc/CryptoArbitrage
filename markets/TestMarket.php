@@ -96,6 +96,13 @@ class TestMarket extends BaseExchange
         return 0.02;
     }
 
+    public function currentFeeSchedule()
+    {
+        $feeSchedule = new FeeSchedule();
+        $feeSchedule->setFallbackFee(0.02, 0.02);
+        return $feeSchedule;
+    }
+
     public function currentTradingFee($pair, $tradingRole)
     {
         return 0.02;

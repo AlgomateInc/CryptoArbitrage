@@ -25,6 +25,11 @@ class FileReporter implements IReporter {
         // TODO: Implement balance() method.
     }
 
+    public function fees($exchange_name, $currencyPair, $taker, $maker)
+    {
+        // TODO: Implement fees() method.
+    }
+
     public function market($exchange_name, $currencyPair, $bid, $ask, $last, $vol)
     {
         // TODO: Implement market() method.
