@@ -151,6 +151,18 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
         }
     }
 
+    public function testFeeSchedule()
+    {
+        $this->assertTrue($this->mkt instanceof Yunbi);
+        $schedule = $this->mkt->currentFeeSchedule();
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $taker = $schedule->getFee($pair, TradingRole::Taker);
+            $this->assertNotNull($taker);
+            $maker = $schedule->getFee($pair, TradingRole::Maker);
+            $this->assertNotNull($maker);
+        }
+    }
+
     public function testTrades()
     {
         $this->assertTrue($this->mkt instanceof Yunbi);

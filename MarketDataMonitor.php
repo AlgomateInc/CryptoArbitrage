@@ -3,11 +3,13 @@
 require_once('ActionProcess.php');
 require_once('trading/ActiveOrderManager.php');
 require_once('trading/BalanceManager.php');
+require_once('trading/ExchangeManager.php');
 
 class MarketDataMonitor extends ActionProcess {
 
     private $activeOrderManager;
     private $balanceManager;
+    private $exchangeManager;
 
     private $useActiveOrderManager = false;
     private $storeDepth = true;
@@ -17,7 +19,7 @@ class MarketDataMonitor extends ActionProcess {
 
     public function getProgramOptions()
     {
-        return array('activeorders', 'balances','discard-depth');
+        return array('activeorders', 'balances', 'discard-depth', 'fees');
     }
 
     public function processOptions($options)
@@ -28,6 +30,8 @@ class MarketDataMonitor extends ActionProcess {
             $this->balanceManager = new BalanceManager($this->reporter);
         if(array_key_exists('discard-depth', $options))
             $this->storeDepth = false;
+        if(array_key_exists('fees', $options))
+            $this->exchangeManager = new ExchangeManager($this->reporter);
     }
 
     public function init()
@@ -86,6 +90,10 @@ class MarketDataMonitor extends ActionProcess {
                 //get the balances
                 if($this->balanceManager instanceof BalanceManager)
                     $this->balanceManager->fetch($mkt);
+
+                //get the exchange info, including fees
+                if($this->exchangeManager instanceof ExchangeManager)
+                    $this->exchangeManager->fetch($mkt);
 
                 //process active orders and report executions
                 if($this->activeOrderManager instanceof ActiveOrderManager)

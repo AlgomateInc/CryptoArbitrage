@@ -117,6 +117,27 @@ class Gdax extends BaseExchange implements ILifecycleHandler
         return $this->feeSchedule->getFee($pair, $tradingRole, $volumePercentage);
     }
 
+    public function currentFeeSchedule()
+    {
+        $feeSchedule = new FeeSchedule();
+        foreach ($this->supportedCurrencyPairs() as $pair) {
+            $taker = $this->feeSchedule->getFee($pair, TradingRole::Taker);
+            $maker = $this->feeSchedule->getFee($pair, TradingRole::Maker);
+            $feeSchedule->addPairFee($pair, $taker, $maker);
+        }
+
+        // Get user's total traded volume in the pair over the last 30 days
+        $userVolumes = $this->authQuery('/users/self/trailing-volume', 'GET');
+        foreach ($userVolumes as $volume) {
+            $pair = $this->currencyPairOfProductId($volume['product_id']);
+            $volumePercentage = floatval(bcdiv($volume['volume'], $volume['exchange_volume'], 4));
+            $taker = $this->feeSchedule->getFee($pair, TradingRole::Taker, $volumePercentage);
+            $maker = $this->feeSchedule->getFee($pair, TradingRole::Maker, $volumePercentage);
+            $feeSchedule->replacePairFee($pair, $taker, $maker);
+        }
+        return $feeSchedule;
+    }
+
     public function currentTradingFee($pair, $tradingRole)
     {
         if ($tradingRole == TradingRole::Maker) {
@@ -127,7 +148,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
         $userVolumes = $this->authQuery('/users/self/trailing-volume', 'GET');
         foreach ($userVolumes as $volume) {
             if ($volume['product_id'] == $this->productIds[$pair]) {
-                $volumePercentage = floatval(bcdiv($volume['volume'] / $volume['exchange_volume']));
+                $volumePercentage = floatval(bcdiv($volume['volume'], $volume['exchange_volume'], 4));
                 return $this->feeSchedule->getFee($pair, $tradingRole, $volumePercentage);
             }
         }

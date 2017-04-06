@@ -123,6 +123,18 @@ class Bitstamp extends BaseExchange implements ILifecycleHandler
         return $this->feeSchedule->getFee($pair, $tradingRole, $volume);
     }
 
+    public function currentFeeSchedule()
+    {
+        $feeSchedule = new FeeSchedule();
+        $bstamp_info = $this->assertSuccessResponse($this->authQuery('balance/'));
+        foreach ($this->supportedCurrencyPairs() as $pair) {
+            $bstamp_pair = mb_strtolower($pair);
+            $fee = $bstamp_info[$bstamp_pair . '_fee'];
+            $feeSchedule->addPairFee($pair, $fee, $fee);
+        }
+        return $feeSchedule;
+    }
+
     public function currentTradingFee($pair, $tradingRole)
     {
         $bstamp_pair = mb_strtolower($pair);

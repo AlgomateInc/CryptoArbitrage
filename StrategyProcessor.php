@@ -10,8 +10,9 @@ require_once('strategy/position/PositionStrategy.php');
 require_once('strategy/position/MakerEstablishPositionStrategy.php');
 
 require_once('trading/ActiveOrderManager.php');
-require_once('trading/ExecutionManager.php');
 require_once('trading/BalanceManager.php');
+require_once('trading/ExchangeManager.php');
+require_once('trading/ExecutionManager.php');
 
 class StrategyProcessor extends ActionProcess {
 
@@ -20,8 +21,9 @@ class StrategyProcessor extends ActionProcess {
     private $instructionLoader;
 
     private $activeOrderManager;
-    private $executionManager;
     private $balanceManager;
+    private $exchangeManager;
+    private $executionManager;
 
     public function getProgramOptions()
     {
@@ -46,6 +48,7 @@ class StrategyProcessor extends ActionProcess {
         $this->activeOrderManager = new ActiveOrderManager('activeOrders.json', $this->exchanges, $this->reporter);
         $this->executionManager = new ExecutionManager($this->activeOrderManager, $this->exchanges, $this->reporter);
         $this->balanceManager = new BalanceManager($this->reporter);
+        $this->exchangeManager = new ExchangeManager($this->reporter);
 
         $this->executionManager->setLiveTrade($this->liveTrade);
     }
@@ -64,6 +67,9 @@ class StrategyProcessor extends ActionProcess {
             throw new Exception();
 
         if(!$this->balanceManager instanceof BalanceManager)
+            throw new Exception();
+
+        if(!$this->exchangeManager instanceof ExchangeManager)
             throw new Exception();
 
         if(!$this->reporter instanceof IReporter)
@@ -85,6 +91,9 @@ class StrategyProcessor extends ActionProcess {
 
                 //get balances
                 $this->balanceManager->fetch($mkt);
+
+                //get the exchange info, including fees
+                $this->exchangeManager->fetch($mkt);
 
                 if($mkt instanceof IMarginExchange){
                     $posList = array();

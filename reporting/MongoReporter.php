@@ -34,6 +34,22 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         return $balance_entry['_id'];
     }
 
+    public function fees($exchange_name, $currencyPair, $takerFee, $makerFee)
+    {
+        $fees = $this->mdb->fees;
+        $fees->ensureIndex(array('Timestamp' => -1, 'Exchange' => 1, 'CurrencyPair' => 1));
+
+        $fee_entry = array(
+            'Exchange'    => "$exchange_name",
+            'CurrencyPair'=> "$currencyPair",
+            'TakerFee'    => "$takerFee",
+            'MakerFee'    => "$makerFee",
+            'Timestamp'   => new MongoDate());
+        
+        $fees->insert($fee_entry);
+        return $fee_entry['_id'];
+    }
+
     public function market($exchange_name, $currencyPair, $bid, $ask, $last, $vol){
         $markets = $this->mdb->market;
         $markets->ensureIndex(array('Timestamp' => -1));

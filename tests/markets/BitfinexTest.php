@@ -82,6 +82,18 @@ class BitfinexTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('0.2', $this->mkt->currentTradingFee(CurrencyPair::BTCUSD, TradingRole::Taker));
     }
 
+    public function testFeeSchedule()
+    {
+        $this->assertTrue($this->mkt instanceof Bitfinex);
+        $schedule = $this->mkt->currentFeeSchedule();
+        foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
+            $taker = $schedule->getFee($pair, TradingRole::Taker);
+            $this->assertNotNull($taker);
+            $maker = $schedule->getFee($pair, TradingRole::Maker);
+            $this->assertNotNull($maker);
+        }
+    }
+
     public function testBuyOrderSubmission()
     {
         if($this->mkt instanceof Bitfinex)

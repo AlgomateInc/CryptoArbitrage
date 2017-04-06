@@ -74,6 +74,17 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
         return $this->currentTradingFee($pair, $tradingRole);
     }
 
+    public function currentFeeSchedule()
+    {
+        $feeSchedule = new FeeSchedule();
+        foreach ($this->supportedCurrencyPairs() as $pair) {
+            $taker = $this->currentTradingFee($pair, TradingRole::Taker);
+            $maker = $this->currentTradingFee($pair, TradingRole::Maker);
+            $feeSchedule->addPairFee($pair, $taker, $maker);
+        }
+        return $feeSchedule;
+    }
+
     public function currentTradingFee($pair, $tradingRole)
     {
         // From https://yunbi.com/documents/price

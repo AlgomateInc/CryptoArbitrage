@@ -35,6 +35,16 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
         }
     }
 
+    public function fees($exchange_name, $currencyPair, $takerFee, $makerFee)
+    {
+        foreach($this->rptList as $rpt){
+            if(!$rpt instanceof IReporter)
+                throw new Exception('Invalid reporter in multi-reporter');
+
+            $rpt->fees($exchange_name, $currencyPair, $takerFee, $makerFee);
+        }
+    }
+
     public function market($exchange_name, $currencyPair, $bid, $ask, $last, $vol)
     {
         foreach($this->rptList as $rpt){

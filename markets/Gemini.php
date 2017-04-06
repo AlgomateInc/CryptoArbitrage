@@ -76,9 +76,49 @@ class Gemini extends Bitfinex
         return $this->feeSchedule->getFee($pair, $tradingRole, $volume);
     }
 
+    private function getRatioRebate($tradingRole, $buySellRatio)
+    {
+        $rebate = 0.0;
+        if ($tradingRole == TradingRole::Maker) {
+            if (0.65 >= $buySellRatio && $buySellRatio > 0.60) {
+                $rebate = 0.05;
+            } else if (0.60 >= $buySellRatio && $buySellRatio >= 0.55) {
+                $rebate = 0.10;
+            } else if (0.55 >= $buySellRatio && $buySellRatio >= 0.45) {
+                $rebate = 0.15;
+            } else if (0.45 > $buySellRatio && $buySellRatio >= 0.40) {
+                $rebate = 0.10;
+            } else if (0.40 > $buySellRatio && $buySellRatio >= 0.35) {
+                $rebate = 0.05;
+            }
+        }
+        return $rebate;
+    }
+
+    public function currentFeeSchedule()
+    {
+        $feeSchedule = new FeeSchedule();
+        foreach ($this->supportedCurrencyPairs() as $pair) {
+            $taker = $this->tradingFee($pair, TradingRole::Taker, 0.0);
+            $maker = $this->tradingFee($pair, TradingRole::Maker, 0.0);
+            $feeSchedule->addPairFee($pair, $taker, $maker);
+        }
+        $volumes = $this->authQuery('tradevolume')[0];
+        foreach ($volumes as $volume) {
+            $pair =  mb_strtoupper($volume['symbol']);
+            $tradingVolume = floatval($volume['total_volume_base']);
+            $takerRebate = $this->getRatioRebate(TradingRole::Taker, floatval($volume['maker_buy_sell_ratio']));
+            $taker = $this->tradingFee($pair, TradingRole::Taker, $tradingVolume) - $takerRebate;
+            $makerRebate = $this->getRatioRebate(TradingRole::Maker, floatval($volume['maker_buy_sell_ratio']));
+            $maker = $this->tradingFee($pair, TradingRole::Maker, $tradingVolume) - $makerRebate;
+            $feeSchedule->replacePairFee($pair, $taker, $maker);
+        }
+        return $feeSchedule;
+    }
+
     public function currentTradingFee($pair, $tradingRole)
     {
-        $volumes = $this->authQuery("tradevolume");
+        $volumes = $this->authQuery('tradevolume')[0];
         // From https://gemini.com/fee-schedule/
         // This method takes into account the ratio of buy and sell orders, which
         // can give further rebates for maker trades.
@@ -87,20 +127,7 @@ class Gemini extends Bitfinex
         foreach ($volumes as $volume) {
             if (mb_strtoupper($volume['symbol']) == $pair) {
                 $tradingVolume = floatval($volume['total_volume_base']);
-                if ($tradingRole == TradingRole::Maker) {
-                    $buySellRatio = floatval($volume['maker_buy_sell_ratio']);
-                    if (0.65 >= $buySellRatio && $buySellRatio > 0.60) {
-                        $rebate = 0.05;
-                    } else if (0.60 >= $buySellRatio && $buySellRatio >= 0.55) {
-                        $rebate = 0.10;
-                    } else if (0.55 >= $buySellRatio && $buySellRatio >= 0.45) {
-                        $rebate = 0.15;
-                    } else if (0.45 > $buySellRatio && $buySellRatio >= 0.40) {
-                        $rebate = 0.10;
-                    } else if (0.40 > $buySellRatio && $buySellRatio >= 0.35) {
-                        $rebate = 0.05;
-                    }
-                }
+                $rebate = $this->getRatioRebate($tradingRole, $volume['maker_buy_sell_ratio']);
             }
         }
         return $this->tradingFee($pair, $tradingRole, $tradingVolume) - $rebate;

@@ -126,10 +126,28 @@ class Kraken extends BaseExchange implements ILifecycleHandler
         return $this->feeSchedule->getFee($pair, $tradingRole, $volume);
     }
 
+    public function currentFeeSchedule()
+    {
+        $feeSchedule = new FeeSchedule();
+        $pairInfo = array('pair'=>join(',', array_values($this->marketMapping)), 
+                'fee-info'=>true);
+        $volumeInfo = $this->privateQuery('TradeVolume', $pairInfo);
+        foreach ($volumeInfo['fees'] as $krakenName => $feeInfo) {
+            $pair = $this->krakenMarketMapping[$krakenName];
+            $feeSchedule->addPairFee($pair, $feeInfo['fee'], $feeInfo['fee']);
+        }
+        foreach ($volumeInfo['fees_maker'] as $krakenName => $feeInfo) {
+            $pair = $this->krakenMarketMapping[$krakenName];
+            $taker = $feeSchedule->getFee($pair, TradingRole::Taker, 0.0);
+            $feeSchedule->replacePairFee($pair, $taker, $feeInfo['fee']);
+        }
+        return $feeSchedule;
+    }
+
     public function currentTradingFee($pair, $tradingRole)
     {
         $krakenName = $this->marketMapping[$pair];
-        $pairInfo = array('pair' => $krakenName);
+        $pairInfo = array('pair' => $krakenName, 'fee-info' => true);
         $volumeInfo = $this->privateQuery('TradeVolume', $pairInfo);
         if ($tradingRole == TradingRole::Maker && isset($volumeInfo['fees_maker'])) {
             return $volumeInfo['fees_maker'][$krakenName]['fee'];

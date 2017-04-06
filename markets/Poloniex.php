@@ -76,6 +76,18 @@ class Poloniex extends BaseExchange {
         return $this->feeSchedule->getFee($pair, $tradingRole, $volume);
     }
 
+    public function currentFeeSchedule()
+    {
+        $feeSchedule = new FeeSchedule();
+        $feeInfo = $this->query(array('command' => 'returnFeeInfo'));
+        $takerFee = bcmul($feeInfo['takerFee'], '100', 4);
+        $makerFee = bcmul($feeInfo['makerFee'], '100', 4);
+        foreach ($this->supportedCurrencyPairs() as $pair) {
+            $feeSchedule->addPairFee($pair, $takerFee, $makerFee);
+        }
+        return $feeSchedule;
+    }
+
     public function currentTradingFee($pair, $tradingRole)
     {
         $feeInfo = $this->query(array('command' => 'returnFeeInfo'));

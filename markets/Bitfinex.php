@@ -89,6 +89,17 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
         return $this->feeSchedule->getFee($pair, $tradingRole, $volume);
     }
 
+    public function currentFeeSchedule()
+    {
+        $feeSchedule = new FeeSchedule();
+        $account_infos = $this->authQuery("account_infos")[0];
+        foreach ($account_infos['fees'] as $pair_fees) {
+            $feeSchedule->addPairFee($pair_fees['pairs'], $pair_fees['taker_fees'], $pair_fees['maker_fees']);
+        }
+        $feeSchedule->setFallbackFee($account_infos['taker_fees'], $account_infos['maker_fees']);
+        return $feeSchedule;
+    }
+
     public function currentTradingFee($pair, $tradingRole)
     {
         $account_infos = $this->authQuery("account_infos")[0];

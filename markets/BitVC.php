@@ -69,6 +69,11 @@ class BitVC extends BaseExchange implements IMarginExchange{
         // TODO
     }
 
+    public function currentFeeSchedule()
+    {
+        // TODO
+    }
+
     public function currentTradingFee($pair, $tradingRole)
     {
         // TODO
