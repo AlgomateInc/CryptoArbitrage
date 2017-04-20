@@ -11,6 +11,7 @@ class EthereumAccount extends MultiSourcedAccount
 {
     private $address;
     private $tokenContracts = array();
+    private $tokenPrecision = array();
 
     /**
      * EthereumAccount constructor.
@@ -19,6 +20,10 @@ class EthereumAccount extends MultiSourcedAccount
     {
         $this->address = explode(',', $address);
         $this->tokenContracts['GNT'] = '0xa74476443119A942dE498590Fe1f2454d7D4aC0d';
+        $this->tokenContracts['TRST'] = '0xCb94be6f13A1182E4A4B6140cb7bf2025d28e41B';
+
+        $this->tokenPrecision['GNT'] = 18;
+        $this->tokenPrecision['TRST'] = 6;
     }
 
     public function Name()
@@ -38,7 +43,7 @@ class EthereumAccount extends MultiSourcedAccount
             foreach($this->getAddressList() as $addy)
             {
                 $raw = curl_query("https://api.etherscan.io/api?module=account&action=tokenbalance&contractaddress=$tokenContract&address=" . trim($addy));
-                $tokenBalance += $raw['result'] / pow(10, 18);
+                $tokenBalance += $raw['result'] / pow(10, $this->tokenPrecision[$tokenName]);
             }
 
             $balances[$tokenName] = $tokenBalance;
