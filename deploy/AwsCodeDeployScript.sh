@@ -32,7 +32,7 @@ then
     sudo systemctl start supervisor
 
     # Install PHP and dependencies:
-    sudo apt-get install -y php7.0-cli php7.0-dev php7.0-curl php7.0-xml php7.0-bcmath php7.0-mbstring
+    sudo apt-get install -y php7.0-cli php7.0-dev php7.0-curl php7.0-xml php7.0-bcmath php7.0-mbstring pkg-config
 
     # Setup mbstring function overload for all str functions to use mb_ variants
     add_line_to_file "mbstring.func_overload 7" /etc/php/7.0/cli/php.ini
@@ -44,7 +44,7 @@ then
     # Install PHP mongodb libs
     sudo pecl install mongodb
     add_line_to_file "extension=mongodb.so" /etc/php/7.0/mods-available/mongodb.ini
-    sudo ln -s -T /etc/php/7.0/cli/conf.d/99-mongodb.ini /etc/php/7.0/mods-available/mongodb.ini
+    sudo ln -s -T /etc/php/7.0/mods-available/mongodb.ini /etc/php/7.0/cli/conf.d/99-mongodb.ini
 
     # Make PHP mongodb libs accessible via Composer:
     # https://getcomposer.org/doc/faqs/how-to-install-composer-programmatically.md
