@@ -46,11 +46,21 @@ then
     add_line_to_file "extension=mongodb.so" /etc/php/7.0/mods-available/mongodb.ini
     sudo ln -s -T /etc/php/7.0/cli/conf.d/99-mongodb.ini /etc/php/7.0/mods-available/mongodb.ini
 
-    # Make PHP mongodb libs accessible via Composer
-    sudo php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-    sudo php -r "if (hash_file('SHA384', 'composer-setup.php') === '55d6ead61b29c7bdee5cccfb50076874187bd9f21f65d8991d46ec5cc90518f447387fb9f76ebae1fbbacf329e583e30') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
-    sudo php composer-setup.php --install-dir=/usr/bin --filename=composer
-    sudo php -r "unlink('composer-setup.php');"
+    # Make PHP mongodb libs accessible via Composer:
+    # https://getcomposer.org/doc/faqs/how-to-install-composer-programmatically.md
+    EXPECTED_SIGNATURE=$(wget -q -O - https://composer.github.io/installer.sig)
+    php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+    ACTUAL_SIGNATURE=$(php -r "echo hash_file('SHA384', 'composer-setup.php');")
+
+    if [ "$EXPECTED_SIGNATURE" != "$ACTUAL_SIGNATURE" ]
+    then
+      >&2 echo 'ERROR: Invalid installer signature'
+      rm composer-setup.php
+      exit 1
+    fi
+
+    php composer-setup.php --quiet
+    rm composer-setup.php
 
     # Install log4php, pear reports error on install if package already exists
     sudo apt-get install -y php-pear
