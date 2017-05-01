@@ -1,5 +1,7 @@
 <?php
 
+require_once(__DIR__.'/../mongo_helper.php');
+
 class JPMChase implements IAccount
 {
     private $mailbox;
@@ -100,7 +102,7 @@ class JPMChase implements IAccount
             $tx->type = $txType;
             $tx->currency = Currency::USD;
             $tx->amount = str_replace(',','', $matches[$i]);
-            $tx->timestamp = new MongoDate($updateDate);
+            $tx->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate($updateDate));
 
             $txList[] = $tx;
         }

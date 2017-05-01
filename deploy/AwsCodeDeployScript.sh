@@ -19,23 +19,11 @@ if [ "$LIFECYCLE_EVENT" == "BeforeInstall" ]
 then
     if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
     then
-        # Install mongodb 3.2
-        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
-        add_line_to_file "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" /etc/apt/sources.list.d/mongodb-org-3.2.list
+        # Install mongodb 3.4
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+        add_line_to_file "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" /etc/apt/sources.list.d/mongodb-org-3.4.list
         sudo apt-get update
-        sudo apt-get install -y mongodb-org=3.2.12 mongodb-org-server=3.2.12 mongodb-org-shell=3.2.12 mongodb-org-mongos=3.2.12 mongodb-org-tools=3.2.12
-        echo "[Unit]
-        Description=High-performance, schema-free document-oriented database
-        After=network.target
-        Documentation=https://docs.mongodb.org/manual
-
-        [Service]
-        User=mongodb
-        Group=mongodb
-        ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
-
-        [Install]
-        WantedBy=multi-user.target" > /lib/systemd/system/mongod.service
+        sudo apt-get install -y mongodb-org
     fi
 
     # Install supervisor:
@@ -44,17 +32,35 @@ then
     sudo systemctl start supervisor
 
     # Install PHP and dependencies:
-    sudo add-apt-repository -y ppa:ondrej/php
-    sudo apt-get update
-    sudo apt-get install -y php5.6-cli php5.6-dev php5.6-curl php5.6-xml php5.6-bcmath php5.6-mbstring
+    sudo apt-get install -y php7.0-cli php7.0-dev php7.0-curl php7.0-xml php7.0-bcmath php7.0-mbstring pkg-config
 
     # Setup mbstring function overload for all str functions to use mb_ variants
-    add_line_to_file "mbstring.func_overload 7" /etc/php/5.6/cli/php.ini
-    add_line_to_file "mbstring.language Neutral" /etc/php/5.6/cli/php.ini
+    add_line_to_file "mbstring.func_overload 7" /etc/php/7.0/cli/php.ini
+    add_line_to_file "mbstring.language Neutral" /etc/php/7.0/cli/php.ini
 
-    # Install PHP mongo libs (echo 'no' declines sasl option prompt)
-    echo "no" | sudo pecl install mongo
-    add_line_to_file "extension=mongo.so" /etc/php/5.6/cli/php.ini
+    # Configure pecl
+    sudo pecl config-set php_ini /etc/php/7.0/cli/php.ini
+
+    # Install PHP mongodb libs
+    sudo pecl install mongodb
+    add_line_to_file "extension=mongodb.so" /etc/php/7.0/mods-available/mongodb.ini
+    sudo ln -s -T /etc/php/7.0/mods-available/mongodb.ini /etc/php/7.0/cli/conf.d/99-mongodb.ini
+
+    # Make PHP mongodb libs accessible via Composer:
+    # https://getcomposer.org/doc/faqs/how-to-install-composer-programmatically.md
+    EXPECTED_SIGNATURE=$(wget -q -O - https://composer.github.io/installer.sig)
+    sudo php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+    ACTUAL_SIGNATURE=$(php -r "echo hash_file('SHA384', 'composer-setup.php');")
+
+    if [ "$EXPECTED_SIGNATURE" != "$ACTUAL_SIGNATURE" ]
+    then
+      >&2 echo 'ERROR: Invalid installer signature'
+      sudo rm composer-setup.php
+      exit 1
+    fi
+
+    sudo php composer-setup.php --quiet --install-dir=/usr/bin --filename=composer
+    sudo rm composer-setup.php
 
     # Install log4php, pear reports error on install if package already exists
     sudo apt-get install -y php-pear
@@ -77,6 +83,9 @@ then
         # Set the mongodb uri config to 'localhost' for local deployment
         sed -i "s#mongodb_uri = .*#mongodb_uri = 'mongodb://localhost';#" config.php
     fi
+
+    # Install package libs using dependencies specified in composer files
+    sudo composer install
 
     # Install the supervisor configuration files
     if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitor" ] || [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]

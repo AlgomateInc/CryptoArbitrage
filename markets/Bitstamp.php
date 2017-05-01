@@ -320,7 +320,7 @@ class Bitstamp extends BaseExchange implements ILifecycleHandler
                     $tx->amount = $amount;
                 }
             }
-            $tx->timestamp = new MongoDate(strtotime($btx['datetime']));
+            $tx->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(strtotime($btx['datetime'])));
 
             $ret[] = $tx;
         }

@@ -154,10 +154,10 @@ class TestMarket extends BaseExchange
             if(!$item instanceof Trade)
                 throw new Exception();
 
-            if(!$item->timestamp instanceof MongoDate)
+            if(!$item->timestamp instanceof MongoDB\BSON\UTCDateTime)
                 throw new Exception();
 
-            if($item->timestamp->sec > $sinceDate)
+            if($item->timestamp->toDateTime()->getTimestamp() > $sinceDate)
                 $ret[] = $item;
         }
 
@@ -225,7 +225,7 @@ class TestMarket extends BaseExchange
             $t->tradeId = $nf->get();
             $t->price = $item->price;
             $t->quantity = $execQty;
-            $t->timestamp = new MongoDate();
+            $t->timestamp = new MongoDB\BSON\UTCDateTime();
             $t->orderType = $side;
             $this->tradeList[] = $t;
 

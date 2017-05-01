@@ -15,8 +15,8 @@ class MongoReporterTest extends PHPUnit_Framework_TestCase {
     public function setUp(){
         global $mongodb_uri, $mongodb_db;
 
-        $this->mongo = new MongoClient($mongodb_uri);
-        $this->mdb = $this->mongo->selectDB($mongodb_db);
+        $this->mongo = new MongoDB\Client($mongodb_uri);
+        $this->mdb = $this->mongo->selectDatabase($mongodb_db);
     }
 
     public function testFeeReporting()
@@ -33,11 +33,11 @@ class MongoReporterTest extends PHPUnit_Framework_TestCase {
         {
             $date = $c['Timestamp'];
             $interval = $c['Interval'];
-            $endDate = new MongoDate($date->sec + $interval, $date->usec);
+            $endDate = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate($date->toDateTime()->getTimestamp() + $interval));
             $exchange = $c['Exchange'];
             $currencyPair = $c['CurrencyPair'];
 
-            print "Testing ($exchange, $currencyPair, $date->sec, $interval, $endDate->sec)...";
+            print "Testing ($exchange, $currencyPair, $date->toDateTime(), $interval, $endDate->toDateTime())...";
 
             $trades = $tradesCollection->find(array(
                 'exchange'=>$exchange,

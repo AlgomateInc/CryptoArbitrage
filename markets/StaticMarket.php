@@ -70,7 +70,7 @@ class StaticMarket extends BaseExchange
         $t->tradeId = '234923';
         $t->price = 15.5;
         $t->quantity = 28;
-        $t->timestamp = new MongoDate();
+        $t->timestamp = new MongoDB\BSON\UTCDateTime();
         $t->orderType = OrderType::SELL;
 
         $ret[] = $t;

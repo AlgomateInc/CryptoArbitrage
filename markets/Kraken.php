@@ -1,6 +1,7 @@
 <?php
 
 require_once(__DIR__.'/../curl_helper.php');
+require_once(__DIR__.'/../mongo_helper.php');
 require_once('BaseExchange.php');
 require_once('NonceFactory.php');
 
@@ -300,7 +301,7 @@ class Kraken extends BaseExchange implements ILifecycleHandler
             $t->tradeId = sha1($raw[0] . $raw[1] . $raw[2]);
             $t->price = (float) $raw[0];
             $t->quantity = (float) $raw[1];
-            $t->timestamp = new MongoDate($raw[2]);
+            $t->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate($raw[2]));
             $t->orderType = ($raw[3] == 'b')? OrderType::BUY : OrderType::SELL;
 
             $ret[] = $t;

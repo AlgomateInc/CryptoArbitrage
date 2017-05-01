@@ -1,6 +1,7 @@
 <?php
 
 require_once(__DIR__.'/../curl_helper.php');
+require_once(__DIR__.'/../mongo_helper.php');
 require_once(__DIR__.'/../OrderExecution.php');
 require_once('BtceStyleExchange.php');
 require_once('ILifecycleHandler.php');
@@ -252,7 +253,7 @@ class Btce extends BtceStyleExchange implements ILifecycleHandler
             $tx->type = ($btx['type'] == 1)? TransactionType::Credit: TransactionType::Debit;
             $tx->currency = $btx['currency'];
             $tx->amount = $btx['amount'];
-            $tx->timestamp = new MongoDate($btx['timestamp']);
+            $tx->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate($btx['timestamp']));
 
             $ret[] = $tx;
         }

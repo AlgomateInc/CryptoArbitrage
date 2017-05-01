@@ -1,6 +1,7 @@
 <?php
 
 require_once(__DIR__.'/../curl_helper.php');
+require_once(__DIR__.'/../mongo_helper.php');
 require_once('BaseExchange.php');
 
 /**
@@ -217,7 +218,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
             $t->tradeId = $raw['trade_id'];
             $t->price = (float) $raw['price'];
             $t->quantity = (float) $raw['size'];
-            $t->timestamp = new MongoDate();
+            $t->timestamp = new MongoDB\BSON\UTCDateTime();
             $t->orderType = ($raw['side'] == 'buy')? OrderType::SELL : OrderType::BUY;
 
             $ret[] = $t;
@@ -329,7 +330,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
                     $exec->orderId = $fill['order_id'];
                     $exec->quantity = $fill['size'];
                     $exec->price = $fill['price'];
-                    $exec->timestamp = new MongoDate(strtotime($fill['created_at']));
+                    $exec->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(strtotime($fill['created_at'])));
 
                     $ret[] = $exec;
                 }
@@ -365,7 +366,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
                 $td->orderType = ($order['side'] == 'sell')? OrderType::SELL : OrderType::BUY;
                 $td->price = $order['price'];
                 $td->quantity = $order['size'];
-                $td->timestamp = new MongoDate(strtotime($order['created_at']));
+                $td->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(strtotime($order['created_at'])));
 
                 $ret[] = $td;
                 $num_fetched += 1;

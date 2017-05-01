@@ -6,6 +6,8 @@
  * Time: 7:46 PM
  */
 
+require_once(__DIR__.'/../mongo_helper.php');
+
 class Poloniex extends BaseExchange {
 
     protected $trading_url = "https://poloniex.com/tradingApi";
@@ -167,7 +169,7 @@ class Poloniex extends BaseExchange {
             $t->orderType = mb_strtoupper($raw['type']);
 
             $dt = new DateTime($raw['date']);
-            $t->timestamp = new MongoDate($dt->getTimestamp());
+            $t->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate($dt->getTimestamp()));
 
             $ret[] = $t;
         }

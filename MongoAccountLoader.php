@@ -1,5 +1,7 @@
 <?php
 
+require_once('mongo_helper.php');
+
 require_once('config.php');
 require_once('common.php');
 require_once('IAccountLoader.php');
@@ -16,8 +18,8 @@ class MongoAccountLoader extends ConfigAccountLoader{
 
         global $mongodb_uri, $mongodb_db;
 
-        $this->mongo = new MongoClient($mongodb_uri);
-        $this->mdb = $this->mongo->selectDB($mongodb_db);
+        $this->mongo = new MongoDB\Client($mongodb_uri);
+        $this->mdb = $this->mongo->selectDatabase($mongodb_db);
 
         if($serverName == null)
             $serverName = gethostname();

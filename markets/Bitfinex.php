@@ -1,6 +1,7 @@
 <?php
 
 require_once(__DIR__.'/../curl_helper.php');
+require_once(__DIR__.'/../mongo_helper.php');
 require_once('BaseExchange.php');
 require_once('NonceFactory.php');
 require_once('IMarginExchange.php');
@@ -148,7 +149,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
             $t->tradeId = $raw['tid'];
             $t->price = (float) $raw['price'];
             $t->quantity = (float) $raw['amount'];
-            $t->timestamp = new MongoDate($raw['timestamp']);
+            $t->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate($raw['timestamp']));
             $t->orderType = mb_strtoupper($raw['type']);
 
             $ret[] = $t;

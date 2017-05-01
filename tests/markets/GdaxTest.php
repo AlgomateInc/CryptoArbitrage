@@ -148,11 +148,11 @@ class GdaxTest extends PHPUnit_Framework_TestCase {
     public function testExecutions()
     {
         $this->assertTrue($this->mkt instanceof Gdax);
-        $ret = $this->mkt->submitMarketOrder('sell', CurrencyPair::BTCUSD, 0.01, 0.01);
+        $ret = $this->mkt->submitMarketOrder('sell', CurrencyPair::BTCUSD, 0.01);
         sleep(1);
         $exec = $this->mkt->getOrderExecutions($ret);
         $this->assertTrue(count($exec) > 0);
-        $ret = $this->mkt->submitMarketOrder('buy', CurrencyPair::BTCUSD, 0.01, 0.01);
+        $ret = $this->mkt->submitMarketOrder('buy', CurrencyPair::BTCUSD, 0.01);
         sleep(1);
         $exec = $this->mkt->getOrderExecutions($ret);
         $this->assertTrue(count($exec) > 0);

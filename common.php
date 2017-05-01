@@ -218,7 +218,7 @@ class Transaction{
     public $currency;
     /** @var float */
     public $amount;
-    /** @var int or MongoDate */
+    /** @var int or MongoDB\BSON\UTCDateTime */
     public $timestamp;
 
     public function isValid()
@@ -280,7 +280,7 @@ class Trade {
     public $price;
     /** @var float */
     public $quantity;
-    /** @var int or MongoDate */
+    /** @var int or MongoDB\BSON\UTCDateTime */
     public $timestamp;
 
     public function isValid()
