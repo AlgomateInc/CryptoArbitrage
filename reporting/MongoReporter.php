@@ -227,7 +227,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             'Timestamp'=>"$timestamp");
 
         $positionCollection = $this->mdb->position;
-        $positionCollection->update(
+        $positionCollection->updateOne(
             array('Timestamp' => "$timestamp", 'Exchange' => "$exchange_name",'CurrencyPair'=>"$currencyPair",
             'Type'=>"$orderType"),
             $position_entry,
@@ -259,7 +259,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             'Timestamp'=>new MongoDB\BSON\UTCDateTime());
 
         $arborders = $this->mdb->strategyorder;
-        $arborders->update(
+        $arborders->updateOne(
             array('_id'=>$arbid),
             array('$push' => array("Orders" => $order_entry))
         );
@@ -275,7 +275,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         );
 
         $arborders = $this->mdb->strategyorder;
-        $arborders->update(
+        $arborders->updateOne(
             array('_id' => $arbId, "Orders.OrderID" => $orderId),
             array('$push' => array("Orders.$.Executions" => $exec_entry))
         );
@@ -290,7 +290,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         );
 
         $strategyOrderDb = $this->mdb->strategyorder;
-        $strategyOrderDb->update(
+        $strategyOrderDb->updateOne(
             array('_id' => $strategyId, "Orders.OrderID" => $orderId),
             array('$push' => array("Orders.$.Message" => $messageEntry))
         );
@@ -308,7 +308,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         );
 
         $txdb = $this->mdb->transactions;
-        $txdb->update(
+        $txdb->updateOne(
             array('TxId' => "$id", 'Exchange' => "$exchange_name"),
             $tx_entry,
             array('upsert'=>true)
@@ -324,7 +324,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         );
 
         $strategies = $this->mdb->strategyorder;
-        $strategies->update(
+        $strategies->updateOne(
             array('_id' => $strategyId, "Orders.OrderID" => $orderId),
             array('$set' => array("Orders.$.CancelInfo" => $cancelInfo))
         );
