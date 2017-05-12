@@ -1,8 +1,26 @@
 <?php
 
-require_once(__DIR__.'/../curl_helper.php');
-require_once(__DIR__.'/../mongo_helper.php');
-require_once('BaseExchange.php');
+namespace CryptoMarket\Exchange;
+
+use CryptoMarket\Helper\CurlHelper;
+use CryptoMarket\Helper\MongoHelper;
+
+use CryptoMarket\Exchange\BaseExchange;
+use CryptoMarket\Exchange\ILifecycleHandler;
+
+use CryptoMarket\Record\Currency;
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\FeeSchedule;
+use CryptoMarket\Record\FeeScheduleItem;
+use CryptoMarket\Record\FeeScheduleList;
+use CryptoMarket\Record\OrderBook;
+use CryptoMarket\Record\OrderExecution;
+use CryptoMarket\Record\OrderType;
+use CryptoMarket\Record\Ticker;
+use CryptoMarket\Record\Trade;
+use CryptoMarket\Record\TradingRole;
+
+use MongoDB\BSON\UTCDateTime;
 
 /**
  * Created by PhpStorm.
@@ -10,6 +28,7 @@ require_once('BaseExchange.php');
  * Date: 11/3/2016
  * Time: 6:31 AM
  */
+
 class Gdax extends BaseExchange implements ILifecycleHandler
 {
     private $key;
@@ -54,7 +73,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
         $ethFeeSchedule->push(new FeeScheduleItem(10.0, 20.0, 0.15, 0.0));
         $ethFeeSchedule->push(new FeeScheduleItem(20.0, INF, 0.10, 0.0));
 
-        $pairs = curl_query($this->getApiUrl() . '/products');
+        $pairs = CurlHelper::query($this->getApiUrl() . '/products');
         foreach($pairs as $pairInfo){
             try{
                 $pair = $pairInfo['base_currency'] . $pairInfo['quote_currency'];
@@ -67,7 +86,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
                 $this->minOrderSizes[$pair] = $pairInfo['base_min_size'];
                 $this->productIds[$pair] = $pairInfo['id'];
                 $this->quotePrecisions[$pair] = intval(abs(floor(log10($pairInfo['quote_increment']))));
-            }catch(Exception $e){}
+            }catch(\Exception $e){}
         }
     }
 
@@ -108,7 +127,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
         $prevTs = date($FORMAT, time() - $SECONDS_PER_THIRTY);
         $query = $this->getApiUrl() . '/products/' . $this->productIds[$pair] . 
             "/candles?start=$prevTs&end=$nowTs&granularity=$SECONDS_PER_TEN";
-        $candles = curl_query($query);
+        $candles = CurlHelper::query($query);
         $totalVolume = 0.0;
         foreach ($candles as $candle){
             $totalVolume += $candle[5];
@@ -189,7 +208,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
 
     public function ticker($pair)
     {
-        $raw = curl_query($this->getApiUrl() . '/products/' . $this->productIds[$pair] . '/ticker');
+        $raw = CurlHelper::query($this->getApiUrl() . '/products/' . $this->productIds[$pair] . '/ticker');
 
         $t = new Ticker();
         $t->currencyPair = $pair;
@@ -203,7 +222,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
 
     public function trades($pair, $sinceDate)
     {
-        $tradeList = curl_query($this->getApiUrl() . '/products/' . $this->productIds[$pair] . '/trades');
+        $tradeList = CurlHelper::query($this->getApiUrl() . '/products/' . $this->productIds[$pair] . '/trades');
 
         $ret = array();
 
@@ -218,7 +237,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
             $t->tradeId = $raw['trade_id'];
             $t->price = (float) $raw['price'];
             $t->quantity = (float) $raw['size'];
-            $t->timestamp = new MongoDB\BSON\UTCDateTime();
+            $t->timestamp = new UTCDateTime();
             $t->orderType = ($raw['side'] == 'buy')? OrderType::SELL : OrderType::BUY;
 
             $ret[] = $t;
@@ -229,7 +248,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
 
     public function depth($currencyPair)
     {
-        $raw = curl_query($this->getApiUrl() . '/products/' . $this->productIds[$currencyPair] .
+        $raw = CurlHelper::query($this->getApiUrl() . '/products/' . $this->productIds[$currencyPair] .
             '/book?level=2');
 
         $book = new OrderBook($raw);
@@ -295,7 +314,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
             if (isset($os['status'])) {
                 return $os['status'] === 'open' || $os['status'] === 'pending';
             }
-        } catch (Exception $e) { }
+        } catch (\Exception $e) { }
         return false;
     }
 
@@ -330,7 +349,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
                     $exec->orderId = $fill['order_id'];
                     $exec->quantity = $fill['size'];
                     $exec->price = $fill['price'];
-                    $exec->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(strtotime($fill['created_at'])));
+                    $exec->timestamp = new UTCDateTime(MongoHelper::mongoDateOfPHPDate(strtotime($fill['created_at'])));
 
                     $ret[] = $exec;
                 }
@@ -366,7 +385,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
                 $td->orderType = ($order['side'] == 'sell')? OrderType::SELL : OrderType::BUY;
                 $td->price = $order['price'];
                 $td->quantity = $order['size'];
-                $td->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(strtotime($order['created_at'])));
+                $td->timestamp = new UTCDateTime(MongoHelper::mongoDateOfPHPDate(strtotime($order['created_at'])));
 
                 $ret[] = $td;
                 $num_fetched += 1;
@@ -408,7 +427,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
             'CB-ACCESS-PASSPHRASE: ' . $this->passphrase
         );
 
-        return curl_query($this->getApiUrl() . $request_path, $body, $headers, $method, $return_headers);
+        return CurlHelper::query($this->getApiUrl() . $request_path, $body, $headers, $method, $return_headers);
     }
 
     // Helper function for converting from the GDAX product id, e.g. "BTC-USD",
@@ -419,6 +438,7 @@ class Gdax extends BaseExchange implements ILifecycleHandler
             if ($productId === $pid)
                 return $pair;
         }
-        throw new Exception("Product id not found: $productId");
+        throw new \Exception("Product id not found: $productId");
     }
 }
+

@@ -1,33 +1,34 @@
 <?php
 
-require_once('config.php');
-require_once('common.php');
-require_once('IAccountLoader.php');
+namespace CryptoMarket\AccountLoader;
 
-require_once('markets/Btce.php');
-require_once('markets/Bitstamp.php');
-require_once('markets/jpmchase.php');
-require_once('markets/Cryptsy.php');
-require_once('markets/Bitfinex.php');
-require_once('markets/BitVC.php');
-require_once('markets/TestMarket.php');
-require_once('markets/Poloniex.php');
-require_once('markets/Gemini.php');
-require_once('markets/Kraken.php');
-require_once('markets/EthereumAccount.php');
-require_once('markets/BitcoinAddress.php');
-require_once('markets/Gdax.php');
-require_once('markets/EthereumClassicAccount.php');
-require_once('markets/Yunbi.php');
+use CryptoMarket\AccountLoader\ConfigData;
+use CryptoMarket\AccountLoader\IAccountLoader;
 
-class ConfigAccountLoader implements IAccountLoader{
+use CryptoMarket\Account\BitcoinAddress;
+use CryptoMarket\Account\EthereumAccount;
+use CryptoMarket\Account\EthereumClassicAccount;
+use CryptoMarket\Account\JPMChase;
 
+use CryptoMarket\Exchange\ExchangeName;
+use CryptoMarket\Exchange\Bitfinex;
+use CryptoMarket\Exchange\Bitstamp;
+use CryptoMarket\Exchange\BitVC;
+use CryptoMarket\Exchange\Btce;
+use CryptoMarket\Exchange\Cryptsy;
+use CryptoMarket\Exchange\Gdax;
+use CryptoMarket\Exchange\Gemini;
+use CryptoMarket\Exchange\Kraken;
+use CryptoMarket\Exchange\Poloniex;
+use CryptoMarket\Exchange\Yunbi;
+
+class ConfigAccountLoader implements IAccountLoader
+{
     protected $accountsConfig;
 
-    public function __construct(){
-        global $accountsConfig;
-
-        $this->accountsConfig = $accountsConfig;
+    public function __construct()
+    {
+        $this->accountsConfig = ConfigData::accountsConfig;
     }
 
     function getConfig()
@@ -39,108 +40,110 @@ class ConfigAccountLoader implements IAccountLoader{
     {
         $accounts = array();
 
-        foreach($this->accountsConfig as $mktName => $mktConfig){
+        foreach ($this->accountsConfig as $mktName => $mktConfig){
 
             //filter to specific exchanges, as specified
-            if($mktFilter != null)
-                if(!in_array($mktName, $mktFilter))
+            if ($mktFilter != null) {
+                if (!in_array($mktName, $mktFilter)) {
                     continue;
+                }
+            }
 
-            switch($mktName)
+            switch ($mktName)
             {
-                case Exchange::Bitstamp:
-                    $accounts[Exchange::Bitstamp] = new Bitstamp(
+                case ExchangeName::Bitstamp:
+                    $accounts[ExchangeName::Bitstamp] = new Bitstamp(
                         $mktConfig['custid'],
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );
                     break;
 
-                case Exchange::Btce:
-                    $accounts[Exchange::Btce] = new Btce(
+                case ExchangeName::Btce:
+                    $accounts[ExchangeName::Btce] = new Btce(
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );
                     break;
 
-                case Exchange::Cryptsy:
-                    $accounts[Exchange::Cryptsy] = new Cryptsy(
+                case ExchangeName::Cryptsy:
+                    $accounts[ExchangeName::Cryptsy] = new Cryptsy(
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );
                     break;
 
-                case Exchange::JPMChase:
-                    $accounts[Exchange::JPMChase] = new JPMChase(
+                case ExchangeName::JPMChase:
+                    $accounts[ExchangeName::JPMChase] = new JPMChase(
                         $mktConfig['name'],
                         $mktConfig['username'],
                         $mktConfig['password']
                     );
                     break;
 
-                case Exchange::Bitfinex:
-                    $accounts[Exchange::Bitfinex] = new Bitfinex(
+                case ExchangeName::Bitfinex:
+                    $accounts[ExchangeName::Bitfinex] = new Bitfinex(
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );
                     break;
 
-                case Exchange::Gemini:
-                    $accounts[Exchange::Gemini] = new Gemini(
+                case ExchangeName::Gemini:
+                    $accounts[ExchangeName::Gemini] = new Gemini(
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );
                     break;
 
-                case Exchange::BitVC:
-                    $accounts[Exchange::BitVC] = new BitVC(
+                case ExchangeName::BitVC:
+                    $accounts[ExchangeName::BitVC] = new BitVC(
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );
                     break;
 
-                case Exchange::Poloniex:
-                    $accounts[Exchange::Poloniex] = new Poloniex(
+                case ExchangeName::Poloniex:
+                    $accounts[ExchangeName::Poloniex] = new Poloniex(
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );
                     break;
 
-                case Exchange::Kraken:
-                    $accounts[Exchange::Kraken] = new Kraken(
+                case ExchangeName::Kraken:
+                    $accounts[ExchangeName::Kraken] = new Kraken(
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );
                     break;
 
-                case Exchange::Ethereum:
-                    $accounts[Exchange::Ethereum] = new EthereumAccount(
+                case ExchangeName::Ethereum:
+                    $accounts[ExchangeName::Ethereum] = new EthereumAccount(
                         $mktConfig['address']
                     );
                     break;
 
-                case Exchange::EthereumClassic:
-                    $accounts[Exchange::EthereumClassic] = new EthereumClassicAccount(
+                case ExchangeName::EthereumClassic:
+                    $accounts[ExchangeName::EthereumClassic] = new EthereumClassicAccount(
                         $mktConfig['address']
                     );
                     break;
 
-                case Exchange::Bitcoin:
-                    $accounts[Exchange::Bitcoin] = new BitcoinAddress(
+                case ExchangeName::Bitcoin:
+                    $accounts[ExchangeName::Bitcoin] = new BitcoinAddress(
                         $mktConfig['address']
                     );
                     break;
 
-                case Exchange::Gdax:
-                    $accounts[Exchange::Gdax] = new Gdax(
+                case ExchangeName::Gdax:
+                    $accounts[ExchangeName::Gdax] = new Gdax(
                         $mktConfig['key'],
                         $mktConfig['secret'],
                         $mktConfig['passphrase']
                     );
                     break;
 
-                case Exchange::Yunbi:
-                    $accounts[Exchange::Yunbi] = new Yunbi(
+                case ExchangeName::Yunbi:
+                    $accounts[ExchangeName::Yunbi] = new Yunbi(
                         $mktConfig['key'],
                         $mktConfig['secret']
                     );
@@ -151,3 +154,4 @@ class ConfigAccountLoader implements IAccountLoader{
         return $accounts;
     }
 }
+

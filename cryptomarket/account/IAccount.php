@@ -1,7 +1,8 @@
 <?php
 
-interface IAccount {
+namespace CryptoMarket\Account;
 
+interface IAccount {
     /**
      * @return String Simple name for account or account provider
      */
@@ -12,5 +13,5 @@ interface IAccount {
      */
     public function balances();
     public function transactions();
-
 }
+

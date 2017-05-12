@@ -5,9 +5,22 @@
  * Time: 3:00 PM
  */
 
-require_once('ConfigAccountLoader.php');
+namespace CryptoMarket\Exchange\Tests;
 
-class YunbiTest extends PHPUnit_Framework_TestCase {
+require_once __DIR__ . '/../../../vendor/autoload.php';
+
+use PHPUnit\Framework\TestCase;
+
+use CryptoMarket\AccountLoader\ConfigAccountLoader;
+
+use CryptoMarket\Exchange\ExchangeName;
+use CryptoMarket\Exchange\Yunbi;
+
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\TradingRole;
+
+class YunbiTest extends TestCase
+{
     protected $mkt;
 
     public function setUp()
@@ -15,12 +28,9 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
         error_reporting(error_reporting() ^ E_NOTICE);
 
         $cal = new ConfigAccountLoader();
-        $exchanges = $cal->getAccounts(array(Exchange::Yunbi));
-        $this->mkt = $exchanges[Exchange::Yunbi];
-
-        if ($this->mkt instanceof ILifecycleHandler) {
-            $this->mkt->init();
-        }
+        $exchanges = $cal->getAccounts(array(ExchangeName::Yunbi));
+        $this->mkt = $exchanges[ExchangeName::Yunbi];
+        $this->mkt->init();
     }
 
     public function testSetup()
@@ -65,6 +75,7 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
 
         foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
             $ticker = $this->mkt->ticker($pair);
+            var_dump($ticker);
             $precision = $this->mkt->quotePrecision($pair, $ticker->bid);
             $this->assertEquals($ticker->bid, round($ticker->bid, $precision), "Failure on $ticker->currencyPair");
             $this->assertEquals($ticker->ask, round($ticker->ask, $precision), "Failure on $ticker->currencyPair");
@@ -114,7 +125,7 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
                 $ret = $this->mkt->buy($pair, $minOrder, $price);
                 // should throw an error, so we never get here
                 $this->assertTrue(false, "Pair $pair has a smaller minimum order than expected, hardcoded value needs to change");
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
             }
         }
     }
@@ -131,7 +142,7 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
         $ret = $this->mkt->balances();
 
         $currencies = $this->mkt->supportedCurrencies();
-        foreach($ret as $curr=>$amt) {
+        foreach ($ret as $curr=>$amt) {
             $this->assertTrue(in_array($curr, $currencies));
             $this->assertTrue(is_numeric($amt));
         }
@@ -169,7 +180,7 @@ class YunbiTest extends PHPUnit_Framework_TestCase {
 
         $yesterday = time() - 60 * 60 * 24;
         $ret = $this->mkt->trades(CurrencyPair::BTCCNY, $yesterday);
-        foreach($ret as $trade) {
+        foreach ($ret as $trade) {
             $this->assertEquals($trade->currencyPair, CurrencyPair::BTCCNY);
             $this->assertTrue($trade->timestamp->toDateTime()->getTimestamp() > $yesterday);
         }

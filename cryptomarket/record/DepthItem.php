@@ -2,11 +2,10 @@
 
 namespace CryptoMarket\Record;
 
-class OrderExecution {
-    public $txid;
-    public $orderId;
-    public $quantity;
+class DepthItem{
     public $price;
+    public $quantity;
     public $timestamp;
+    public $stats;
 }
 

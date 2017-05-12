@@ -1,14 +1,30 @@
 <?php
 
-require_once(__DIR__.'/../curl_helper.php');
-require_once(__DIR__.'/../mongo_helper.php');
-require_once('BaseExchange.php');
-
 /**
  * User: jon
  * Date: 1/29/2017
  * Time: 11:00 AM
  */
+
+namespace CryptoMarket\Exchange;
+
+use CryptoMarket\Helper\CurlHelper;
+use CryptoMarket\Helper\MongoHelper;
+
+use CryptoMarket\Exchange\BaseExchange;
+use CryptoMarket\Exchange\ILifecycleHandler;
+
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\FeeSchedule;
+use CryptoMarket\Record\OrderBook;
+use CryptoMarket\Record\OrderExecution;
+use CryptoMarket\Record\OrderType;
+use CryptoMarket\Record\Ticker;
+use CryptoMarket\Record\Trade;
+use CryptoMarket\Record\TradingRole;
+
+use MongoDB\BSON\UTCDateTime;
+
 class Yunbi extends BaseExchange implements ILifecycleHandler
 {
     private $key;
@@ -25,8 +41,8 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
 
     function init()
     {
-        $pairs = curl_query($this->getApiUrl() . 'markets.json');
-        foreach($pairs as $pairInfo){
+        $pairs = CurlHelper::query($this->getApiUrl() . 'markets.json');
+        foreach ($pairs as $pairInfo){
             try{
                 $base = CurrencyPair::Base($pairInfo['name']);
                 $quote = CurrencyPair::Quote($pairInfo['name']);
@@ -34,7 +50,8 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
 
                 $this->supportedPairs[] = $pair;
                 $this->productId[$pair] = $pairInfo['id'];
-            }catch(Exception $e){}
+            } catch (\Exception $e) {
+            }
         }
 
         $this->basePrecisions[CurrencyPair::BTCCNY] = 4;
@@ -143,7 +160,7 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
 
     public function ticker($pair)
     {
-        $raw = curl_query($this->getApiUrl() . 'tickers/' . $this->productId[$pair] . '.json');
+        $raw = CurlHelper::query($this->getApiUrl() . 'tickers/' . $this->productId[$pair] . '.json');
 
         $t = new Ticker();
         $t->currencyPair = $pair;
@@ -157,7 +174,7 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
 
     public function trades($pair, $sinceDate)
     {
-        $tradeList = curl_query($this->getApiUrl() . 'trades.json?market=' . $this->productId[$pair]);
+        $tradeList = CurlHelper::query($this->getApiUrl() . 'trades.json?market=' . $this->productId[$pair]);
 
         $ret = array();
 
@@ -171,7 +188,7 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
             $t->tradeId = $raw['id'];
             $t->price = floatval($raw['price']);
             $t->quantity = floatval($raw['volume']);
-            $t->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate($raw['at']));
+            $t->timestamp = new UTCDateTime(MongoHelper::mongoDateOfPHPDate($raw['at']));
             $t->orderType = ($raw['side'] == 'up')? OrderType::BUY : OrderType::SELL;
 
             $ret[] = $t;
@@ -182,7 +199,7 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
 
     public function depth($currencyPair)
     {
-        $raw = curl_query($this->getApiUrl() . 'depth.json?market=' . $this->productId[$currencyPair]);
+        $raw = CurlHelper::query($this->getApiUrl() . 'depth.json?market=' . $this->productId[$currencyPair]);
 
         // asks are returned in descending order, so reverse them
         $rev_asks = array_reverse($raw['asks']);
@@ -243,7 +260,7 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
             if (isset($os['state'])) {
                 return $os['state'] === 'wait';
             }
-        } catch (Exception $e) {}
+        } catch (\Exception $e) {}
         return false;
     }
 
@@ -271,7 +288,7 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
             $exec->orderId = $orderId;
             $exec->quantity = $fill['volume'];
             $exec->price = $fill['price'];
-            $exec->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(strtotime($fill['at'])));
+            $exec->timestamp = new UTCDateTime(MongoHelper::mongoDateOfPHPDate(strtotime($fill['at'])));
 
             $ret[] = $exec;
         }
@@ -299,7 +316,7 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
             $td->orderType = ($order['side'] == 'ask')? OrderType::SELL : OrderType::BUY;
             $td->price = $order['avg_price'];
             $td->quantity = $order['volume'];
-            $td->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(strtotime($order['created_at'])));
+            $td->timestamp = new UTCDateTime(MongoHelper::mongoDateOfPHPDate(strtotime($order['created_at'])));
 
             $ret[] = $td;
         }
@@ -397,9 +414,10 @@ class Yunbi extends BaseExchange implements ILifecycleHandler
 
         $body_string .= '&signature='.$sig;
         if ($method=='GET') {
-            return curl_query($this->getApiUrl() . $request_path.'?'.$body_string);
+            return CurlHelper::query($this->getApiUrl() . $request_path.'?'.$body_string);
         } else {
-            return curl_query($this->getApiUrl() . $request_path, $body_string, array(), $method);
+            return CurlHelper::query($this->getApiUrl() . $request_path, $body_string, array(), $method);
         }
     }
 }
+

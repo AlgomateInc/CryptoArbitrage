@@ -1,5 +1,7 @@
 <?php
 
+namespace CryptoMarket\Exchange;
+
 require_once('BtceStyleExchange.php');
 require_once('ILifecycleHandler.php');
 
@@ -244,3 +246,4 @@ class Cryptsy extends BtceStyleExchange implements ILifecycleHandler{
 
     }
 }
+

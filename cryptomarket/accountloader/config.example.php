@@ -13,7 +13,7 @@ $log4phpConfig = array(
             'layout' => array(
                 'class' => 'LoggerLayoutPattern',
                 'params' => array(
-                    'conversionPattern' => '%date %logger %-5level %msg %exception'
+                    'conversionPattern' => '%date %logger %-5level %msg %e\Exception'
                 )
             )
         )

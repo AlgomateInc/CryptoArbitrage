@@ -1,9 +1,27 @@
 <?php
 
-require_once(__DIR__.'/../curl_helper.php');
-require_once(__DIR__.'/../mongo_helper.php');
-require_once('BaseExchange.php');
-require_once('NonceFactory.php');
+namespace CryptoMarket\Exchange;
+
+use CryptoMarket\Helper\CurlHelper;
+use CryptoMarket\Helper\MongoHelper;
+
+use CryptoMarket\Exchange\BaseExchange;
+use CryptoMarket\Exchange\ILifecycleHandler;
+use CryptoMarket\Exchange\NonceFactory;
+
+use CryptoMarket\Record\Currency;
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\FeeSchedule;
+use CryptoMarket\Record\FeeScheduleItem;
+use CryptoMarket\Record\FeeScheduleList;
+use CryptoMarket\Record\OrderBook;
+use CryptoMarket\Record\OrderExecution;
+use CryptoMarket\Record\OrderType;
+use CryptoMarket\Record\Ticker;
+use CryptoMarket\Record\Trade;
+use CryptoMarket\Record\TradingRole;
+
+use MongoDB\BSON\UTCDateTime;
 
 /**
  * Created by PhpStorm.
@@ -11,6 +29,7 @@ require_once('NonceFactory.php');
  * Date: 1/15/2016
  * Time: 3:51 AM
  */
+
 class Kraken extends BaseExchange implements ILifecycleHandler
 {
     private $key;
@@ -72,12 +91,12 @@ class Kraken extends BaseExchange implements ILifecycleHandler
             if (isset($krakenPairInfo['fees_maker'])) {
                 $numElements = count($krakenPairInfo['fees']);
                 if (count($krakenPairInfo['fees_maker']) != $numElements) {
-                    throw new Exception("Pair $pair has different fee structure for maker and taker, investigate.");
+                    throw new \Exception("Pair $pair has different fee structure for maker and taker, investigate.");
                 }
                 for($i = 0; $i < $numElements; $i++) {
                     $curVolume = $krakenPairInfo['fees'][$i][0];
                     if ($curVolume != $krakenPairInfo['fees_maker'][$i][0]) {
-                        throw new Exception("Pair $pair has different fee band for maker and taker, investigate.");
+                        throw new \Exception("Pair $pair has different fee band for maker and taker, investigate.");
                     }
                     $nextVolume = INF;
                     if ($i + 1 < $numElements) {
@@ -209,15 +228,15 @@ class Kraken extends BaseExchange implements ILifecycleHandler
 
     private function publicQuery($endpoint, $post_data = null, $headers = array())
     {
-        $res = curl_query($this->getApiUrl() . 'public/' . $endpoint, $post_data, $headers);
+        $res = CurlHelper::query($this->getApiUrl() . 'public/' . $endpoint, $post_data, $headers);
 
         return $this->assertSuccessResponse($res);
     }
 
     private function privateQuery($endpoint, $request = array())
     {
-        if(!$this->nonceFactory instanceof NonceFactory)
-            throw new Exception('No way to get nonce!');
+        if (!$this->nonceFactory instanceof NonceFactory)
+            throw new \Exception('No way to get nonce!');
 
         $request['nonce'] = strval($this->nonceFactory->get());
 
@@ -232,7 +251,7 @@ class Kraken extends BaseExchange implements ILifecycleHandler
             'API-Sign: ' . base64_encode($sign)
         );
 
-        $res = curl_query($this->getApiUrl() . 'private/' . $endpoint, $postdata, $headers);
+        $res = CurlHelper::query($this->getApiUrl() . 'private/' . $endpoint, $postdata, $headers);
 
         return $this->assertSuccessResponse($res);
     }
@@ -240,7 +259,7 @@ class Kraken extends BaseExchange implements ILifecycleHandler
     protected function assertSuccessResponse($response)
     {
         if(count($response['error']) > 0)
-            throw new Exception(json_encode($response['error']));
+            throw new \Exception(json_encode($response['error']));
 
         return $response['result'];
     }
@@ -301,7 +320,7 @@ class Kraken extends BaseExchange implements ILifecycleHandler
             $t->tradeId = sha1($raw[0] . $raw[1] . $raw[2]);
             $t->price = (float) $raw[0];
             $t->quantity = (float) $raw[1];
-            $t->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate($raw[2]));
+            $t->timestamp = new UTCDateTime(MongoHelper::mongoDateOfPHPDate($raw[2]));
             $t->orderType = ($raw[3] == 'b')? OrderType::BUY : OrderType::SELL;
 
             $ret[] = $t;
@@ -420,3 +439,4 @@ class Kraken extends BaseExchange implements ILifecycleHandler
         return $orderResponse['txid'][0];
     }
 }
+

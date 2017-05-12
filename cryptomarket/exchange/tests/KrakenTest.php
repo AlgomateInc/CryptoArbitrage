@@ -6,22 +6,31 @@
  * Time: 11:21 PM
  */
 
-require_once('ConfigAccountLoader.php');
-require_once('MongoAccountLoader.php');
+namespace CryptoMarket\Exchange\Tests;
 
-class KrakenTest extends PHPUnit_Framework_TestCase {
+require_once __DIR__ . '/../../../vendor/autoload.php';
 
+use PHPUnit\Framework\TestCase;
+
+use CryptoMarket\AccountLoader\ConfigAccountLoader;
+
+use CryptoMarket\Exchange\ExchangeName;
+use CryptoMarket\Exchange\Kraken;
+
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\TradingRole;
+
+class KrakenTest extends TestCase
+{
     protected $mkt;
     public function setUp()
     {
         error_reporting(error_reporting() ^ E_NOTICE);
 
         $cal = new ConfigAccountLoader();
-        $exchanges = $cal->getAccounts(array(Exchange::Kraken));
-        $this->mkt = $exchanges[Exchange::Kraken];
-
-        if($this->mkt instanceof ILifecycleHandler)
-            $this->mkt->init();
+        $exchanges = $cal->getAccounts(array(ExchangeName::Kraken));
+        $this->mkt = $exchanges[ExchangeName::Kraken];
+        $this->mkt->init();
     }
 
     public function testFees()
@@ -55,6 +64,7 @@ class KrakenTest extends PHPUnit_Framework_TestCase {
             $this->assertEquals($ticker->bid, round($ticker->bid, $precision));
             $this->assertEquals($ticker->ask, round($ticker->ask, $precision));
             $this->assertEquals($ticker->last, round($ticker->last, $precision));
+            sleep(1);
         }
     }
 
@@ -68,6 +78,7 @@ class KrakenTest extends PHPUnit_Framework_TestCase {
             $minOrder = $this->mkt->minimumOrderSize($pair, $price);
             $ret = $this->mkt->buy($pair, $minOrder, $price);
             $this->checkAndCancelOrder($ret);
+            sleep(1);
         }
     }
 
@@ -90,7 +101,7 @@ class KrakenTest extends PHPUnit_Framework_TestCase {
 
     public function testOrderSubmitAndCancel()
     {
-        if($this->mkt instanceof Kraken)
+        if ($this->mkt instanceof Kraken)
         {
             $res = $this->mkt->sell(CurrencyPair::ETHBTC, 0.1, 1);
             $this->checkAndCancelOrder($res);
@@ -99,18 +110,13 @@ class KrakenTest extends PHPUnit_Framework_TestCase {
 
     public function testOrderSubmitAndExecute()
     {
-        if($this->mkt instanceof Kraken)
+        if ($this->mkt instanceof Kraken)
         {
             $res = $this->mkt->sell(CurrencyPair::ETHBTC, 0.1, 0.001);
-
             $this->assertTrue($this->mkt->isOrderAccepted($res));
-
             sleep(1);
-
             $this->assertFalse($this->mkt->isOrderOpen($res));
-
             $oe = $this->mkt->getOrderExecutions($res);
-
             $this->assertTrue(count($oe) > 1);
         }
     }

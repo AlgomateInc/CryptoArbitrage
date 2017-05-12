@@ -6,11 +6,22 @@
  * Time: 12:15 PM
  */
 
-require_once('ConfigAccountLoader.php');
-require_once('MongoAccountLoader.php');
+namespace CryptoMarket\Exchange\Tests;
 
-class PoloniexTest extends PHPUnit_Framework_TestCase {
+require_once __DIR__ . '/../../../vendor/autoload.php';
 
+use PHPUnit\Framework\TestCase;
+
+use CryptoMarket\AccountLoader\ConfigAccountLoader;
+
+use CryptoMarket\Exchange\ExchangeName;
+use CryptoMarket\Exchange\Poloniex;
+
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\TradingRole;
+
+class PoloniexTest extends TestCase
+{
     protected $mkt;
     public function setUp()
     {
@@ -18,8 +29,8 @@ class PoloniexTest extends PHPUnit_Framework_TestCase {
         date_default_timezone_set('UTC');
 
         $cal = new ConfigAccountLoader();
-        $exchanges = $cal->getAccounts(array(Exchange::Poloniex));
-        $this->mkt = $exchanges[Exchange::Poloniex];
+        $exchanges = $cal->getAccounts(array(ExchangeName::Poloniex));
+        $this->mkt = $exchanges[ExchangeName::Poloniex];
     }
 
     public function testMinOrderSize()
@@ -39,6 +50,7 @@ class PoloniexTest extends PHPUnit_Framework_TestCase {
             $minOrder = $this->mkt->minimumOrderSize($pair, $price);
             $ret = $this->mkt->buy($pair, $minOrder, $price);
             $this->checkAndCancelOrder($ret);
+            sleep(1);
         }
     }
 
@@ -61,7 +73,7 @@ class PoloniexTest extends PHPUnit_Framework_TestCase {
 
     public function testBalances()
     {
-        if($this->mkt instanceof Poloniex)
+        if ($this->mkt instanceof Poloniex)
         {
             $ret = $this->mkt->balances();
 
@@ -104,7 +116,7 @@ class PoloniexTest extends PHPUnit_Framework_TestCase {
 
     public function testBuyOrderSubmission()
     {
-        if($this->mkt instanceof Poloniex)
+        if ($this->mkt instanceof Poloniex)
         {
             $response = $this->mkt->buy(CurrencyPair::XCPBTC, 1, 0.0001);
             $this->checkAndCancelOrder($response);
@@ -113,7 +125,7 @@ class PoloniexTest extends PHPUnit_Framework_TestCase {
 
     public function testSellOrderSubmission()
     {
-        if($this->mkt instanceof Poloniex)
+        if ($this->mkt instanceof Poloniex)
         {
             $response = $this->mkt->sell(CurrencyPair::XCPBTC, 1, 1000);
             $this->checkAndCancelOrder($response);
@@ -122,7 +134,7 @@ class PoloniexTest extends PHPUnit_Framework_TestCase {
 
     public function testOrderExecutions()
     {
-        if($this->mkt instanceof Poloniex)
+        if ($this->mkt instanceof Poloniex)
         {
             $response = $this->mkt->buy(CurrencyPair::XCPBTC, 1, 1);
             $oe = $this->mkt->getOrderExecutions($response);
@@ -134,7 +146,7 @@ class PoloniexTest extends PHPUnit_Framework_TestCase {
 
     public function testMyTrades()
     {
-        if($this->mkt instanceof Poloniex)
+        if ($this->mkt instanceof Poloniex)
         {
             $res = $this->mkt->tradeHistory(50);
             $this->assertNotNull($res);
@@ -143,7 +155,7 @@ class PoloniexTest extends PHPUnit_Framework_TestCase {
 
     public function testPublicTrades()
     {
-        if($this->mkt instanceof Poloniex)
+        if ($this->mkt instanceof Poloniex)
         {
             $res = $this->mkt->trades(CurrencyPair::XCPBTC, time()-600);
             $this->assertNotNull($res);
@@ -152,7 +164,7 @@ class PoloniexTest extends PHPUnit_Framework_TestCase {
 
     private function checkAndCancelOrder($response)
     {
-        if(!$this->mkt instanceof Poloniex)
+        if (!$this->mkt instanceof Poloniex)
             return;
 
         $this->assertNotNull($response);

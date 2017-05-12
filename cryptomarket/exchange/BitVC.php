@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: Marko
  * Date: 12/8/2014
  * Time: 12:12 PM
  */
+
+namespace CryptoMarket\Exchange;
 
 require_once(__DIR__.'/../curl_helper.php');
 require_once('BaseExchange.php');
@@ -104,7 +107,7 @@ class BitVC extends BaseExchange implements IMarginExchange{
     public function ticker($pair)
     {
         if($pair != CurrencyPair::BTCCNY)
-            throw new InvalidArgumentException("Bad currency pair specified for market: $pair");
+            throw new \InvalidArgumentException("Bad currency pair specified for market: $pair");
 
         $raw = curl_query($this->getFuturesMarketApiUrl());
 
@@ -121,7 +124,7 @@ class BitVC extends BaseExchange implements IMarginExchange{
     public function depth($currencyPair)
     {
         if($currencyPair != CurrencyPair::BTCCNY)
-            throw new InvalidArgumentException("Bad currency pair specified for market: $currencyPair");
+            throw new \InvalidArgumentException("Bad currency pair specified for market: $currencyPair");
 
         $raw = curl_query('http://market.bitvc.com/futures/depths_btc_week.js');
 
@@ -213,3 +216,4 @@ class BitVC extends BaseExchange implements IMarginExchange{
         return array();
     }
 }
+

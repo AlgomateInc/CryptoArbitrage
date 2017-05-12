@@ -1,12 +1,19 @@
 <?php
 
-require_once ('MultiSourcedAccount.php');
 /**
  * Created by PhpStorm.
  * User: marko_000
  * Date: 2/2/2016
  * Time: 5:21 AM
  */
+
+namespace CryptoMarket\Account;
+
+use CryptoMarket\Account\MultiSourcedAccount;
+use CryptoMarket\Exchange\ExchangeName;
+use CryptoMarket\Helper\CurlHelper;
+use CryptoMarket\Record\Currency;
+
 class BitcoinAddress extends MultiSourcedAccount
 {
     private $address;
@@ -21,7 +28,7 @@ class BitcoinAddress extends MultiSourcedAccount
 
     public function Name()
     {
-        return Exchange::Bitcoin;
+        return ExchangeName::Bitcoin;
     }
 
     public function transactions()
@@ -39,12 +46,12 @@ class BitcoinAddress extends MultiSourcedAccount
         return array(
             function ($addr)
             {
-                $raw = curl_query("https://blockchain.info/rawaddr/$addr?limit=0");
+                $raw = CurlHelper::query("https://blockchain.info/rawaddr/$addr?limit=0&format=json");
                 return $raw['final_balance'] / pow(10, 8);
             },
             function ($addr)
             {
-                $raw = curl_query("https://blockexplorer.com/api/addr/$addr?noTxList=1");
+                $raw = CurlHelper::query("https://blockexplorer.com/api/addr/$addr?noTxList=1");
                 return $raw['balance'];
             }
         );
@@ -55,3 +62,4 @@ class BitcoinAddress extends MultiSourcedAccount
         return Currency::BTC;
     }
 }
+

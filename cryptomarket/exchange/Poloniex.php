@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: marko_000
@@ -6,10 +7,30 @@
  * Time: 7:46 PM
  */
 
-require_once(__DIR__.'/../mongo_helper.php');
+namespace CryptoMarket\Exchange;
 
-class Poloniex extends BaseExchange {
+use CryptoMarket\Helper\CurlHelper;
+use CryptoMarket\Helper\MongoHelper;
 
+use CryptoMarket\Exchange\BaseExchange;
+use CryptoMarket\Exchange\NonceFactory;
+
+use CryptoMarket\Record\Currency;
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\FeeSchedule;
+use CryptoMarket\Record\FeeScheduleItem;
+use CryptoMarket\Record\FeeScheduleList;
+use CryptoMarket\Record\OrderBook;
+use CryptoMarket\Record\OrderExecution;
+use CryptoMarket\Record\OrderType;
+use CryptoMarket\Record\Ticker;
+use CryptoMarket\Record\Trade;
+use CryptoMarket\Record\TradingRole;
+
+use MongoDB\BSON\UTCDateTime;
+
+class Poloniex extends BaseExchange
+{
     protected $trading_url = "https://poloniex.com/tradingApi";
     protected $public_url = "https://poloniex.com/public";
 
@@ -138,7 +159,7 @@ class Poloniex extends BaseExchange {
     public function ticker($pair)
     {
         $mktPairName = $this->getCurrencyPairName($pair);
-        $prices = curl_query($this->public_url.'?command=returnTicker');
+        $prices = CurlHelper::query($this->public_url.'?command=returnTicker');
 
         $t = new Ticker();
         $t->currencyPair = $pair;
@@ -154,7 +175,7 @@ class Poloniex extends BaseExchange {
     {
         $mktPairName = $this->getCurrencyPairName($pair);
 
-        $trades = curl_query($this->public_url.'?command=returnTradeHistory&currencyPair='. $mktPairName .
+        $trades = CurlHelper::query($this->public_url.'?command=returnTradeHistory&currencyPair='. $mktPairName .
             '&start=' . $sinceDate . '&end=' . time());
 
         $ret = array();
@@ -169,7 +190,7 @@ class Poloniex extends BaseExchange {
             $t->orderType = mb_strtoupper($raw['type']);
 
             $dt = new DateTime($raw['date']);
-            $t->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate($dt->getTimestamp()));
+            $t->timestamp = new UTCDateTime(MongoHelper::mongoDateOfPHPDate($dt->getTimestamp()));
 
             $ret[] = $t;
         }
@@ -180,7 +201,7 @@ class Poloniex extends BaseExchange {
     public function depth($currencyPair)
     {
         $mktPairName = $this->getCurrencyPairName($currencyPair);
-        $rawBook = curl_query($this->public_url.'?command=returnOrderBook&currencyPair='. $mktPairName);
+        $rawBook = CurlHelper::query($this->public_url.'?command=returnOrderBook&currencyPair='. $mktPairName);
         return new OrderBook($rawBook);
     }
 
@@ -330,7 +351,7 @@ class Poloniex extends BaseExchange {
 
     private function query(array $req = array()) {
         if(!$this->nonceFactory instanceof NonceFactory)
-            throw new Exception('No way to get nonce!');
+            throw new \Exception('No way to get nonce!');
 
         $req['nonce'] = $this->nonceFactory->get();
 
@@ -344,13 +365,13 @@ class Poloniex extends BaseExchange {
             'Sign: '.$sign,
         );
 
-        return curl_query($this->trading_url, $post_data, $headers);
+        return CurlHelper::query($this->trading_url, $post_data, $headers);
     }
 
     private function getCurrencyPairName($pair)
     {
         if(!$this->supports($pair))
-            throw new UnexpectedValueException('Currency pair not supported');
+            throw new \UnexpectedValueException('Currency pair not supported');
 
         $base = CurrencyPair::Base($pair);
         $quote = CurrencyPair::Quote($pair);
@@ -369,6 +390,7 @@ class Poloniex extends BaseExchange {
         if($quote == Currency::BTC)
             return $quote . '_' . $base;
 
-        throw new Exception('Unsupported pair');
+        throw new \Exception('Unsupported pair');
     }
 }
+

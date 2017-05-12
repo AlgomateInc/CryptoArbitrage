@@ -1,10 +1,13 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: marko_000
  * Date: 6/2/2015
  * Time: 10:12 PM
  */
+
+namespace CryptoMarket\Exchange;
 
 class StaticMarket extends BaseExchange
 {
@@ -171,3 +174,4 @@ class StaticMarket extends BaseExchange
     }
 
 }
+

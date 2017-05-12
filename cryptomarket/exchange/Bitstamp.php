@@ -1,10 +1,30 @@
 <?php
 
-require_once(__DIR__.'/../config.php');
-require_once(__DIR__.'/../curl_helper.php');
-require_once(__DIR__.'/../OrderExecution.php');
-require_once('BaseExchange.php');
-require_once('NonceFactory.php');
+namespace CryptoMarket\Exchange;
+
+use CryptoMarket\Helper\CurlHelper;
+use CryptoMarket\Helper\MongoHelper;
+
+use CryptoMarket\Exchange\BaseExchange;
+use CryptoMarket\Exchange\ExchangeName;
+use CryptoMarket\Exchange\ILifecycleHandler;
+use CryptoMarket\Exchange\NonceFactory;
+
+use CryptoMarket\Record\Currency;
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\FeeSchedule;
+use CryptoMarket\Record\FeeScheduleItem;
+use CryptoMarket\Record\FeeScheduleList;
+use CryptoMarket\Record\OrderBook;
+use CryptoMarket\Record\OrderExecution;
+use CryptoMarket\Record\OrderType;
+use CryptoMarket\Record\Ticker;
+use CryptoMarket\Record\Trade;
+use CryptoMarket\Record\TradingRole;
+use CryptoMarket\Record\Transaction;
+use CryptoMarket\Record\TransactionType;
+
+use MongoDB\BSON\UTCDateTime;
 
 class Bitstamp extends BaseExchange implements ILifecycleHandler
 {
@@ -146,7 +166,7 @@ class Bitstamp extends BaseExchange implements ILifecycleHandler
     {
         $this->assertValidCurrencyPair($currencyPair);
 
-        $bstamp_depth = curl_query($this->getAPIUrl() . 'order_book/' . $this->productIds[$currencyPair]);
+        $bstamp_depth = CurlHelper::query($this->getAPIUrl() . 'order_book/' . $this->productIds[$currencyPair]);
 
         $bstamp_depth['bids'] = array_slice($bstamp_depth['bids'],0,150);
         $bstamp_depth['asks'] = array_slice($bstamp_depth['asks'],0,150);
@@ -158,7 +178,7 @@ class Bitstamp extends BaseExchange implements ILifecycleHandler
     {
         $this->assertValidCurrencyPair($pair);
 
-        $raw = curl_query($this->getAPIUrl() . 'ticker/' . $this->productIds[$pair]);
+        $raw = CurlHelper::query($this->getAPIUrl() . 'ticker/' . $this->productIds[$pair]);
 
         $t = new Ticker();
         $t->currencyPair = $pair;
@@ -179,7 +199,7 @@ class Bitstamp extends BaseExchange implements ILifecycleHandler
     private function assertValidCurrencyPair($pair)
     {
         if (false == in_array($pair, $this->supportedCurrencyPairs())) {
-            throw new UnexpectedValueException("Currency pair not supported");
+            throw new \UnexpectedValueException("Currency pair not supported");
         }
     }
 
@@ -292,7 +312,7 @@ class Bitstamp extends BaseExchange implements ILifecycleHandler
     private function assertSuccessResponse($response)
     {
         if(isset($response['error']))
-            throw new Exception($response['error']);
+            throw new \Exception($response['error']);
 
         return $response;
     }
@@ -310,7 +330,7 @@ class Bitstamp extends BaseExchange implements ILifecycleHandler
                 continue;
 
             $tx = new Transaction();
-            $tx->exchange = Exchange::Bitstamp;
+            $tx->exchange = ExchangeName::Bitstamp;
             $tx->id = $btx['id'];
             $tx->type = ($btx['type'] == 0)? TransactionType::Credit : TransactionType::Debit;
             foreach ($this->supportedCurrencies() as $curr) {
@@ -320,7 +340,7 @@ class Bitstamp extends BaseExchange implements ILifecycleHandler
                     $tx->amount = $amount;
                 }
             }
-            $tx->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(strtotime($btx['datetime'])));
+            $tx->timestamp = new UTCDateTime(MongoHelper::mongoDateOfPHPDate(strtotime($btx['datetime'])));
 
             $ret[] = $tx;
         }
@@ -381,7 +401,7 @@ class Bitstamp extends BaseExchange implements ILifecycleHandler
     private function authQuery($method, array $req = array()) 
     {
         if (!$this->nonceFactory instanceof NonceFactory)
-            throw new Exception('No way to get nonce!');
+            throw new \Exception('No way to get nonce!');
 
         // generate the POST data string
         $req['key'] = $this->key;
@@ -389,7 +409,7 @@ class Bitstamp extends BaseExchange implements ILifecycleHandler
         $req['signature'] = mb_strtoupper(hash_hmac("sha256", $req['nonce'] . $this->custid . $this->key, $this->secret));
         $post_data = http_build_query($req, '', '&');
 
-        return curl_query($this->getAPIUrl() . $method . '/', $post_data);
+        return CurlHelper::query($this->getAPIUrl() . $method . '/', $post_data);
     }
 
     public function getOrderID($orderResponse)

@@ -1,14 +1,14 @@
 <?php
 
-require_once(__DIR__.'/../config.php');
-require_once(__DIR__.'/../curl_helper.php');
-require_once('BaseExchange.php');
-require_once(__DIR__.'/../OrderExecution.php');
-require_once('NonceFactory.php');
+namespace CryptoMarket\Exchange;
 
+use CryptoMarket\Helper\CurlHelper;
 
-abstract class BtceStyleExchange extends BaseExchange {
+use CryptoMarket\Exchange\BaseExchange;
+use CryptoMarket\Exchange\NonceFactory;
 
+abstract class BtceStyleExchange extends BaseExchange
+{
     abstract protected function getAuthQueryUrl();
 
     private $key;
@@ -25,14 +25,14 @@ abstract class BtceStyleExchange extends BaseExchange {
     protected function assertSuccessResponse($response)
     {
         if($response['success'] != 1)
-            throw new Exception($response['error']);
+            throw new \Exception($response['error']);
 
         return $response['return'];
     }
 
     protected function authQuery($method, array $req = array()) {
         if(!$this->nonceFactory instanceof NonceFactory)
-            throw new Exception('No way to get nonce!');
+            throw new \Exception('No way to get nonce!');
 
         $req['method'] = $method;
         $req['nonce'] = $this->nonceFactory->get();
@@ -48,7 +48,8 @@ abstract class BtceStyleExchange extends BaseExchange {
             'Key: '.$this->key,
         );
 
-        return curl_query($this->getAuthQueryUrl(), $post_data, $headers);
+        return CurlHelper::query($this->getAuthQueryUrl(), $post_data, $headers);
     }
 
 } 
+

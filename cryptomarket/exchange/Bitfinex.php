@@ -1,10 +1,27 @@
 <?php
 
-require_once(__DIR__.'/../curl_helper.php');
-require_once(__DIR__.'/../mongo_helper.php');
-require_once('BaseExchange.php');
-require_once('NonceFactory.php');
-require_once('IMarginExchange.php');
+namespace CryptoMarket\Exchange;
+
+use CryptoMarket\Helper\CurlHelper;
+use CryptoMarket\Helper\MongoHelper;
+
+use CryptoMarket\Exchange\BaseExchange;
+use CryptoMarket\Exchange\ILifecycleHandler;
+use CryptoMarket\Exchange\IMarginExchange;
+use CryptoMarket\Exchange\NonceFactory;
+
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\FeeSchedule;
+use CryptoMarket\Record\FeeScheduleItem;
+use CryptoMarket\Record\FeeScheduleList;
+use CryptoMarket\Record\OrderBook;
+use CryptoMarket\Record\OrderExecution;
+use CryptoMarket\Record\OrderType;
+use CryptoMarket\Record\Ticker;
+use CryptoMarket\Record\Trade;
+use CryptoMarket\Record\TradingRole;
+
+use MongoDB\BSON\UTCDateTime;
 
 class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandler{
 
@@ -26,15 +43,15 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
 
     function init()
     {
-        $pairs = curl_query($this->getApiUrl() . 'symbols');
+        $pairs = CurlHelper::query($this->getApiUrl() . 'symbols');
         foreach($pairs as $pair){
             try{
                 CurrencyPair::Base($pair); //checks the format of the pair to make sure it is standard
                 $this->supportedPairs[] = mb_strtoupper($pair);
-            }catch(Exception $e){}
+            }catch(\Exception $e){}
         }
 
-        $minOrderSizes = curl_query($this->getApiUrl() . 'symbols_details');
+        $minOrderSizes = CurlHelper::query($this->getApiUrl() . 'symbols_details');
         foreach($minOrderSizes as $symbolDetail){
             $pairName = mb_strtoupper($symbolDetail['pair']);
             if($this->supports($pairName)) {
@@ -124,7 +141,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
 
     public function ticker($pair)
     {
-        $raw = curl_query($this->getApiUrl() . 'pubticker' . '/' . $pair);
+        $raw = CurlHelper::query($this->getApiUrl() . 'pubticker' . '/' . $pair);
 
         $t = new Ticker();
         $t->currencyPair = $pair;
@@ -138,7 +155,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
 
     public function trades($pair, $sinceDate)
     {
-        $tradeList = curl_query($this->getApiUrl() . 'trades' . '/' . $pair . "?timestamp=$sinceDate");
+        $tradeList = CurlHelper::query($this->getApiUrl() . 'trades' . '/' . $pair . "?timestamp=$sinceDate");
 
         $ret = array();
 
@@ -149,7 +166,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
             $t->tradeId = $raw['tid'];
             $t->price = (float) $raw['price'];
             $t->quantity = (float) $raw['amount'];
-            $t->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate($raw['timestamp']));
+            $t->timestamp = new UTCDateTime(MongoHelper::mongoDateOfPHPDate($raw['timestamp']));
             $t->orderType = mb_strtoupper($raw['type']);
 
             $ret[] = $t;
@@ -160,7 +177,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
 
     public function depth($currencyPair)
     {
-        $raw = curl_query($this->getApiUrl() . 'book' . '/' . $currencyPair .
+        $raw = CurlHelper::query($this->getApiUrl() . 'book' . '/' . $currencyPair .
             '?limit_bids=150&limit_asks=150&group=1');
 
         $book = new OrderBook($raw);
@@ -318,7 +335,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
 
     protected function authQuery($method, array $req = array()) {
         if(!$this->nonceFactory instanceof NonceFactory)
-            throw new Exception('No way to get nonce!');
+            throw new \Exception('No way to get nonce!');
 
         $req['request'] = '/v1/'.$method;
         $req['nonce'] = strval($this->nonceFactory->get());
@@ -329,7 +346,7 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
         // generate the extra headers
         $headers = $this->generateHeaders($this->key, $payload, $sign);
 
-        return curl_query($this->getApiUrl() . $method, $payload, $headers);
+        return CurlHelper::query($this->getApiUrl() . $method, $payload, $headers);
     }
 
     protected function generateHeaders($key, $payload, $signature)
@@ -372,3 +389,4 @@ class Bitfinex extends BaseExchange implements IMarginExchange, ILifecycleHandle
         return $orderResponse['order_id'];
     }
 }
+

@@ -1,6 +1,8 @@
 <?php
 
-require_once('IAccount.php');
+namespace CryptoMarket\Exchange;
+
+use CryptoMarket\Account\IAccount;
 
 interface IExchange extends IAccount
 {
@@ -144,4 +146,3 @@ interface IExchange extends IAccount
     public function getOrderID($orderResponse);
 }
 
-?>

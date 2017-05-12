@@ -6,6 +6,11 @@
  * Date: 11/20/2016
  * Time: 2:30 AM
  */
+
+namespace CryptoMarket\Account;
+
+use CryptoMarket\Account\IAccount;
+
 abstract class MultiSourcedAccount implements IAccount
 {
     protected abstract function getAddressList();
@@ -15,7 +20,7 @@ abstract class MultiSourcedAccount implements IAccount
     public function balances()
     {
         $totalBalance = 0;
-        foreach($this->getAddressList() as $addy)
+        foreach ($this->getAddressList() as $addy)
         {
             $addy = trim($addy);
 
@@ -34,16 +39,18 @@ abstract class MultiSourcedAccount implements IAccount
         static $marketIndex = 0;
 
         $val = null;
-        for($i = 0;$i < count($functions);$i++)
+        for ($i = 0; $i < count($functions); $i++) {
             try{
                 $val = $functions[($marketIndex + $i) % count($functions)]($addr);
                 $marketIndex = ($marketIndex + 1) % count($functions);
                 break;
-            }catch(Exception $e){}
+            } catch (\Exception $e) {}
+        }
 
-        if($val == null)
-            throw new Exception("Could not get address balance for $addr");
+        if ($val === null)
+            throw new \Exception("Could not get address balance for $addr");
 
         return $val;
     }
 }
+

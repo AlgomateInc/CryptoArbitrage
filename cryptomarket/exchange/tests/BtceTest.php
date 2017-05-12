@@ -6,18 +6,30 @@
  * Time: 9:43 PM
  */
 
-require_once('ConfigAccountLoader.php');
+namespace CryptoMarket\Exchange\Tests;
 
-class BtceTest extends PHPUnit_Framework_TestCase {
+require_once __DIR__ . '/../../../vendor/autoload.php';
 
+use PHPUnit\Framework\TestCase;
+
+use CryptoMarket\AccountLoader\ConfigAccountLoader;
+
+use CryptoMarket\Exchange\ExchangeName;
+use CryptoMarket\Exchange\Btce;
+
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\TradingRole;
+
+class BtceTest extends TestCase
+{
     protected $mkt;
     public function setUp()
     {
         error_reporting(error_reporting() ^ E_NOTICE);
 
         $cal = new ConfigAccountLoader();
-        $exchanges = $cal->getAccounts(array(Exchange::Btce));
-        $this->mkt = $exchanges[Exchange::Btce];
+        $exchanges = $cal->getAccounts(array(ExchangeName::Btce));
+        $this->mkt = $exchanges[ExchangeName::Btce];
         $this->mkt->init();
     }
 
@@ -38,6 +50,7 @@ class BtceTest extends PHPUnit_Framework_TestCase {
         foreach ($this->mkt->supportedCurrencyPairs() as $pair) {
             $this->assertEquals(0.2, $this->mkt->currentTradingFee($pair, TradingRole::Taker));
             $this->assertEquals(0.2, $this->mkt->currentTradingFee($pair, TradingRole::Maker));
+            sleep(1);
         }
     }
 
@@ -50,6 +63,7 @@ class BtceTest extends PHPUnit_Framework_TestCase {
             $this->assertNotNull($taker);
             $maker = $schedule->getFee($pair, TradingRole::Maker);
             $this->assertNotNull($maker);
+            sleep(1);
         }
     }
 
@@ -62,6 +76,7 @@ class BtceTest extends PHPUnit_Framework_TestCase {
             $this->assertEquals($ticker->bid, round($ticker->bid, $precision));
             $this->assertEquals($ticker->ask, round($ticker->ask, $precision));
             $this->assertEquals($ticker->last, round($ticker->last, $precision));
+            sleep(1);
         }
     }
 
@@ -75,6 +90,7 @@ class BtceTest extends PHPUnit_Framework_TestCase {
             $minOrder = $this->mkt->minimumOrderSize($pair, $price);
             $ret = $this->mkt->buy($pair, $minOrder, $price);
             $this->checkAndCancelOrder($ret);
+            sleep(1);
         }
     }
 
@@ -92,6 +108,7 @@ class BtceTest extends PHPUnit_Framework_TestCase {
 
             $ret = $this->mkt->buy($pair, $minOrder, $price);
             $this->checkAndCancelOrder($ret);
+            sleep(1);
         }
     }
 
@@ -99,28 +116,24 @@ class BtceTest extends PHPUnit_Framework_TestCase {
     {
         $res = $this->mkt->sell(CurrencyPair::BTCEUR, 0.01, 3000.12345);
         $this->assertTrue($this->mkt->isOrderAccepted($res));
-
+        sleep(1);
         $cres = $this->mkt->cancel($res['return']['order_id']);
-        $this->assertTrue($cres['success'] == 1);
     }
 
     public function testOrderSubmitAndCancel()
     {
-        if($this->mkt instanceof Btce)
+        if ($this->mkt instanceof Btce)
         {
             $res = $this->mkt->buy(CurrencyPair::BTCUSD, 1, 1);
-
             $this->assertTrue($this->mkt->isOrderAccepted($res));
-
+            sleep(1);
             $cres = $this->mkt->cancel($res['return']['order_id']);
-
-            $this->assertTrue($cres['success'] == 1);
         }
     }
 
     public function testTradeHistory()
     {
-        if($this->mkt instanceof Btce)
+        if ($this->mkt instanceof Btce)
         {
             $res = $this->mkt->tradeHistory(5);
 

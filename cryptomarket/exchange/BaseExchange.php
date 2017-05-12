@@ -1,6 +1,11 @@
 <?php
 
-require_once('IExchange.php');
+namespace CryptoMarket\Exchange;
+
+use CryptoMarket\Exchange\IExchange;
+
+use CryptoMarket\Record\Currency;
+use CryptoMarket\Record\CurrencyPair;
 
 abstract class BaseExchange implements IExchange {
 

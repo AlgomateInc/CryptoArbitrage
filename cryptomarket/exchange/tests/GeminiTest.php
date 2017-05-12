@@ -1,22 +1,35 @@
 <?php
+
 /**
  * User: Jon
  * Date: 3/10/2017
  * Time: 16:00
  */
 
-require_once('ConfigAccountLoader.php');
+namespace CryptoMarket\Exchange\Tests;
 
-class GeminiTest extends PHPUnit_Framework_TestCase {
+require_once __DIR__ . '/../../../vendor/autoload.php';
 
+use PHPUnit\Framework\TestCase;
+
+use CryptoMarket\AccountLoader\ConfigAccountLoader;
+
+use CryptoMarket\Exchange\ExchangeName;
+use CryptoMarket\Exchange\Gemini;
+
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\TradingRole;
+
+class GeminiTest extends TestCase
+{
     protected $mkt;
     public function setUp()
     {
         error_reporting(error_reporting() ^ E_NOTICE);
 
         $cal = new ConfigAccountLoader();
-        $exchanges = $cal->getAccounts(array(Exchange::Gemini));
-        $this->mkt = $exchanges[Exchange::Gemini];
+        $exchanges = $cal->getAccounts(array(ExchangeName::Gemini));
+        $this->mkt = $exchanges[ExchangeName::Gemini];
         $this->mkt->init();
     }
 
@@ -30,7 +43,7 @@ class GeminiTest extends PHPUnit_Framework_TestCase {
 
     public function testBalances()
     {
-        if($this->mkt instanceof Gemini)
+        if ($this->mkt instanceof Gemini)
         {
             $ret = $this->mkt->balances();
             $this->assertNotEmpty($ret);
@@ -76,6 +89,7 @@ class GeminiTest extends PHPUnit_Framework_TestCase {
 
             $ret = $this->mkt->buy($pair, $minOrder, $price);
             $this->checkAndCancelOrder($ret);
+            sleep(1);
         }
     }
 
@@ -98,7 +112,7 @@ class GeminiTest extends PHPUnit_Framework_TestCase {
 
     public function testBuyOrderSubmission()
     {
-        if($this->mkt instanceof Gemini)
+        if ($this->mkt instanceof Gemini)
         {
             $response = $this->mkt->buy(CurrencyPair::BTCUSD, 1, 1);
             $this->checkAndCancelOrder($response);
@@ -107,7 +121,7 @@ class GeminiTest extends PHPUnit_Framework_TestCase {
 
     public function testSellOrderSubmission()
     {
-        if($this->mkt instanceof Gemini)
+        if ($this->mkt instanceof Gemini)
         {
             $response = $this->mkt->sell(CurrencyPair::BTCUSD, 1, 10000);
             $this->checkAndCancelOrder($response);
@@ -116,7 +130,7 @@ class GeminiTest extends PHPUnit_Framework_TestCase {
 
     public function testMyTrades()
     {
-        if($this->mkt instanceof Gemini)
+        if ($this->mkt instanceof Gemini)
         {
             $res = $this->mkt->tradeHistory(50);
             $this->assertNotNull($res);
@@ -125,7 +139,7 @@ class GeminiTest extends PHPUnit_Framework_TestCase {
 
     public function testPublicTrades()
     {
-        if($this->mkt instanceof Gemini)
+        if ($this->mkt instanceof Gemini)
         {
             $res = $this->mkt->trades(CurrencyPair::BTCUSD, time()-60);
             $this->assertNotNull($res);

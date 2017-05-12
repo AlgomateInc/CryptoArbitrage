@@ -1,5 +1,15 @@
 <?php
 
+namespace CryptoMarket\Account;
+
+use CryptoMarket\Account\IAccount;
+use CryptoMarket\Exchange\ExchangeName;
+use CryptoMarket\Helper\MongoHelper;
+use CryptoMarket\Record\Currency;
+use CryptoMarket\Record\Transaction;
+
+use MongoDB\BSON\UTCDateTime;
+
 require_once(__DIR__.'/../mongo_helper.php');
 
 class JPMChase implements IAccount
@@ -23,7 +33,7 @@ class JPMChase implements IAccount
     {
         $conn = imap_open($this->mailbox, $this->user, $this->pwd);
         if($conn === false)
-            throw new Exception('Could not connect to IMAP server for JPM balance');
+            throw new \Exception('Could not connect to IMAP server for JPM balance');
 
         //get the most recent message to parse
         $msgCount = imap_num_msg($conn);
@@ -52,7 +62,7 @@ class JPMChase implements IAccount
             //parse message text for balance
             $res = preg_match('/End of day balance: \$([\d,.]+)/', $bodyText, $matches);
             if($res != 1)
-                throw new Exception('Message retrieved does not contain account balance: ' . $bodyText);
+                throw new \Exception('Message retrieved does not contain account balance: ' . $bodyText);
 
             $balances[Currency::USD] = str_replace(',','', $matches[1]);
         }
@@ -81,7 +91,7 @@ class JPMChase implements IAccount
     {
         $res = preg_match('/Here is your Chase account summary for (.+)\./', $bodyText, $matches);
         if($res != 1)
-            throw new Exception('Message retrieved does not contain date: ' . $bodyText);
+            throw new \Exception('Message retrieved does not contain date: ' . $bodyText);
 
         return strtotime($matches[1]);
     }
@@ -97,12 +107,12 @@ class JPMChase implements IAccount
         for($i = 1; $i < count($matches); $i++)
         {
             $tx = new Transaction();
-            $tx->exchange = Exchange::JPMChase;
+            $tx->exchange = ExchangeName::JPMChase;
             $tx->id = hash('sha256',$bodyText . $updateDate . $txType . $i);
             $tx->type = $txType;
             $tx->currency = Currency::USD;
             $tx->amount = str_replace(',','', $matches[$i]);
-            $tx->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate($updateDate));
+            $tx->timestamp = new UTCDateTime(MongoHelper::mongoDateOfPHPDate($updateDate));
 
             $txList[] = $tx;
         }
@@ -111,4 +121,3 @@ class JPMChase implements IAccount
     }
 }
 
-?>

@@ -5,9 +5,22 @@
  * Time: 8:00 PM
  */
 
-require_once('ConfigAccountLoader.php');
+namespace CryptoMarket\Exchange\Tests;
 
-class GdaxTest extends PHPUnit_Framework_TestCase {
+require_once __DIR__ . '/../../../vendor/autoload.php';
+
+use PHPUnit\Framework\TestCase;
+
+use CryptoMarket\AccountLoader\ConfigAccountLoader;
+
+use CryptoMarket\Exchange\ExchangeName;
+use CryptoMarket\Exchange\Gdax;
+
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\TradingRole;
+
+class GdaxTest extends TestCase
+{
     protected $mkt;
 
     public function setUp()
@@ -15,12 +28,9 @@ class GdaxTest extends PHPUnit_Framework_TestCase {
         error_reporting(error_reporting() ^ E_NOTICE);
 
         $cal = new ConfigAccountLoader();
-        $exchanges = $cal->getAccounts(array(Exchange::Gdax));
-        $this->mkt = $exchanges[Exchange::Gdax];
-
-        if ($this->mkt instanceof ILifecycleHandler) {
-            $this->mkt->init();
-        }
+        $exchanges = $cal->getAccounts(array(ExchangeName::Gdax));
+        $this->mkt = $exchanges[ExchangeName::Gdax];
+        $this->mkt->init();
     }
 
     public function testSupportedPairs()
@@ -77,6 +87,7 @@ class GdaxTest extends PHPUnit_Framework_TestCase {
 
             $ret = $this->mkt->buy($pair, $minOrder, $price);
             $this->checkAndCancelOrder($ret);
+            sleep(1);
         }
     }
 
@@ -96,9 +107,13 @@ class GdaxTest extends PHPUnit_Framework_TestCase {
     {
         $this->assertTrue($this->mkt instanceof Gdax);
         $this->assertEquals(0.10, $this->mkt->tradingFee(CurrencyPair::BTCEUR, TradingRole::Taker, 10000.0));
+        sleep(1);
         $this->assertEquals(0.25, $this->mkt->tradingFee(CurrencyPair::BTCEUR, TradingRole::Taker, 10.0));
+        sleep(1);
         $this->assertEquals(0.0, $this->mkt->tradingFee(CurrencyPair::BTCUSD, TradingRole::Maker, 0.1));
+        sleep(1);
         $this->assertEquals(0.0, $this->mkt->tradingFee(CurrencyPair::BTCUSD, TradingRole::Maker, 100000000000.0));
+        sleep(1);
         $this->assertEquals(0.30, $this->mkt->tradingFee(CurrencyPair::ETHUSD, TradingRole::Taker, 10.0));
     }
 
@@ -106,7 +121,9 @@ class GdaxTest extends PHPUnit_Framework_TestCase {
     {
         $this->assertTrue($this->mkt instanceof Gdax);
         $this->assertEquals(0.25, $this->mkt->currentTradingFee(CurrencyPair::BTCEUR, TradingRole::Taker));
+        sleep(1);
         $this->assertEquals(0.0, $this->mkt->currentTradingFee(CurrencyPair::BTCUSD, TradingRole::Maker));
+        sleep(1);
         $this->assertEquals(0.30, $this->mkt->currentTradingFee(CurrencyPair::ETHUSD, TradingRole::Taker));
     }
 
@@ -170,3 +187,4 @@ class GdaxTest extends PHPUnit_Framework_TestCase {
         $this->assertFalse($this->mkt->isOrderOpen($response));
     }
 }
+

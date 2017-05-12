@@ -6,6 +6,8 @@
  * Time: 10:19 AM
  */
 
+namespace CryptoMarket\Exchange;
+
 class NonceFactory {
 
     private $noncetime;
@@ -20,3 +22,4 @@ class NonceFactory {
         return $this->noncetime + (++$this->nonce);
     }
 } 
+

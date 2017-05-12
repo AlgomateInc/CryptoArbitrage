@@ -6,6 +6,21 @@
  * Date: 10/5/2015
  * Time: 10:46 PM
  */
+
+namespace CryptoMarket\Exchange;
+
+use CryptoMarket\Helper\CurlHelper;
+
+use CryptoMarket\Exchange\Bitfinex;
+
+use CryptoMarket\Record\Currency;
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\FeeSchedule;
+use CryptoMarket\Record\FeeScheduleItem;
+use CryptoMarket\Record\FeeScheduleList;
+use CryptoMarket\Record\Ticker;
+use CryptoMarket\Record\TradingRole;
+
 class Gemini extends Bitfinex
 {
     public function Name()
@@ -36,7 +51,7 @@ class Gemini extends Bitfinex
         $ethFeeSchedule->push(new FeeScheduleItem(1.0e5, 2.0e5, 0.25, 0.05));
         $ethFeeSchedule->push(new FeeScheduleItem(2.0e5, INF, 0.15, 0.00));
 
-        $pairs = curl_query($this->getApiUrl() . 'symbols');
+        $pairs = CurlHelper::query($this->getApiUrl() . 'symbols');
         foreach($pairs as $geminiPair){
             $pair = mb_strtoupper($geminiPair);
             $this->supportedPairs[] = $pair;
@@ -47,7 +62,7 @@ class Gemini extends Bitfinex
             } else if ($base == Currency::ETH) {
                 $this->feeSchedule->addPairFees($pair, $ethFeeSchedule);
             } else {
-                throw new Exception("Unsupported pair $pair in Gemini, implement proper fee structure");
+                throw new \Exception("Unsupported pair $pair in Gemini, implement proper fee structure");
             }
         }
 
@@ -135,7 +150,7 @@ class Gemini extends Bitfinex
 
     public function ticker($pair)
     {
-        $tickerData = curl_query($this->getApiUrl() . 'pubticker' . '/' . $pair);
+        $tickerData = CurlHelper::query($this->getApiUrl() . 'pubticker' . '/' . $pair);
 
         $t = new Ticker();
         $t->currencyPair = $pair;
@@ -171,3 +186,4 @@ class Gemini extends Bitfinex
         );
     }
 }
+

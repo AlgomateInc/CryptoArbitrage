@@ -1,10 +1,25 @@
 <?php
 
-require_once(__DIR__.'/../curl_helper.php');
-require_once(__DIR__.'/../mongo_helper.php');
-require_once(__DIR__.'/../OrderExecution.php');
-require_once('BtceStyleExchange.php');
-require_once('ILifecycleHandler.php');
+namespace CryptoMarket\Exchange;
+
+use CryptoMarket\Helper\CurlHelper;
+use CryptoMarket\Helper\MongoHelper;
+
+use CryptoMarket\Exchange\BtceStyleExchange;
+use CryptoMarket\Exchange\ExchangeName;
+use CryptoMarket\Exchange\ILifecycleHandler;
+
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\FeeSchedule;
+use CryptoMarket\Record\OrderBook;
+use CryptoMarket\Record\OrderExecution;
+use CryptoMarket\Record\OrderType;
+use CryptoMarket\Record\Ticker;
+use CryptoMarket\Record\Trade;
+use CryptoMarket\Record\Transaction;
+use CryptoMarket\Record\TransactionType;
+
+use MongoDB\BSON\UTCDateTime;
 
 class Btce extends BtceStyleExchange implements ILifecycleHandler
 {
@@ -25,7 +40,7 @@ class Btce extends BtceStyleExchange implements ILifecycleHandler
     function init()
     {
         $this->feeSchedule = new FeeSchedule();
-        $marketsInfo = curl_query('https://btc-e.com/api/3/info');
+        $marketsInfo = CurlHelper::query('https://btc-e.com/api/3/info');
         foreach($marketsInfo['pairs'] as $pair => $info){
             $pairName = mb_strtoupper(str_replace('_', '', $pair));
             $this->supportedPairs[$pairName] = $pair;
@@ -74,7 +89,7 @@ class Btce extends BtceStyleExchange implements ILifecycleHandler
     public function minimumOrderSize($pair, $pairRate)
     {
         if ($pairRate < $this->minPrices[$pair])
-            throw new UnexpectedValueException('Input rate too low, unacceptable by exchange');
+            throw new \UnexpectedValueException('Input rate too low, unacceptable by exchange');
         return $this->minOrderSizes[$pair];
     }
 
@@ -86,14 +101,14 @@ class Btce extends BtceStyleExchange implements ILifecycleHandler
     private function getCurrencyPairName($pair)
     {
         if(!$this->supports($pair))
-            throw new UnexpectedValueException('Currency pair not supported');
+            throw new \UnexpectedValueException('Currency pair not supported');
 
         return mb_strtolower(CurrencyPair::Base($pair)) . '_' . mb_strtolower(CurrencyPair::Quote($pair));
     }
 
     public function depth($currencyPair)
     {
-        $d = curl_query('https://btc-e.com/api/2/' . $this->getCurrencyPairName($currencyPair) . '/depth');
+        $d = CurlHelper::query('https://btc-e.com/api/2/' . $this->getCurrencyPairName($currencyPair) . '/depth');
 
         return new OrderBook($d);
     }
@@ -102,7 +117,7 @@ class Btce extends BtceStyleExchange implements ILifecycleHandler
     {
         $btcePairName = $this->getCurrencyPairName($pair);
 
-        $rawTick = curl_query("https://btc-e.com/api/2/$btcePairName/ticker");
+        $rawTick = CurlHelper::query("https://btc-e.com/api/2/$btcePairName/ticker");
 
         $t = new Ticker();
         $t->currencyPair = $pair;
@@ -220,7 +235,7 @@ class Btce extends BtceStyleExchange implements ILifecycleHandler
                     continue;
 
                 $tx = new Transaction();
-                $tx->exchange = Exchange::Btce;
+                $tx->exchange = ExchangeName::Btce;
                 $tx->id = $btxid;
                 $tx->type = ($btx['type'] == 1)? TransactionType::Credit: TransactionType::Debit;
                 $tx->currency = $btx['currency'];
@@ -248,12 +263,12 @@ class Btce extends BtceStyleExchange implements ILifecycleHandler
                 continue;
 
             $tx = new Transaction();
-            $tx->exchange = Exchange::Btce;
+            $tx->exchange = ExchangeName::Btce;
             $tx->id = $btxid;
             $tx->type = ($btx['type'] == 1)? TransactionType::Credit: TransactionType::Debit;
             $tx->currency = $btx['currency'];
             $tx->amount = $btx['amount'];
-            $tx->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate($btx['timestamp']));
+            $tx->timestamp = new UTCDateTime(MongoHelper::mongoDateOfPHPDate($btx['timestamp']));
 
             $ret[] = $tx;
         }

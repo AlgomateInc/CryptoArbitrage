@@ -1,13 +1,19 @@
 <?php
 
-require_once ('MultiSourcedAccount.php');
-
 /**
  * Created by PhpStorm.
  * User: marko_000
  * Date: 12/28/2016
  * Time: 11:47 PM
  */
+
+namespace CryptoMarket\Account;
+
+use CryptoMarket\Account\MultiSourcedAccount;
+use CryptoMarket\Exchange\ExchangeName;
+use CryptoMarket\Helper\CurlHelper;
+use CryptoMarket\Record\Currency;
+
 class EthereumClassicAccount extends MultiSourcedAccount
 {
     private $address;
@@ -19,7 +25,7 @@ class EthereumClassicAccount extends MultiSourcedAccount
 
     public function Name()
     {
-        return Exchange::EthereumClassic;
+        return ExchangeName::EthereumClassic;
     }
 
     public function transactions()
@@ -37,12 +43,12 @@ class EthereumClassicAccount extends MultiSourcedAccount
         return array(
             function ($addr)
             {
-                $raw = curl_query('https://etcchain.com/api/v1/getAddressBalance?address=' . trim($addr));
+                $raw = CurlHelper::query('https://etcchain.com/api/v1/getAddressBalance?address=' . trim($addr));
                 return $raw['balance'];
             },
             function ($addr)
             {
-                $raw = curl_query('https://api.gastracker.io/addr/' . trim($addr));
+                $raw = CurlHelper::query('https://api.gastracker.io/addr/' . trim($addr));
                 return $raw['balance']['ether'];
             }
         );
@@ -53,3 +59,4 @@ class EthereumClassicAccount extends MultiSourcedAccount
         return Currency::ETC;
     }
 }
+

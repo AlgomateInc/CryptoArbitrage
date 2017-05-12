@@ -1,13 +1,22 @@
 <?php
 
-require_once('ConfigAccountLoader.php');
 /**
  * Created by PhpStorm.
  * User: marko_000
  * Date: 2/1/2016
  * Time: 4:10 AM
  */
-class EthereumAccountTest extends PHPUnit_Framework_TestCase
+
+namespace CryptoMarket\Account\Tests;
+
+require_once __DIR__ . '/../../../vendor/autoload.php';
+
+use PHPUnit\Framework\TestCase;
+
+use CryptoMarket\Account\EthereumAccount;
+use CryptoMarket\Account\EthereumClassicAccount;
+
+class EthereumAccountTest extends TestCase
 {
     public function testBalances()
     {

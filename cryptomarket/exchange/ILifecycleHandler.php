@@ -1,4 +1,7 @@
 <?php
+
+namespace CryptoMarket\Exchange;
+
 /**
  * Created by PhpStorm.
  * User: Marko
@@ -9,3 +12,4 @@
 interface ILifecycleHandler {
     function init();
 }
+

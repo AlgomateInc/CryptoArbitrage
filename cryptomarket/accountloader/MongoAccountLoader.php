@@ -1,13 +1,14 @@
 <?php
 
-require_once('mongo_helper.php');
+namespace CryptoMarket\AccountLoader;
 
-require_once('config.php');
-require_once('common.php');
-require_once('IAccountLoader.php');
+use CryptoMarket\AccountLoader\ConfigData;
+use CryptoMarket\AccountLoader\IAccountLoader;
 
-class MongoAccountLoader extends ConfigAccountLoader{
+use Mongodb\Client;
 
+class MongoAccountLoader extends ConfigAccountLoader
+{
     private $mongo;
     private $mdb;
 
@@ -16,13 +17,12 @@ class MongoAccountLoader extends ConfigAccountLoader{
     public function __construct($serverName = null){
         parent::__construct();
 
-        global $mongodb_uri, $mongodb_db;
+        $this->mongo = new Client(ConfigData::mongodb_uri);
+        $this->mdb = $this->mongo->selectDatabase(ConfigData::mongodb_db);
 
-        $this->mongo = new MongoDB\Client($mongodb_uri);
-        $this->mdb = $this->mongo->selectDatabase($mongodb_db);
-
-        if($serverName == null)
+        if ($serverName === null) {
             $serverName = gethostname();
+        }
         $this->serverName = $serverName;
     }
 
@@ -35,7 +35,7 @@ class MongoAccountLoader extends ConfigAccountLoader{
 
         //find the config for this server
         $acc = $serverAccounts->findOne(array('ServerName' => $machineName));
-        if($acc == null)
+        if ($acc === null)
             return;
 
         $mktConfig = $acc['ExchangeSettings'];
@@ -61,3 +61,4 @@ class MongoAccountLoader extends ConfigAccountLoader{
         return parent::getAccounts($mktFilter);
     }
 }
+
