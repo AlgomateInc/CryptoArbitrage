@@ -1,5 +1,7 @@
 <?php
 
+use CryptoMarket\Record\OrderBook;
+
 interface IReporter
 {
     public function balance($exchange_name, $currency, $balance);

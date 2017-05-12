@@ -6,6 +6,8 @@
  * Time: 14:19
  */
 
+use CryptoMarket\Record\OrderBook;
+
 require_once('IListener.php');
 
 class SocketReporter implements IReporter, IListener {

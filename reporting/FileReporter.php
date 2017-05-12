@@ -1,5 +1,7 @@
 <?php
 
+use CryptoMarket\Record\OrderBook;
+
 require_once('IReporter.php');
 
 class FileReporter implements IReporter {

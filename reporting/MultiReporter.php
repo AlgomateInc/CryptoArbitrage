@@ -6,6 +6,8 @@
  * Time: 12:03 AM
  */
 
+use CryptoMarket\Record\OrderBook;
+
 require_once('IReporter.php');
 require_once('IStatisticsGenerator.php');
 

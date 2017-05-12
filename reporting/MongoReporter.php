@@ -3,6 +3,7 @@
 require_once('IReporter.php');
 require_once('IStatisticsGenerator.php');
 
+use CryptoMarket\Record\OrderBook;
 use CryptoMarket\Record\Trade;
 use CryptoMarket\Helper\MongoHelper;
 
