@@ -6,6 +6,13 @@
  * Time: 9:34 AM
  */
 
+use CryptoMarket\Exchange\IExchange;
+use CryptoMarket\Record\ActiveOrder;
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\DepthItem;
+use CryptoMarket\Record\OrderBook;
+use CryptoMarket\Record\TradingRole;
+
 require_once('ArbitrageOrder.php');
 require_once(__DIR__ . '/../BaseStrategy.php');
 require_once(__DIR__ . '/../../arbinstructions/ConfigArbInstructionLoader.php');
@@ -79,7 +86,7 @@ class ArbitrageStrategy extends BaseStrategy {
             elseif($inst->buySideRole == TradingRole::Maker && $inst->sellSideRole == TradingRole::Maker)
                 $arbOrder = $this->getOptimalMakerOrder($buyDepth->bids, $sellDepth->asks, $fctr->targetSpreadPct);
             else
-                throw new Exception('Unsupported trading role combination in instructions');
+                throw new \Exception('Unsupported trading role combination in instructions');
 
             //once we find an order that can be placed, we queue it up
             if($arbOrder->quantity > 0){
@@ -119,7 +126,7 @@ class ArbitrageStrategy extends BaseStrategy {
         if($ior != null)
         {
             if(!$ior instanceof ArbitrageOrder)
-                throw new Exception('Arbitrage strategy produced invalid ArbitrageOrder');
+                throw new \Exception('Arbitrage strategy produced invalid ArbitrageOrder');
 
             //get the min order size on the exchanges for this pair
             $minSize = max($buyMarket->minimumOrderSize($inst->currencyPair, $ior->buyLimit),
@@ -205,7 +212,7 @@ class ArbitrageStrategy extends BaseStrategy {
         foreach($depth as $d)
         {
             if(!$d instanceof DepthItem)
-                throw new Exception('Invalid depth type for volume calculation');
+                throw new \Exception('Invalid depth type for volume calculation');
 
             if($d->price >= $lowPx && $d->price <= $highPx)
                 $vol += $d->quantity;
@@ -225,7 +232,7 @@ class ArbitrageStrategy extends BaseStrategy {
         foreach($asks as $askItem){
 
             if(!$askItem instanceof DepthItem)
-                throw new Exception('Invalid order book depth item type');
+                throw new \Exception('Invalid order book depth item type');
 
             $buyPx = $askItem->price;
             $buyQty = $askItem->quantity;
@@ -238,7 +245,7 @@ class ArbitrageStrategy extends BaseStrategy {
             foreach($bids as $bidItem){
 
                 if(!$bidItem instanceof DepthItem)
-                    throw new Exception('Invalid order book depth item type');
+                    throw new \Exception('Invalid order book depth item type');
 
                 $sellPx = $bidItem->price;
                 $sellQty = $bidItem->quantity;
@@ -281,7 +288,7 @@ class ArbitrageStrategy extends BaseStrategy {
 
         foreach($depth as $item){
             if(!$item instanceof DepthItem)
-                throw new Exception('Order book depth not the right type');
+                throw new \Exception('Order book depth not the right type');
 
             $px = $item->price;
             $qty = $item->quantity;

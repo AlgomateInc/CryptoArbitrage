@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/vendor/autoload.php';
+
 require_once('ActionProcess.php');
 require_once('strategy/MarketCommandStrategy.php');
 require_once('trading/ActiveOrderManager.php');

@@ -6,6 +6,8 @@
  * Time: 12:26 AM
  */
 
+use CryptoMarket\Record\ActiveOrder;
+
 require_once('BaseStrategy.php');
 require_once('IStrategyInstructions.php');
 require_once('IStrategyOrder.php');

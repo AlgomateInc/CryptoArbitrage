@@ -6,7 +6,9 @@
  * Time: 1:24 PM
  */
 
-require_once(__DIR__ . '/../../common.php');
+use CryptoMarket\Record\Order;
+use CryptoMarket\Record\OrderType;
+
 require_once(__DIR__ . '/../IStrategyOrder.php');
 
 class ArbitrageOrder implements IStrategyOrder{

@@ -6,6 +6,9 @@
  * Time: 12:48 AM
  */
 
+use CryptoMarket\Record\Order;
+use CryptoMarket\Record\OrderType;
+
 class MarketOrderInstructions implements IStrategyInstructions, IStrategyOrder {
     public $exchange;
     public $currencyPair;

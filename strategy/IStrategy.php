@@ -6,6 +6,8 @@
  * Time: 9:46 AM
  */
 
+use CryptoMarket\Record\ActiveOrder;
+
 interface IStrategy {
     public function getStrategyId();
     public function setStrategyId($id);

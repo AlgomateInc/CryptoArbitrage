@@ -6,10 +6,18 @@
  * Time: 10:12 PM
  */
 
-require_once('BaseExchange.php');
-require_once('NonceFactory.php');
-require_once(__DIR__ . '/../OrderExecution.php');
-require_once(__DIR__ . '/../ConcurrentFile.php');
+use CryptoMarket\Exchange\BaseExchange;
+use CryptoMarket\Exchange\NonceFactory;
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\DepthItem;
+use CryptoMarket\Record\FeeSchedule;
+use CryptoMarket\Record\OrderBook;
+use CryptoMarket\Record\OrderExecution;
+use CryptoMarket\Record\OrderType;
+use CryptoMarket\Record\Ticker;
+use CryptoMarket\Record\Trade;
+
+require_once(__DIR__ . '/../trading/ConcurrentFile.php');
 
 class OrderDepthItem extends DepthItem
 {
@@ -68,7 +76,7 @@ class TestMarket extends BaseExchange
             $ret = call_user_func_array($operation, $arguments);
 
             $this->save();
-        } catch(Exception $e) {
+        } catch(\Exception $e) {
             $this->logger->error('Exception operating on shared file', $e);
         }
         $this->dataStore->unlock();
@@ -152,10 +160,10 @@ class TestMarket extends BaseExchange
         foreach($this->tradeList as $item)
         {
             if(!$item instanceof Trade)
-                throw new Exception();
+                throw new \Exception();
 
             if(!$item->timestamp instanceof MongoDB\BSON\UTCDateTime)
-                throw new Exception();
+                throw new \Exception();
 
             if($item->timestamp->toDateTime()->getTimestamp() > $sinceDate)
                 $ret[] = $item;
@@ -211,7 +219,7 @@ class TestMarket extends BaseExchange
         {
             $item = $crossSide[$i];
             if(!$item instanceof OrderDepthItem)
-                throw new Exception();
+                throw new \Exception();
 
             if($priceComparison($price, $item->price))
                 break;
@@ -269,7 +277,7 @@ class TestMarket extends BaseExchange
             for ($i = 0; $i < count($placeSide); $i++) {
                 $item = $placeSide[$i];
                 if (!$item instanceof DepthItem)
-                    throw new Exception();
+                    throw new \Exception();
 
                 if ($priceComparison($price, $item->price))
                     continue;
@@ -324,7 +332,7 @@ class TestMarket extends BaseExchange
         for ($i = 0; $i < $askCount; $i++) {
             $item = $this->book->asks[$i];
             if(!$item instanceof OrderDepthItem)
-                throw new Exception();
+                throw new \Exception();
             if($item->orderId == $orderId)
                 unset($this->book->asks[$i]);
         }
@@ -334,7 +342,7 @@ class TestMarket extends BaseExchange
         for ($i = 0; $i < $bidCount; $i++) {
             $item = $this->book->bids[$i];
             if(!$item instanceof OrderDepthItem)
-                throw new Exception();
+                throw new \Exception();
             if($item->orderId == $orderId)
                 unset($this->book->bids[$i]);
         }
@@ -365,13 +373,13 @@ class TestMarket extends BaseExchange
         //not the most efficient :-)
         foreach ($this->book->asks as $item) {
             if(!$item instanceof OrderDepthItem)
-                throw new Exception();
+                throw new \Exception();
             if($item->orderId == $orderId)
                 return true;
         }
         foreach ($this->book->bids as $item) {
             if(!$item instanceof OrderDepthItem)
-                throw new Exception();
+                throw new \Exception();
             if($item->orderId == $orderId)
                 return true;
         }

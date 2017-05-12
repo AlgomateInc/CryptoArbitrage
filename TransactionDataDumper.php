@@ -1,5 +1,10 @@
 <?php
 
+require_once __DIR__ . '/vendor/autoload.php';
+
+use CryptoMarket\Exchange\Btce;
+use CryptoMarket\Record\Transaction;
+
 require_once('ActionProcess.php');
 
 class TransactionDataDumper extends ActionProcess {

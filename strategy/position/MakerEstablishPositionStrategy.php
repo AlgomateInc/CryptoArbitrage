@@ -6,6 +6,16 @@
  * Time: 10:47 PM
  */
 
+use CryptoMarket\Exchange\IExchange;
+use CryptoMarket\Record\ActiveOrder;
+use CryptoMarket\Record\Currency;
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\DepthItem;
+use CryptoMarket\Record\Order;
+use CryptoMarket\Record\OrderBook;
+use CryptoMarket\Record\OrderCancel;
+use CryptoMarket\Record\OrderType;
+
 require_once(__DIR__ . '/../BaseStrategy.php');
 require_once(__DIR__ . '/../GenericStrategyOrder.php');
 require_once('InsideOrderInstructions.php');

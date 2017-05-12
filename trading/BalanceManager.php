@@ -6,6 +6,8 @@
  * Time: 10:22 AM
  */
 
+use CryptoMarket\Account\IAccount;
+
 class BalanceManager {
 
     private $reporter;
@@ -34,7 +36,7 @@ class BalanceManager {
         $logger = Logger::getLogger(get_class($this));
 
         if(!$this->reporter instanceof IReporter)
-            throw new Exception('Invalid reporter object');
+            throw new \Exception('Invalid reporter object');
 
         //initialize local data structures
         if(!array_key_exists($mkt->Name(), $this->balances)){

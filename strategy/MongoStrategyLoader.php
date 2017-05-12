@@ -6,16 +6,16 @@
  * Time: 10:54 AM
  */
 
+use CryptoMarket\AccountLoader\ConfigData;
+
 class MongoStrategyLoader implements IStrategyLoader{
 
     private $mongo;
     private $mdb;
 
     public function __construct(){
-        global $mongodb_uri, $mongodb_db;
-
-        $this->mongo = new MongoDB\Client($mongodb_uri);
-        $this->mdb = $this->mongo->selectDatabase($mongodb_db);
+        $this->mongo = new MongoDB\Client(ConfigData::mongodb_uri);
+        $this->mdb = $this->mongo->selectDatabase(ConfigData::mongodb_db);
     }
 
     public function load()

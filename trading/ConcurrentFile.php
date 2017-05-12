@@ -18,7 +18,7 @@ class ConcurrentFile {
 
         $this->sharedFile = fopen($fileName, 'c+');
         if($this->sharedFile === FALSE)
-            throw new Exception('Could not open shared file!');
+            throw new \Exception('Could not open shared file!');
     }
 
     function __destruct()
@@ -42,7 +42,7 @@ class ConcurrentFile {
                     $data = unserialize(trim($str));
             }
 
-        }catch (Exception $e){
+        }catch (\Exception $e){
             $this->logger->error('Exception reading trade data from shared file', $e);
         }
         $this->unlock();
@@ -59,9 +59,9 @@ class ConcurrentFile {
             rewind($this->sharedFile);
             $ret = fwrite($this->sharedFile, $strData);
             if($ret == FALSE)
-                throw new Exception();
+                throw new \Exception();
             fflush($this->sharedFile);
-        }catch (Exception $e){
+        }catch (\Exception $e){
             $this->logger->error('Exception writing trade data to shared file', $e);
         }
         $this->unlock();

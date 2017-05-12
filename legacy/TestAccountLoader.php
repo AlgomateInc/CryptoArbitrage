@@ -1,6 +1,8 @@
 <?php
 
-require_once('IAccountLoader.php');
+use CryptoMarket\AccountLoader\IAccountLoader;
+
+require_once('TestMarket.php');
 
 /**
  * Created by PhpStorm.

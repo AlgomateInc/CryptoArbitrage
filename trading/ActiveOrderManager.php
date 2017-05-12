@@ -6,6 +6,13 @@
  * Time: 9:33 PM
  */
 
+use CryptoMarket\Exchange\IExchange;
+use CryptoMarket\Record\ActiveOrder;
+use CryptoMarket\Record\Order;
+use CryptoMarket\Record\OrderExecution;
+
+require_once('ConcurrentFile.php');
+
 class ActiveOrderManager {
     private $logger;
 

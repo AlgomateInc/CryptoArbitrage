@@ -189,7 +189,7 @@ class Poloniex extends BaseExchange
             $t->quantity = (float) $raw['amount'];
             $t->orderType = mb_strtoupper($raw['type']);
 
-            $dt = new DateTime($raw['date']);
+            $dt = new \DateTime($raw['date']);
             $t->timestamp = new UTCDateTime(MongoHelper::mongoDateOfPHPDate($dt->getTimestamp()));
 
             $ret[] = $t;

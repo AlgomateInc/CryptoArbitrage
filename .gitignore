@@ -28,6 +28,6 @@ obj/
 _ReSharper*/
 [Tt]est[Rr]esult*
 .idea
-cryptomarket/accountloader/config.php
-action/activeOrders.json
+cryptomarket/accountloader/ConfigData.php
+activeOrders.json
 vendor/

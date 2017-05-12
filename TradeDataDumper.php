@@ -1,5 +1,10 @@
 <?php
 
+require_once __DIR__ . '/vendor/autoload.php';
+
+use CryptoMarket\Exchange\Bitstamp;
+use CryptoMarket\Record\Trade;
+
 require_once('ActionProcess.php');
 
 class TradeDataDumper extends ActionProcess {

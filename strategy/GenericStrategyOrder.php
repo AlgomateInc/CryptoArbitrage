@@ -6,6 +6,10 @@
  * Date: 10/2/2015
  * Time: 11:25 AM
  */
+
+use CryptoMarket\Record\Order;
+use CryptoMarket\Record\OrderCancel;
+
 class GenericStrategyOrder implements IStrategyOrder
 {
     private $orders = array();

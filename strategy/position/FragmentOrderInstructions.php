@@ -6,6 +6,11 @@
  * Time: 11:55 PM
  */
 
+use CryptoMarket\Record\Currency;
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\Order;
+use CryptoMarket\Record\OrderType;
+
 require_once('LimitOrderInstructions.php');
 
 class FragmentOrderInstructions extends LimitOrderInstructions {

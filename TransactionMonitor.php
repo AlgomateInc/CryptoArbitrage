@@ -1,5 +1,10 @@
 <?php
 
+require_once __DIR__ . '/vendor/autoload.php';
+
+use CryptoMarket\Account\IAccount;
+use CryptoMarket\Record\Transaction;
+
 require_once('ActionProcess.php');
 
 class TransactionMonitor extends ActionProcess{

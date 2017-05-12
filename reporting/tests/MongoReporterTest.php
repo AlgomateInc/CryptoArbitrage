@@ -6,17 +6,17 @@
  * Time: 1:43 PM
  */
 
-require_once('ConfigAccountLoader.php');
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+use CryptoMarket\AccountLoader\ConfigData;
 
 class MongoReporterTest extends PHPUnit_Framework_TestCase {
     protected $mongo;
     protected $mdb;
 
     public function setUp(){
-        global $mongodb_uri, $mongodb_db;
-
-        $this->mongo = new MongoDB\Client($mongodb_uri);
-        $this->mdb = $this->mongo->selectDatabase($mongodb_db);
+        $this->mongo = new MongoDB\Client(ConfigData::mongodb_uri);
+        $this->mdb = $this->mongo->selectDatabase(ConfigData::mongodb_db);
     }
 
     public function testFeeReporting()

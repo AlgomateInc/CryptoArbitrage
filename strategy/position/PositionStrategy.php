@@ -6,6 +6,8 @@
  * Time: 11:54 PM
  */
 
+use CryptoMarket\Record\ActiveOrder;
+
 require_once(__DIR__ . '/../IStrategy.php');
 require_once('PositionInstructionLoader.php');
 
