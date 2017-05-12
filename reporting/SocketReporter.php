@@ -47,7 +47,7 @@ class SocketReporter implements IReporter, IListener {
         if($sock === false){
             $err = socket_last_error();
             $errStr = socket_strerror($err);
-            throw new Exception("Socket creation failed with code $err: $errStr");
+            throw new \Exception("Socket creation failed with code $err: $errStr");
         }
 
         //connect to the destination server
@@ -57,7 +57,7 @@ class SocketReporter implements IReporter, IListener {
             $err = socket_last_error($sock);
             socket_close($sock);
             $errStr = socket_strerror($err);
-            throw new Exception("Socket connection failed with code $err: $errStr");
+            throw new \Exception("Socket connection failed with code $err: $errStr");
         }
 
         $this->socket = $sock;
@@ -94,7 +94,7 @@ class SocketReporter implements IReporter, IListener {
         if($this->socket == null){
             try{
                 $this->connect();
-            }catch (Exception $e){
+            }catch (\Exception $e){
                 $this->lastRetryTime = time();
                 $this->reconnectCount++;
                 if($this->reconnectCount > self::RETRY_RECONNECT_COUNT)
@@ -124,7 +124,7 @@ class SocketReporter implements IReporter, IListener {
         if($res === FALSE){
             $err = socket_last_error($this->socket);
             $errStr = socket_strerror($err);
-            throw new Exception("Socket write failed with code $err: $errStr");
+            throw new \Exception("Socket write failed with code $err: $errStr");
         }
     }
 
@@ -135,7 +135,7 @@ class SocketReporter implements IReporter, IListener {
         if($data === FALSE){
             $err = socket_last_error($this->socket);
             $errStr = socket_strerror($err);
-            throw new Exception("Socket read failed with code $err: $errStr");
+            throw new \Exception("Socket read failed with code $err: $errStr");
         }
 
         $msg = json_decode($data, true);

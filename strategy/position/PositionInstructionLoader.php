@@ -21,7 +21,7 @@ class PositionInstructionLoader {
 
         $inst = new $instType;
         if(!$inst instanceof IStrategyInstructions)
-            throw new Exception('Could not load strategy instructions...');
+            throw new \Exception('Could not load strategy instructions...');
 
         $inst->load($data);
 

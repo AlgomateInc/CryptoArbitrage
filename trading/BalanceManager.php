@@ -49,7 +49,7 @@ class BalanceManager {
         $removeMarket = false;
         try{
             $balList = $mkt->balances();
-        }catch(Exception $e){
+        }catch(\Exception $e){
             $logger->warn('Problem getting balances for market: ' . $mkt->Name(), $e);
             $removeMarket = true;
         }

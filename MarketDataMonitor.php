@@ -53,7 +53,7 @@ class MarketDataMonitor extends ActionProcess {
     public function run()
     {
         if(!$this->reporter instanceof IReporter)
-            throw new Exception('Reporter is not the right type!');
+            throw new \Exception('Reporter is not the right type!');
 
         foreach($this->exchanges as $mkt)
         {
@@ -105,7 +105,7 @@ class MarketDataMonitor extends ActionProcess {
                 if($this->activeOrderManager instanceof ActiveOrderManager)
                     $this->activeOrderManager->processActiveOrders();
 
-            }catch(Exception $e){
+            }catch(\Exception $e){
                 $logger->warn('Could not get market data for: ' . $mkt->Name(), $e);
             }
         }

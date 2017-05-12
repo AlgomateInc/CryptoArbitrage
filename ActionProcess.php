@@ -160,7 +160,7 @@ abstract class ActionProcess {
             if ($mkt instanceof ILifecycleHandler) {
                 try {
                     $mkt->init();
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     $failedInitExchanges[$name] = $mkt;
                     $logger->error('Error initializing market: ', $e);
                     continue;
@@ -183,7 +183,7 @@ abstract class ActionProcess {
 
         try{
             $this->processCommandLine();
-        }catch(Exception $e){
+        }catch(\Exception $e){
             $logger->error('Preparation error', $e);
             exit(1);
         }
@@ -218,13 +218,13 @@ abstract class ActionProcess {
 
                 $this->shutdown();
                 $logger->info(get_class($this) . ' - finished');
-            }catch(Exception $e){
+            }catch(\Exception $e){
                 $this->shutdown();
                 $logger->info(get_class($this) . ' - finished');
                 throw $e;
             }
 
-        }catch(Exception $e){
+        }catch(\Exception $e){
             $logger->error('ActionProcess runtime error', $e);
             exit(1);
         }

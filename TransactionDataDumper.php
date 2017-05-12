@@ -27,7 +27,7 @@ class TransactionDataDumper extends ActionProcess {
     public function run()
     {
         if(!$this->reporter instanceof IReporter)
-            throw new Exception('Reporter is not the right type!');
+            throw new \Exception('Reporter is not the right type!');
 
         foreach($this->exchanges as $mkt)
         {
