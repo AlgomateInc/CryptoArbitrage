@@ -76,12 +76,12 @@ if [ "$LIFECYCLE_EVENT" == "AfterInstall" ]
 then
     cd /home/ubuntu/CryptoArbitrage
     echo $PWD
-    cp config.example.php config.php
+    sudo cp cryptomarket/accountloader/ConfigData.example.php cryptomarket/accountloader/ConfigData.php
 
     if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
     then
         # Set the mongodb uri config to 'localhost' for local deployment
-        sed -i "s#mongodb_uri = .*#mongodb_uri = 'mongodb://localhost';#" config.php
+        sed -i "s#mongodb_uri = .*#mongodb_uri = 'mongodb://localhost';#" cryptomarket/accountloader/ConfigData.php
     fi
 
     # Install package libs using dependencies specified in composer files
