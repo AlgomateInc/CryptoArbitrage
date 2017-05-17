@@ -77,7 +77,7 @@ class TestMarket extends BaseExchange
 
             $this->save();
         } catch(\Exception $e) {
-            $this->logger->error('Exception operating on shared file', $e);
+            $this->logger->error('Exception operating on shared file: ' . $e->getMessage());
         }
         $this->dataStore->unlock();
 

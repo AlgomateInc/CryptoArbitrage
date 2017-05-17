@@ -86,6 +86,7 @@ then
 
     # Install package libs using dependencies specified in composer files
     sudo composer install
+    sudo composer dump-autoload -o
 
     # Install the supervisor configuration files
     if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitor" ] || [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]

@@ -142,7 +142,7 @@ class ActiveOrderManager {
 
             $this->saveActiveOrders();
         }catch (\Exception $e){
-            $this->logger->error('Problem processing active orders!', $e);
+            $this->logger->error('Problem processing active orders: ' . $e->getMessage());
         }
         $this->dataStore->unlock();
     }

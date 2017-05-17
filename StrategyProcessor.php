@@ -3,6 +3,7 @@
 require_once __DIR__ . '/vendor/autoload.php';
 
 use CryptoMarket\Account\IAccount;
+use CryptoMarket\AccountLoader\ConfigData;
 use CryptoMarket\Exchange\IExchange;
 use CryptoMarket\Exchange\IMarginExchange;
 use CryptoMarket\Record\ActiveOrder;
@@ -47,8 +48,7 @@ class StrategyProcessor extends ActionProcess {
         if(array_key_exists("mongodb", $options))
             $this->instructionLoader = new MongoStrategyLoader();
         else{
-            global $strategyInstructions;
-            $this->instructionLoader = new ConfigStrategyLoader($strategyInstructions);
+            $this->instructionLoader = new ConfigStrategyLoader(ConfigData::strategyInstructions);
         }
     }
 
@@ -109,7 +109,7 @@ class StrategyProcessor extends ActionProcess {
                     try{
                         $posList = $mkt->positions();
                     }catch(\Exception $e){
-                        $logger->warn('Problem getting positions for market: ' . $mkt->Name(), $e);
+                        $logger->warn('Problem getting positions for market: ' . $mkt->Name() . ', ' . $e->getMessage());
                     }
 
                     foreach($posList as $pos){
@@ -175,7 +175,7 @@ class StrategyProcessor extends ActionProcess {
                         try{
                             $this->executionManager->updateStrategy($iso);
                         }catch (\Exception $e){
-                            $logger->error('Strategy update failed', $e);
+                            $logger->error('Strategy update failed: ' . $e->getMessage());
                         }
                 }
                 continue;
@@ -190,7 +190,7 @@ class StrategyProcessor extends ActionProcess {
                     $this->executionManager->executeStrategy($s, $iso);
                 }
             }catch (\Exception $e){
-                $logger->error('Strategy execution failed', $e);
+                $logger->error('Strategy execution failed: ' . $e->getMessage());
             }
         }
 

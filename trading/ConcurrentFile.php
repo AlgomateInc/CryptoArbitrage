@@ -43,7 +43,7 @@ class ConcurrentFile {
             }
 
         }catch (\Exception $e){
-            $this->logger->error('Exception reading trade data from shared file', $e);
+            $this->logger->error('Exception reading trade data from shared file: ' . $e->getMessage());
         }
         $this->unlock();
 
@@ -62,7 +62,7 @@ class ConcurrentFile {
                 throw new \Exception();
             fflush($this->sharedFile);
         }catch (\Exception $e){
-            $this->logger->error('Exception writing trade data to shared file', $e);
+            $this->logger->error('Exception writing trade data to shared file: ' . $e->getMessage());
         }
         $this->unlock();
     }
