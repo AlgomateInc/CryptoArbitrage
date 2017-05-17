@@ -1,26 +1,30 @@
 <?php
 
-$mongodb_uri = 'mongodb://mongo.caramila.capital';
-$mongodb_db = 'coindata';
+namespace CryptoMarket\AccountLoader;
 
-$log4phpConfig = array(
-    'rootLogger' => array(
-        'appenders' => array('default'),
-    ),
-    'appenders' => array(
-        'default' => array(
-            'class' => 'LoggerAppenderConsole',
-            'layout' => array(
-                'class' => 'LoggerLayoutPattern',
-                'params' => array(
-                    'conversionPattern' => '%date %logger %-5level %msg %e\Exception'
+class ConfigData
+{
+    const mongodb_uri = 'mongodb://mongo.caramila.capital';
+    const mongodb_db = 'coindata';
+
+    const log4phpConfig = array(
+        'rootLogger' => array(
+            'appenders' => array('default'),
+        ),
+        'appenders' => array(
+            'default' => array(
+                'class' => 'LoggerAppenderConsole',
+                'layout' => array(
+                    'class' => 'LoggerLayoutPattern',
+                    'params' => array(
+                        'conversionPattern' => '%date %logger %-5level %msg %e\Exception'
+                    )
                 )
             )
         )
-    )
-);
+    );
 
-$accountsConfig = array(
+    const accountsConfig = array(
 //    'Btce' => array(
 //        'key' => 'BTCEKEY',
 //        'secret' => 'BTCESECRET'
@@ -48,9 +52,9 @@ $accountsConfig = array(
 //        'key' => 'key',
 //        'secret' => 'secret',
 //    ),
-);
+    );
 
-$strategyInstructions = array(
+    const strategyInstructions = array(
 //    array(
 //        'name' => 'strategyclassname',
 //        'active' => true,
@@ -65,5 +69,6 @@ $strategyInstructions = array(
 //            )
 //        )
 //    )
-);
-?>
+    );
+}
+
