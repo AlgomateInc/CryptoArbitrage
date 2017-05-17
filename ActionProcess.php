@@ -10,7 +10,7 @@ use CryptoMarket\Exchange\ILifecycleHandler;
 include_once('log4php/Logger.php');
 Logger::configure(ConfigData::log4phpConfig);
 
-//require_once('legacy/TestAccountLoader.php');
+require_once('legacy/TestAccountLoader.php');
 require_once('reporting/MultiReporter.php');
 require_once('reporting/ConsoleReporter.php');
 require_once('reporting/MongoReporter.php');
@@ -97,7 +97,7 @@ abstract class ActionProcess {
         ////////////////////////////////
         // Load all the accounts data
         if(array_key_exists('testmarket', $options)) {
-            //$this->accountLoader = new TestAccountLoader($this->requiresListener);
+            $this->accountLoader = new TestAccountLoader($this->requiresListener);
         } else {
             if(array_key_exists("mongodb", $options)) {
                 if(array_key_exists('servername', $options) && isset($options['servername']))
