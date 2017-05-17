@@ -2,8 +2,14 @@
 
 namespace CryptoMarket\Exchange;
 
-require_once('BtceStyleExchange.php');
-require_once('ILifecycleHandler.php');
+use CryptoMarket\Helper\CurlHelper;
+use CryptoMarket\Record\Currency;
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\OrderBook;
+use CryptoMarket\Record\OrderExecution;
+use CryptoMarket\Record\Ticker;
+use CryptoMarket\Exchange\BtceStyleExchange;
+use CryptoMarket\Exchange\ILifecycleHandler;
 
 class Cryptsy extends BtceStyleExchange implements ILifecycleHandler{
 
@@ -105,7 +111,7 @@ class Cryptsy extends BtceStyleExchange implements ILifecycleHandler{
 
     public function ticker($pair)
     {
-        $mktResponse = curl_query("http://pubapi.cryptsy.com/api.php?method=singlemarketdata&marketid="
+        $mktResponse = CurlHelper::query("http://pubapi.cryptsy.com/api.php?method=singlemarketdata&marketid="
             . $this->marketIdMapping[$pair]);
 
         $mktInfo = $this->assertSuccessResponse($mktResponse);
