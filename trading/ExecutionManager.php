@@ -6,6 +6,12 @@
  * Time: 9:57 PM
  */
 
+use CryptoMarket\Exchange\IExchange;
+use CryptoMarket\Record\ActiveOrder;
+use CryptoMarket\Record\Order;
+use CryptoMarket\Record\OrderCancel;
+use CryptoMarket\Record\OrderType;
+
 class ExecutionManager {
 
     private $activeOrderManager;
@@ -31,7 +37,7 @@ class ExecutionManager {
         $market = $this->exchanges[$o->exchange];
 
         if(!$market instanceof IExchange)
-            throw new Exception("Cannot trade on non-market: $o->exchange");
+            throw new \Exception("Cannot trade on non-market: $o->exchange");
 
         //abort if this is test only
         if($this->liveTrade != true)
@@ -44,7 +50,7 @@ class ExecutionManager {
         elseif($o->orderType == OrderType::SELL)
             $marketResponse = $market->sell($o->currencyPair, $o->quantity, $o->limit);
         else
-            throw new Exception("Unable to execute order type: $o->orderType");
+            throw new \Exception("Unable to execute order type: $o->orderType");
 
         //get the order id and add to active list if the order was accepted by the market
         $oid = null;
@@ -75,7 +81,7 @@ class ExecutionManager {
     function cancel($marketName, $orderId, $strategyId)
     {
         if(!$this->reporter instanceof IReporter)
-            throw new Exception('Invalid reporter was passed!');
+            throw new \Exception('Invalid reporter was passed!');
 
         $market = $this->exchanges[$marketName];
 
@@ -99,7 +105,7 @@ class ExecutionManager {
         $cancels = $iso->getCancels();
         foreach($cancels as $oc){
             if(!$oc instanceof OrderCancel)
-                throw new Exception('Strategy return invalid cancel order');
+                throw new \Exception('Strategy return invalid cancel order');
 
             $this->cancel($oc->exchange, $oc->orderId, $oc->strategyOrderId);
         }
@@ -109,7 +115,7 @@ class ExecutionManager {
     function executeStrategy(IStrategy $strategy, IStrategyOrder $iso)
     {
         if(!$this->reporter instanceof IReporter)
-            throw new Exception('Invalid reporter was passed!');
+            throw new \Exception('Invalid reporter was passed!');
 
         $strategyOrderId = $this->reporter->strategyOrder($strategy->getStrategyId(),$iso);
 
@@ -120,7 +126,7 @@ class ExecutionManager {
         foreach($orders as $o)
         {
             if(!$o instanceof Order)
-                throw new Exception('Strategy returned invalid order');
+                throw new \Exception('Strategy returned invalid order');
 
             $orderAcceptState[] = $this->execute($o, $strategy, $strategyOrderId);
         }

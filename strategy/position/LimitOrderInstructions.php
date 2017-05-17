@@ -6,6 +6,8 @@
  * Time: 11:55 PM
  */
 
+use CryptoMarket\Record\Order;
+
 require_once('MarketOrderInstructions.php');
 
 class LimitOrderInstructions extends MarketOrderInstructions {

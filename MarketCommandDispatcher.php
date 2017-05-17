@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/vendor/autoload.php';
+
 require_once('ActionProcess.php');
 require_once('strategy/MarketCommandStrategy.php');
 require_once('trading/ActiveOrderManager.php');
@@ -36,13 +38,13 @@ class MarketCommandDispatcher extends ActionProcess {
     public function run()
     {
         if(!$this->listener instanceof IListener)
-            throw new Exception('Listener is not the right type!');
+            throw new \Exception('Listener is not the right type!');
 
         if(!$this->activeOrderManager instanceof ActiveOrderManager)
-            throw new Exception('Wrong active order manager!');
+            throw new \Exception('Wrong active order manager!');
 
         if(!$this->executionManager instanceof ExecutionManager)
-            throw new Exception('Wrong execution manager type!');
+            throw new \Exception('Wrong execution manager type!');
 
         //get the command from the server
         $command = $this->listener->receive();

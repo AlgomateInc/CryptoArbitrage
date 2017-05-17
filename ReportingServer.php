@@ -1,5 +1,9 @@
 <?php
 
+require_once __DIR__ . '/vendor/autoload.php';
+
+use CryptoMarket\Record\OrderBook;
+
 require_once('ActionProcess.php');
 
 /**
@@ -31,23 +35,23 @@ class ReportingServer extends ActionProcess
     {
         $sock = stream_socket_server("udp://$this->address:$this->port", $errNum, $errorMessage, STREAM_SERVER_BIND);
         if ($sock === false)
-            throw new UnexpectedValueException("Could not bind to socket: $errNum $errorMessage");
+            throw new \UnexpectedValueException("Could not bind to socket: $errNum $errorMessage");
         $this->socket = $sock;
     }
 
     public function run()
     {
         if(!$this->reporter instanceof IReporter)
-            throw new Exception();
+            throw new \Exception();
 
         $pkt = stream_socket_recvfrom($this->socket, 150000);
         if($pkt === false)
-            throw new Exception('stream_socket_recvfrom returned false');
+            throw new \Exception('stream_socket_recvfrom returned false');
 
         $pktJson = json_decode($pkt);
         $err = json_last_error();
         if ($err !== JSON_ERROR_NONE)
-            throw new Exception("Invalid data received\nError: $err\nServer returned:\n $pkt");
+            throw new \Exception("Invalid data received\nError: $err\nServer returned:\n $pkt");
 
         $method = $pktJson[0];
         $rawParams = array_slice($pktJson, 1);
@@ -67,7 +71,7 @@ class ReportingServer extends ActionProcess
         {
             case 'depth':
                 if(count($params) != 3)
-                    throw new Exception('Invalid parameters in depth call');
+                    throw new \Exception('Invalid parameters in depth call');
                 $ret = array();
                 $ret[] = $params[0];
                 $ret[] = $params[1];

@@ -1,5 +1,14 @@
 <?php
 
+require_once __DIR__ . '/vendor/autoload.php';
+
+use CryptoMarket\Account\IAccount;
+use CryptoMarket\Exchange\IExchange;
+use CryptoMarket\Exchange\IMarginExchange;
+use CryptoMarket\Record\ActiveOrder;
+use CryptoMarket\Record\Order;
+use CryptoMarket\Record\Trade;
+
 require_once('ActionProcess.php');
 
 require_once('strategy/ConfigStrategyLoader.php');
@@ -58,22 +67,22 @@ class StrategyProcessor extends ActionProcess {
         $logger = Logger::getLogger(get_class($this));
 
         if(!$this->activeOrderManager instanceof ActiveOrderManager)
-            throw new Exception();
+            throw new \Exception();
 
         if(!$this->instructionLoader instanceof IStrategyLoader)
-            throw new Exception();
+            throw new \Exception();
 
         if(!$this->executionManager instanceof ExecutionManager)
-            throw new Exception();
+            throw new \Exception();
 
         if(!$this->balanceManager instanceof BalanceManager)
-            throw new Exception();
+            throw new \Exception();
 
         if(!$this->exchangeManager instanceof ExchangeManager)
-            throw new Exception();
+            throw new \Exception();
 
         if(!$this->reporter instanceof IReporter)
-            throw new Exception();
+            throw new \Exception();
 
         //////////////////////////////////////////
         // Fetch the account balances and transaction history
@@ -99,7 +108,7 @@ class StrategyProcessor extends ActionProcess {
                     $posList = array();
                     try{
                         $posList = $mkt->positions();
-                    }catch(Exception $e){
+                    }catch(\Exception $e){
                         $logger->warn('Problem getting positions for market: ' . $mkt->Name(), $e);
                     }
 
@@ -165,7 +174,7 @@ class StrategyProcessor extends ActionProcess {
                     if ($iso instanceof IStrategyOrder)
                         try{
                             $this->executionManager->updateStrategy($iso);
-                        }catch (Exception $e){
+                        }catch (\Exception $e){
                             $logger->error('Strategy update failed', $e);
                         }
                 }
@@ -180,7 +189,7 @@ class StrategyProcessor extends ActionProcess {
                 if($iso instanceof IStrategyOrder){
                     $this->executionManager->executeStrategy($s, $iso);
                 }
-            }catch (Exception $e){
+            }catch (\Exception $e){
                 $logger->error('Strategy execution failed', $e);
             }
         }
@@ -201,7 +210,7 @@ class StrategyProcessor extends ActionProcess {
     public function shutdown()
     {
         if(!$this->activeOrderManager instanceof ActiveOrderManager)
-            throw new Exception();
+            throw new \Exception();
 
         //wait for completion of orders before exit
         $this->activeOrderManager->processActiveOrders();

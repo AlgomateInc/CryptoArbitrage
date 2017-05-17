@@ -6,6 +6,8 @@
  * Time: 11:46 PM
  */
 
+use CryptoMarket\Exchange\IExchange;
+
 require_once('IStrategy.php');
 
 abstract class BaseStrategy implements IStrategy {

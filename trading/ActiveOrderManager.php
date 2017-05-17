@@ -6,6 +6,13 @@
  * Time: 9:33 PM
  */
 
+use CryptoMarket\Exchange\IExchange;
+use CryptoMarket\Record\ActiveOrder;
+use CryptoMarket\Record\Order;
+use CryptoMarket\Record\OrderExecution;
+
+require_once('ConcurrentFile.php');
+
 class ActiveOrderManager {
     private $logger;
 
@@ -134,7 +141,7 @@ class ActiveOrderManager {
             $this->process();
 
             $this->saveActiveOrders();
-        }catch (Exception $e){
+        }catch (\Exception $e){
             $this->logger->error('Problem processing active orders!', $e);
         }
         $this->dataStore->unlock();

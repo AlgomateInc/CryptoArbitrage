@@ -1,20 +1,21 @@
 <?php
 
-require_once('config.php');
+use CryptoMarket\AccountLoader\ConfigData;
+use CryptoMarket\AccountLoader\ConfigAccountLoader;
+use CryptoMarket\AccountLoader\IAccountLoader;
+use CryptoMarket\AccountLoader\MongoAccountLoader;
+
+use CryptoMarket\Exchange\ILifecycleHandler;
 
 include_once('log4php/Logger.php');
-Logger::configure($log4phpConfig);
+Logger::configure(ConfigData::log4phpConfig);
 
-require_once('common.php');
-require_once('ConfigAccountLoader.php');
-require_once('MongoAccountLoader.php');
-require_once('TestAccountLoader.php');
+require_once('legacy/TestAccountLoader.php');
 require_once('reporting/MultiReporter.php');
 require_once('reporting/ConsoleReporter.php');
 require_once('reporting/MongoReporter.php');
 require_once('reporting/FileReporter.php');
 require_once('reporting/SocketReporter.php');
-require_once('markets/TestMarket.php');
 
 abstract class ActionProcess {
 
@@ -64,12 +65,10 @@ abstract class ActionProcess {
         $this->reporter = new MultiReporter();
 
         if(array_key_exists("mongodb", $options)) {
-
             if(isset($options['mongodb']) && $options['mongodb'] !== false)
                 $fullUri = $options['mongodb'];
             else{
-                global $mongodb_uri, $mongodb_db;
-                $fullUri = $mongodb_uri . '/' . $mongodb_db;
+                $fullUri = ConfigData::mongodb_uri . '/' . ConfigData::mongodb_db;
             }
 
             $this->reporter->add(new MongoReporter($fullUri));
@@ -139,7 +138,7 @@ abstract class ActionProcess {
         }
 
         if($this->configuredExchanges != $config)
-            throw new Exception('Configuration changed');
+            throw new \Exception('Configuration changed');
     }
 
     private function prepareMarkets(IAccountLoader $loader)
@@ -161,7 +160,7 @@ abstract class ActionProcess {
             if ($mkt instanceof ILifecycleHandler) {
                 try {
                     $mkt->init();
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     $failedInitExchanges[$name] = $mkt;
                     $logger->error('Error initializing market: ', $e);
                     continue;
@@ -184,7 +183,7 @@ abstract class ActionProcess {
 
         try{
             $this->processCommandLine();
-        }catch(Exception $e){
+        }catch(\Exception $e){
             $logger->error('Preparation error', $e);
             exit(1);
         }
@@ -219,13 +218,13 @@ abstract class ActionProcess {
 
                 $this->shutdown();
                 $logger->info(get_class($this) . ' - finished');
-            }catch(Exception $e){
+            }catch(\Exception $e){
                 $this->shutdown();
                 $logger->info(get_class($this) . ' - finished');
                 throw $e;
             }
 
-        }catch(Exception $e){
+        }catch(\Exception $e){
             $logger->error('ActionProcess runtime error', $e);
             exit(1);
         }

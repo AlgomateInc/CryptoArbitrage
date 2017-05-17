@@ -1,5 +1,10 @@
 <?php
 
+require_once __DIR__ . '/vendor/autoload.php';
+
+use CryptoMarket\Account\IAccount;
+use CryptoMarket\Record\Transaction;
+
 require_once('ActionProcess.php');
 
 class TransactionMonitor extends ActionProcess{
@@ -22,7 +27,7 @@ class TransactionMonitor extends ActionProcess{
     public function run()
     {
         if(!$this->reporter instanceof IReporter)
-            throw new Exception('Reporter is not the right type!');
+            throw new \Exception('Reporter is not the right type!');
 
         foreach($this->exchanges as $mkt)
         {

@@ -1,5 +1,14 @@
 <?php
 
+require_once __DIR__ . '/vendor/autoload.php';
+
+use CryptoMarket\Exchange\ExchangeName;
+use CryptoMarket\Exchange\IExchange;
+use CryptoMarket\Record\Currency;
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\OrderBook;
+use CryptoMarket\Record\OrderType;
+
 require_once('ActionProcess.php');
 
 /**
@@ -28,7 +37,7 @@ class BulkPriceQuoter extends ActionProcess
 
     public function run()
     {
-        $targetMarkets = array(Exchange::Bitstamp, Exchange::Bitfinex);
+        $targetMarkets = array(ExchangeName::Bitstamp, ExchangeName::Bitfinex);
         $currencyPair = CurrencyPair::BTCUSD;
         $premium = 0.0225;
         $valueRequired = 1000;
@@ -65,11 +74,11 @@ class BulkPriceQuoter extends ActionProcess
                 }
 
             if(!$market instanceof IExchange)
-                throw new Exception("Desired market not found: $mktName");
+                throw new \Exception("Desired market not found: $mktName");
 
             $depth = $market->depth($currencyPair);
             if(!$depth instanceof OrderBook)
-                throw new Exception("Could not get market depth for: $mktName");
+                throw new \Exception("Could not get market depth for: $mktName");
 
             $price = ($orderType == OrderType::BUY)? $depth->asks[0]->price : $depth->bids[0]->price;
             print "$mktName ($currencyPair): $price\n";

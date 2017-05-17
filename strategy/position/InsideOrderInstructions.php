@@ -25,7 +25,7 @@ class InsideOrderInstructions extends MarketOrderInstructions{
 
     public function getOrders()
     {
-        throw new Exception('getOrders not implemented for inside orders');
+        throw new \Exception('getOrders not implemented for inside orders');
     }
 
 

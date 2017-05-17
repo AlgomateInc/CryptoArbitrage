@@ -1,5 +1,17 @@
 {
+    "autoload": {
+        "psr-4": {
+          "CryptoMarket\\": "cryptomarket/",
+          "CryptoMarket\\AccountLoader\\": "cryptomarket/accountloader/",
+          "CryptoMarket\\Account\\": "cryptomarket/account/",
+          "CryptoMarket\\Helper\\": "cryptomarket/helper/",
+          "CryptoMarket\\Record\\": "cryptomarket/record/"
+        }
+    },
     "require": {
         "mongodb/mongodb": "^1.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.1"
     }
 }

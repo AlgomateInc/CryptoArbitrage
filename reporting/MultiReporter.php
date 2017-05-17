@@ -6,6 +6,8 @@
  * Time: 12:03 AM
  */
 
+use CryptoMarket\Record\OrderBook;
+
 require_once('IReporter.php');
 require_once('IStatisticsGenerator.php');
 
@@ -29,7 +31,7 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
-                throw new Exception('Invalid reporter in multi-reporter');
+                throw new \Exception('Invalid reporter in multi-reporter');
 
             $rpt->balance($exchange_name,$currency,$balance);
         }
@@ -39,7 +41,7 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
-                throw new Exception('Invalid reporter in multi-reporter');
+                throw new \Exception('Invalid reporter in multi-reporter');
 
             $rpt->fees($exchange_name, $currencyPair, $takerFee, $makerFee);
         }
@@ -49,7 +51,7 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
-                throw new Exception('Invalid reporter in multi-reporter');
+                throw new \Exception('Invalid reporter in multi-reporter');
 
             $rpt->market($exchange_name, $currencyPair, $bid, $ask, $last, $vol);
         }
@@ -59,7 +61,7 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
-                throw new Exception('Invalid reporter in multi-reporter');
+                throw new \Exception('Invalid reporter in multi-reporter');
 
             $rpt->depth($exchange_name, $currencyPair, $depth);
         }
@@ -69,7 +71,7 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
-                throw new Exception('Invalid reporter in multi-reporter');
+                throw new \Exception('Invalid reporter in multi-reporter');
 
             $rpt->trades($exchange_name, $currencyPair, $trades);
         }
@@ -79,7 +81,7 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
-                throw new Exception('Invalid reporter in multi-reporter');
+                throw new \Exception('Invalid reporter in multi-reporter');
 
             $rpt->transaction($exchange_name, $id, $type, $currency, $amount, $timestamp);
         }
@@ -91,7 +93,7 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
 
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
-                throw new Exception('Invalid reporter in multi-reporter');
+                throw new \Exception('Invalid reporter in multi-reporter');
 
             $ret[] = array(
                 'IReporter' => get_class($rpt),
@@ -120,7 +122,7 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
-                throw new Exception('Invalid reporter in multi-reporter');
+                throw new \Exception('Invalid reporter in multi-reporter');
 
             $strategyOrderId = $this->getStrategyOrderIdForReporter($rpt, $strategyIdList);
 
@@ -132,7 +134,7 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
-                throw new Exception('Invalid reporter in multi-reporter');
+                throw new \Exception('Invalid reporter in multi-reporter');
 
             $strategyOrderId = $this->getStrategyOrderIdForReporter($rpt, $strategyIdList);
 
@@ -144,7 +146,7 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
-                throw new Exception('Invalid reporter in multi-reporter');
+                throw new \Exception('Invalid reporter in multi-reporter');
 
             $strategyOrderId = $this->getStrategyOrderIdForReporter($rpt, $strategyIdList);
 
@@ -156,7 +158,7 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
-                throw new Exception('Invalid reporter in multi-reporter');
+                throw new \Exception('Invalid reporter in multi-reporter');
 
             $strategyOrderId = $this->getStrategyOrderIdForReporter($rpt, $strategyIdList);
 
@@ -168,7 +170,7 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
-                throw new Exception('Invalid reporter in multi-reporter');
+                throw new \Exception('Invalid reporter in multi-reporter');
 
             $rpt->trade($exchange_name, $currencyPair, $tradeId, $orderId, $orderType, $price, $quantity, $timestamp);
         }
@@ -178,7 +180,7 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
     {
         foreach($this->rptList as $rpt){
             if(!$rpt instanceof IReporter)
-                throw new Exception('Invalid reporter in multi-reporter');
+                throw new \Exception('Invalid reporter in multi-reporter');
 
             $rpt->position($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp);
         }

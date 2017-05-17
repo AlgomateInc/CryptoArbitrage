@@ -3,6 +3,12 @@
 require_once('IReporter.php');
 require_once('IStatisticsGenerator.php');
 
+use CryptoMarket\Record\OrderBook;
+use CryptoMarket\Record\Trade;
+use CryptoMarket\Helper\MongoHelper;
+
+use MongoDB\BSON\UTCDateTime;
+
 class MongoReporter implements IReporter, IStatisticsGenerator
 {
     private $mongo;
@@ -13,7 +19,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         //expect 'servername/databasename' url format
         $pos = mb_strrpos($mongodb_uri,'/');
         if($pos === false)
-            throw new Exception('MongoDB database name not specified');
+            throw new \Exception('MongoDB database name not specified');
         $mongodb_db = mb_substr($mongodb_uri, $pos + 1);
 
         $this->mongo = new MongoDB\Client($mongodb_uri);
@@ -28,7 +34,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             'Exchange'=>"$exchange_name",
             'Currency'=>"$currency",
             'Balance'=>"$balance",
-            'Timestamp'=>new MongoDB\BSON\UTCDateTime());
+            'Timestamp'=>new UTCDateTime());
         
         $res = $balances->insertOne($balance_entry);
         return $res->getInsertedId();
@@ -44,7 +50,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             'CurrencyPair'=> "$currencyPair",
             'TakerFee'    => "$takerFee",
             'MakerFee'    => "$makerFee",
-            'Timestamp'   => new MongoDB\BSON\UTCDateTime());
+            'Timestamp'   => new UTCDateTime());
         
         $res = $fees->insertOne($fee_entry);
         return $res->getInsertedId();
@@ -61,7 +67,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             'Ask'=>"$ask",
             'Last'=>"$last",
             'Volume'=>"$vol",
-            'Timestamp'=>new MongoDB\BSON\UTCDateTime());
+            'Timestamp'=>new UTCDateTime());
         
         $res = $markets->insertOne($market_entry);
         return $res->getInsertedId();
@@ -91,8 +97,8 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             array(
                 '$match' => array(
                     'timestamp' => array(
-                        '$gte' => new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(floor($time/$intervalSecs)*$intervalSecs)),
-                        '$lt' => new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(floor($time/$intervalSecs)*$intervalSecs + $intervalSecs))
+                        '$gte' => new UTCDateTime(MongoHelper::mongoDateOfPHPDate(floor($time/$intervalSecs)*$intervalSecs)),
+                        '$lt' => new UTCDateTime(MongoHelper::mongoDateOfPHPDate(floor($time/$intervalSecs)*$intervalSecs + $intervalSecs))
                     )
                 )
             ),
@@ -123,7 +129,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
                     '_id'=>0,
                     'Exchange' => '$_id.market',
                     'CurrencyPair' => '$_id.pair',
-                    'Timestamp' => array('$literal' => new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(floor($time/$intervalSecs)*$intervalSecs))),
+                    'Timestamp' => array('$literal' => new UTCDateTime(MongoHelper::mongoDateOfPHPDate(floor($time/$intervalSecs)*$intervalSecs))),
                     'Interval' => array('$literal' => $intervalSecs),
                     'Open'=>1, 'High'=>1, 'Low'=>1, 'Close'=>1, 'Volume'=>1,
                     'TradeCount'=>1, 'Buys'=>1, 'Sells'=>1, 'BuyVolume'=>1, 'SellVolume'=>1,
@@ -171,7 +177,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             'CurrencyPair'=>"$currencyPair",
             'Depth'=>$depth,
             'OnePercentVolume'=>$depth->getOrderBookVolume(1.0),
-            'Timestamp'=>new MongoDB\BSON\UTCDateTime());
+            'Timestamp'=>new UTCDateTime());
         
         $res = $orderbooks->insertOne($book_entry);
         return $res->getInsertedId();
@@ -185,7 +191,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         $batch = [];
         foreach($trades as $t){
             if(!$t instanceof Trade)
-                throw new Exception('Non-trade passed for reporting!!');
+                throw new \Exception('Non-trade passed for reporting!!');
 
             $batch[] = [
                 'updateOne'=> [
@@ -211,7 +217,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         $t->orderType = $orderType;
         $t->price = $price;
         $t->quantity = $quantity;
-        $t->timestamp = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate($timestamp));
+        $t->timestamp = new UTCDateTime(MongoHelper::mongoDateOfPHPDate($timestamp));
 
         $this->trades($exchange_name, $currencyPair, array($t));
     }
@@ -241,7 +247,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         $strategyOrder_entry = array(
             'StrategyID' => $strategyId,
             'Data'=>$iso,
-            'Timestamp'=>new MongoDB\BSON\UTCDateTime());
+            'Timestamp'=>new UTCDateTime());
 
         $res = $strategyOrders->insertOne($strategyOrder_entry);
         return $res->getInsertedId();
@@ -256,7 +262,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             'Quantity'=>$quantity,
             'Price'=>$price,
             'ExchangeResponse'=>$orderResponse,
-            'Timestamp'=>new MongoDB\BSON\UTCDateTime());
+            'Timestamp'=>new UTCDateTime());
 
         $arborders = $this->mdb->strategyorder;
         $arborders->updateOne(
@@ -320,7 +326,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         $cancelInfo = array(
             'CancelQuantity'=>$cancelQuantity,
             'CancelResponse'=>$cancelResponse,
-            'Timestamp'=>new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate(time()))
+            'Timestamp'=>new UTCDateTime(mongoDateOfPHPDate(time()))
         );
 
         $strategies = $this->mdb->strategyorder;

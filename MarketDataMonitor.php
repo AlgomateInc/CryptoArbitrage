@@ -1,9 +1,15 @@
 <?php
 
+require_once __DIR__ . '/vendor/autoload.php';
+
 require_once('ActionProcess.php');
 require_once('trading/ActiveOrderManager.php');
 require_once('trading/BalanceManager.php');
 require_once('trading/ExchangeManager.php');
+
+use CryptoMarket\Exchange\IExchange;
+use CryptoMarket\Record\Ticker;
+use CryptoMarket\Record\Trade;
 
 class MarketDataMonitor extends ActionProcess {
 
@@ -47,7 +53,7 @@ class MarketDataMonitor extends ActionProcess {
     public function run()
     {
         if(!$this->reporter instanceof IReporter)
-            throw new Exception('Reporter is not the right type!');
+            throw new \Exception('Reporter is not the right type!');
 
         foreach($this->exchanges as $mkt)
         {
@@ -99,7 +105,7 @@ class MarketDataMonitor extends ActionProcess {
                 if($this->activeOrderManager instanceof ActiveOrderManager)
                     $this->activeOrderManager->processActiveOrders();
 
-            }catch(Exception $e){
+            }catch(\Exception $e){
                 $logger->warn('Could not get market data for: ' . $mkt->Name(), $e);
             }
         }
