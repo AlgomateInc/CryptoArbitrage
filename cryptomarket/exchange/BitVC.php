@@ -9,9 +9,16 @@
 
 namespace CryptoMarket\Exchange;
 
-require_once(__DIR__.'/../curl_helper.php');
-require_once('BaseExchange.php');
-require_once('IMarginExchange.php');
+use CryptoMarket\Exchange\BaseExchange;
+use CryptoMarket\Exchange\ExchangeName;
+use CryptoMarket\Exchange\IMarginExchange;
+use CryptoMarket\Helper\CurlHelper;
+use CryptoMarket\Record\Currency;
+use CryptoMarket\Record\CurrencyPair;
+use CryptoMarket\Record\OrderBook;
+use CryptoMarket\Record\OrderType;
+use CryptoMarket\Record\Ticker;
+use CryptoMarket\Record\Trade;
 
 class BitVC extends BaseExchange implements IMarginExchange{
 
@@ -39,7 +46,7 @@ class BitVC extends BaseExchange implements IMarginExchange{
         $sigData['secretKey'] = $this->secret;
         $req['sign'] =  md5(http_build_query($sigData));
 
-        return curl_query($this->getFuturesApiUrl() . $method, http_build_query($req));
+        return CurlHelper::query($this->getFuturesApiUrl() . $method, http_build_query($req));
     }
 
     function getFuturesApiUrl()
@@ -109,7 +116,7 @@ class BitVC extends BaseExchange implements IMarginExchange{
         if($pair != CurrencyPair::BTCCNY)
             throw new \InvalidArgumentException("Bad currency pair specified for market: $pair");
 
-        $raw = curl_query($this->getFuturesMarketApiUrl());
+        $raw = CurlHelper::query($this->getFuturesMarketApiUrl());
 
         $t = new Ticker();
         $t->currencyPair = CurrencyPair::BTCCNY;
@@ -126,7 +133,7 @@ class BitVC extends BaseExchange implements IMarginExchange{
         if($currencyPair != CurrencyPair::BTCCNY)
             throw new \InvalidArgumentException("Bad currency pair specified for market: $currencyPair");
 
-        $raw = curl_query('http://market.bitvc.com/futures/depths_btc_week.js');
+        $raw = CurlHelper::query('http://market.bitvc.com/futures/depths_btc_week.js');
 
         $book = new OrderBook($raw);
 
@@ -153,7 +160,7 @@ class BitVC extends BaseExchange implements IMarginExchange{
             foreach($contract as $p) {
                 $pos = new Trade();
                 $pos->currencyPair = CurrencyPair::BTCCNY;
-                $pos->exchange = Exchange::BitVC;
+                $pos->exchange = ExchangeName::BitVC;
                 $pos->orderType = ($p['tradeType'] == 2) ? OrderType::SELL : OrderType::BUY;
                 $pos->price = (string) $p['price'];
                 $pos->quantity = (string) ($p['closeMoney'] / $p['price']);

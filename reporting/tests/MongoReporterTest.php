@@ -9,6 +9,9 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use CryptoMarket\AccountLoader\ConfigData;
+use CryptoMarket\Helper\MongoHelper;
+
+use MongoDB\BSON\UTCDateTime;
 
 class MongoReporterTest extends PHPUnit_Framework_TestCase {
     protected $mongo;
@@ -33,7 +36,7 @@ class MongoReporterTest extends PHPUnit_Framework_TestCase {
         {
             $date = $c['Timestamp'];
             $interval = $c['Interval'];
-            $endDate = new MongoDB\BSON\UTCDateTime(mongoDateOfPHPDate($date->toDateTime()->getTimestamp() + $interval));
+            $endDate = new UTCDateTime(MongoHelper::mongoDateOfPHPDate($date->toDateTime()->getTimestamp() + $interval));
             $exchange = $c['Exchange'];
             $currencyPair = $c['CurrencyPair'];
 
