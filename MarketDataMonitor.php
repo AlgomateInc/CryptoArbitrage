@@ -106,7 +106,7 @@ class MarketDataMonitor extends ActionProcess {
                     $this->activeOrderManager->processActiveOrders();
 
             }catch(\Exception $e){
-                $logger->warn('Could not get market data for: ' . $mkt->Name(), $e);
+                $logger->warn('Could not get market data for: ' . $mkt->Name() . ', ' . $e->getMessage());
             }
         }
 

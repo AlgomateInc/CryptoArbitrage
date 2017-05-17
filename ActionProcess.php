@@ -10,7 +10,7 @@ use CryptoMarket\Exchange\ILifecycleHandler;
 include_once('log4php/Logger.php');
 Logger::configure(ConfigData::log4phpConfig);
 
-require_once('legacy/TestAccountLoader.php');
+//require_once('legacy/TestAccountLoader.php');
 require_once('reporting/MultiReporter.php');
 require_once('reporting/ConsoleReporter.php');
 require_once('reporting/MongoReporter.php');
@@ -96,10 +96,9 @@ abstract class ActionProcess {
 
         ////////////////////////////////
         // Load all the accounts data
-        if(array_key_exists('testmarket', $options))
-            $this->accountLoader = new TestAccountLoader($this->requiresListener);
-        else
-        {
+        if(array_key_exists('testmarket', $options)) {
+            //$this->accountLoader = new TestAccountLoader($this->requiresListener);
+        } else {
             if(array_key_exists("mongodb", $options)) {
                 if(array_key_exists('servername', $options) && isset($options['servername']))
                     $this->accountLoader = new MongoAccountLoader($options['servername']);
@@ -162,7 +161,7 @@ abstract class ActionProcess {
                     $mkt->init();
                 } catch (\Exception $e) {
                     $failedInitExchanges[$name] = $mkt;
-                    $logger->error('Error initializing market: ', $e);
+                    $logger->error('Error initializing market: ' . $e->getMessage());
                     continue;
                 }
             }
@@ -184,7 +183,7 @@ abstract class ActionProcess {
         try{
             $this->processCommandLine();
         }catch(\Exception $e){
-            $logger->error('Preparation error', $e);
+            $logger->error('Preparation error: ' . $e->getMessage());
             exit(1);
         }
 
@@ -225,7 +224,7 @@ abstract class ActionProcess {
             }
 
         }catch(\Exception $e){
-            $logger->error('ActionProcess runtime error', $e);
+            $logger->error('ActionProcess runtime error: ' . $e->getMessage());
             exit(1);
         }
 
