@@ -7,13 +7,13 @@ sudo pip3 install --upgrade pip awscli
 
 # Install awslogs
 sudo curl https://s3.amazonaws.com//aws-cloudwatch/downloads/latest/awslogs-agent-setup.py -O
-sudo python3 ./awslogs-agent-setup.py --region eu-west-2
+sudo python3 ./awslogs-agent-setup.py --region us-east-2
 sudo rm ./awslogs-agent-setup.py
 sudo service awslogs start
 
 # Install codedeploy agent
 sudo apt-get install -y ruby wget
-sudo wget https://aws-codedeploy-eu-west-2.s3.amazonaws.com/latest/install
+sudo wget https://aws-codedeploy-us-east-2.s3.amazonaws.com/latest/install
 sudo chmod +x ./install
 sudo ./install auto
 sudo rm ./install
