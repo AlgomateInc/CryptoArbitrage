@@ -4,7 +4,7 @@ namespace CryptoMarket\AccountLoader;
 
 class ConfigData
 {
-    const mongodb_uri = 'mongodb://localhost';
+    const mongodb_uri = 'mongodb://mongo.caramila.capital';
     const mongodb_db = 'coindata';
 
     const log4phpConfig = array(
