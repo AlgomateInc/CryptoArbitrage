@@ -4,7 +4,7 @@ namespace CryptoMarket\AccountLoader;
 
 class ConfigData
 {
-    const mongodb_uri = 'mongodb://mongo.caramila.capital';
+    const mongodb_uri = 'mongodb://localhost';
     const mongodb_db = 'coindata';
 
     const log4phpConfig = array(
@@ -25,33 +25,49 @@ class ConfigData
     );
 
     const accountsConfig = array(
-//    'Btce' => array(
-//        'key' => 'BTCEKEY',
-//        'secret' => 'BTCESECRET'
-//    ),
-//    'Bitstamp'=> array(
-//        'key' => 'STAMPKEY',
-//        'secret' => 'STAMPSECRET',
-//        'custid' => 'STAMPCUSTID'
-//    ),
-//    'Cryptsy' => array(
-//        'key' => 'CRYPTSYKEY',
-//        'secret' => 'CRYPTSYSECRET'
-//    ),
-//    'JPMChase' => array(
-//        'name' => 'imapmailbox',
-//        'username' => 'username',
-//        'password' => 'password'
-//    )
-//    'Gdax' => array(
-//        'key' => 'key',
-//        'secret' => 'secret',
-//        'passphrase' =>'passphrase'
-//    )
-//    'Yunbi'=> array(
-//        'key' => 'key',
-//        'secret' => 'secret',
-//    ),
+        'Btce' => array(
+            'key' => '',
+            'secret' => ''
+        ),
+        'Bitfinex'=> array(
+            'key' => '',
+            'secret' => ''
+        ),
+        'Bitstamp'=> array(
+            'key' => '',
+            'secret' => '',
+            'custid' => ''
+        ),
+        'BitVC'=> array(
+            'key' => '',
+            'secret' => '',
+        ),
+//      'JPMChase' => array(
+//          'name' => 'imapmailbox',
+//          'username' => 'username',
+//          'password' => 'password'
+//      ),
+        'Gdax'=> array(
+            'key' => '',
+            'secret' => '',
+            'passphrase' =>''
+        ),
+        'Gemini'=> array(
+            'key' => '',
+            'secret' => ''
+        ),
+        'Kraken'=> array(
+            'key' => '',
+            'secret' => ''
+        ),
+        'Poloniex'=> array(
+            'key' => '',
+            'secret' => ''
+        ),
+        'Yunbi'=> array(
+            'key' => '',
+            'secret' => '',
+        ),
     );
 
     const strategyInstructions = array(

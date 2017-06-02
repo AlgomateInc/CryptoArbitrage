@@ -13,6 +13,7 @@ then
         # Stop the database
         sudo service mongod stop
     fi
+    sudo service awslogs stop
 fi
 
 if [ "$LIFECYCLE_EVENT" == "BeforeInstall" ]
@@ -30,6 +31,15 @@ then
     sudo apt-get install -y supervisor
     sudo systemctl enable supervisor
     sudo systemctl start supervisor
+
+    # Install awscli tools for codedeploy
+    sudo apt-get install -y pip3 python3
+    sudo pip3 install --upgrade pip3 awscli
+    
+    # Install awslogs
+    sudo curl https://s3.amazonaws.com//aws-cloudwatch/downloads/latest/awslogs-agent-setup.py -O
+    sudo python ./awslogs-agent-setup.py --region us-east-1
+    sudo rm awslogs-agent-setup.py
 
     # Install PHP and dependencies:
     sudo apt-get install -y php7.0-cli php7.0-dev php7.0-curl php7.0-xml php7.0-bcmath php7.0-mbstring pkg-config
@@ -108,4 +118,5 @@ then
         sudo service mongod start
     fi
     sudo supervisorctl reload
+    sudo service awslogs start
 fi
