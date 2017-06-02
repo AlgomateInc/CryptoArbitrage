@@ -2,7 +2,7 @@
 
 namespace CryptoMarket\AccountLoader;
 
-class ConfigData
+class ConfigDataExample
 {
     const mongodb_uri = 'mongodb://mongo.caramila.capital';
     const mongodb_db = 'coindata';

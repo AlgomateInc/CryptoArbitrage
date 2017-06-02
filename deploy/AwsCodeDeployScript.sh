@@ -77,6 +77,8 @@ then
     cd /home/ubuntu/CryptoArbitrage
     echo $PWD
     sudo cp cryptomarket/accountloader/ConfigData.example.php cryptomarket/accountloader/ConfigData.php
+    # Remove "Example" from class name
+    sed -i "s#ConfigDataExample#ConfigData#" cryptomarket/accountloader/ConfigData.php
 
     if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
     then
