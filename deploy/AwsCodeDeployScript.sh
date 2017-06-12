@@ -8,7 +8,7 @@ function add_line_to_file() {
 
 if [ "$LIFECYCLE_EVENT" == "ApplicationStop" ]
 then
-    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
+    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "StrategyProcessorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
     then
         # Stop the database
         sudo service mongod stop
@@ -17,7 +17,7 @@ fi
 
 if [ "$LIFECYCLE_EVENT" == "BeforeInstall" ]
 then
-    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
+    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "StrategyProcessorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
     then
         # Install mongodb 3.4
         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
@@ -80,10 +80,12 @@ then
     # Remove "Example" from class name
     sed -i "s#ConfigDataExample#ConfigData#" cryptomarket/accountloader/ConfigData.php
 
-    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
+    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "StrategyProcessorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
     then
         # Set the mongodb uri config to 'localhost' for local deployment
         sed -i "s#mongodb_uri = .*#mongodb_uri = 'mongodb://localhost';#" cryptomarket/accountloader/ConfigData.php
+        # Omit bound ip so mongodb is accessible from the outside
+        sudo sed -i "s/^  bindIp/#  bindIp/" /etc/mongod.conf
     fi
 
     # Install package libs using dependencies specified in composer files
@@ -97,7 +99,7 @@ then
         sudo cp deploy/report_server.conf /etc/supervisor/conf.d/
     fi
 
-    if [ "$DEPLOYMENT_GROUP_NAME" == "StrategyProcessor" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
+    if [ "$DEPLOYMENT_GROUP_NAME" == "StrategyProcessor" ] || [ "$DEPLOYMENT_GROUP_NAME" == "StrategyProcessorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
     then
         sudo cp deploy/crypto_arbitrage.conf /etc/supervisor/conf.d/
     fi
@@ -105,7 +107,7 @@ fi
 
 if [ "$LIFECYCLE_EVENT" == "ApplicationStart" ]
 then
-    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
+    if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "StrategyProcessorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
     then
         sudo service mongod start
     fi

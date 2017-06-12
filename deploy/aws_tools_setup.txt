@@ -1,5 +1,6 @@
 # When setting up a new machine, AWS tools need to be installed for CodeDeploy
 # to work, and CloudWatch can be useful for debugging CodeDeploy issues.
+# Add commands in the "Advanced Details" section in "Configure Instance Details"
 
 # Install awscli tools for codedeploy
 sudo apt-get install -y python3-pip python3
