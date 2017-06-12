@@ -7,7 +7,6 @@ use CryptoMarket\AccountLoader\MongoAccountLoader;
 
 use CryptoMarket\Exchange\ILifecycleHandler;
 
-include_once('log4php/Logger.php');
 Logger::configure(ConfigData::log4phpConfig);
 
 require_once('legacy/TestAccountLoader.php');

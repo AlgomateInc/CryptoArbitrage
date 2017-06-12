@@ -61,15 +61,6 @@ then
 
     sudo php composer-setup.php --quiet --install-dir=/usr/bin --filename=composer
     sudo rm composer-setup.php
-
-    # Install log4php, pear reports error on install if package already exists
-    sudo apt-get install -y php-pear
-    sudo pear channel-discover pear.apache.org/log4php
-    sudo pear install log4php/Apache_log4php
-    if [ $? -ne 0 ]
-    then
-        sudo pear upgrade log4php/Apache_log4php
-    fi
 fi
 
 if [ "$LIFECYCLE_EVENT" == "AfterInstall" ]
