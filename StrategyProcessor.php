@@ -3,13 +3,13 @@
 require_once __DIR__ . '/vendor/autoload.php';
 
 use CryptoMarket\Account\IAccount;
-use CryptoMarket\AccountLoader\ConfigData;
 use CryptoMarket\Exchange\IExchange;
 use CryptoMarket\Exchange\IMarginExchange;
 use CryptoMarket\Record\ActiveOrder;
 use CryptoMarket\Record\Order;
 use CryptoMarket\Record\Trade;
 
+require_once('ConfigData.php');
 require_once('ActionProcess.php');
 
 require_once('strategy/ConfigStrategyLoader.php');
@@ -46,9 +46,9 @@ class StrategyProcessor extends ActionProcess {
             $this->liveTrade = true;
 
         if(array_key_exists("mongodb", $options))
-            $this->instructionLoader = new MongoStrategyLoader();
+            $this->instructionLoader = new MongoStrategyLoader(ConfigData::MONGODB_URI, ConfigData::MONGODB_DBNAME);
         else{
-            $this->instructionLoader = new ConfigStrategyLoader(ConfigData::strategyInstructions);
+            $this->instructionLoader = new ConfigStrategyLoader(ConfigData::STRATEGY_INSTRUCTIONS);
         }
     }
 

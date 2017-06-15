@@ -6,16 +6,14 @@
  * Time: 1:58 PM
  */
 
-use CryptoMarket\AccountLoader\ConfigData;
-
 class MongoArbInstructionLoader implements IArbInstructionLoader {
 
     private $mongo;
     private $mdb;
 
-    public function __construct(){
-        $this->mongo = new MongoClient(ConfigData::mongodb_uri);
-        $this->mdb = $this->mongo->selectDB(ConfigData::mongodb_db);
+    public function __construct($mongodbUri, $mongodbName){
+        $this->mongo = new MongoClient($mongodbUri);
+        $this->mdb = $this->mongo->selectDB($mongodbName);
     }
 
     public function load()

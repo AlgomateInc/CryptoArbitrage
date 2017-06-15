@@ -7,19 +7,21 @@
  */
 
 require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../../ConfigData.php';
 
-use CryptoMarket\AccountLoader\ConfigData;
 use CryptoMarket\Helper\MongoHelper;
+
+use CryptoMarket\Record\OrderType;
 
 use MongoDB\BSON\UTCDateTime;
 
-class MongoReporterTest extends PHPUnit_Framework_TestCase {
+class MongoReporterTest extends \PHPUnit\Framework\TestCase {
     protected $mongo;
     protected $mdb;
 
     public function setUp(){
-        $this->mongo = new MongoDB\Client(ConfigData::mongodb_uri);
-        $this->mdb = $this->mongo->selectDatabase(ConfigData::mongodb_db);
+        $this->mongo = new MongoDB\Client(ConfigData::MONGODB_URI);
+        $this->mdb = $this->mongo->selectDatabase(ConfigData::MONGODB_DBNAME);
     }
 
     public function testFeeReporting()
@@ -40,7 +42,7 @@ class MongoReporterTest extends PHPUnit_Framework_TestCase {
             $exchange = $c['Exchange'];
             $currencyPair = $c['CurrencyPair'];
 
-            print "Testing ($exchange, $currencyPair, $date->toDateTime(), $interval, $endDate->toDateTime())...";
+            print "Testing ($exchange, $currencyPair, $date, $interval, $endDate)...";
 
             $trades = $tradesCollection->find(array(
                 'exchange'=>$exchange,
@@ -49,12 +51,17 @@ class MongoReporterTest extends PHPUnit_Framework_TestCase {
                         '$gte' => $date,
                         '$lt' => $endDate
                     )
-            ))->sort(array('timestamp' => 1));
+                ), array(
+                    'sort'=> array(
+                        'timestamp' => 1)
+                    )
+                );
 
-            if($c['TradeCount'] != count(iterator_to_array($trades)))
-                print "count mismatch: " . $c['TradeCount'] .'!='. count(iterator_to_array($trades));
+            $tradeArray = iterator_to_array($trades);
+            if($c['TradeCount'] != count($tradeArray))
+                print "count mismatch: " . $c['TradeCount'] .'!='. count($tradeArray);
             print "\n";
-            $this->assertCount($c['TradeCount'], $trades);
+            $this->assertCount($c['TradeCount'], $tradeArray);
             //continue;
 
             ////////////////////////////////
@@ -67,7 +74,7 @@ class MongoReporterTest extends PHPUnit_Framework_TestCase {
             $pxTimesVol = 0;
             $openPx = null;
             $closePx = 0;
-            foreach($trades as $t)
+            foreach($tradeArray as $t)
             {
                 if($t['price'] > $highPx)
                     $highPx = $t['price'];

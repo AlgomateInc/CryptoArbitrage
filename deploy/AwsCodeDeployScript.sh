@@ -67,14 +67,14 @@ if [ "$LIFECYCLE_EVENT" == "AfterInstall" ]
 then
     cd /home/ubuntu/CryptoArbitrage
     echo $PWD
-    sudo cp cryptomarket/accountloader/ConfigData.example.php cryptomarket/accountloader/ConfigData.php
+    sudo cp ConfigDataExample.php ConfigData.php
     # Remove "Example" from class name
-    sed -i "s#ConfigDataExample#ConfigData#" cryptomarket/accountloader/ConfigData.php
+    sed -i "s#ConfigDataExample#ConfigData#" ConfigData.php
 
     if [ "$DEPLOYMENT_GROUP_NAME" == "MarketDataMonitorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "StrategyProcessorLocalDb" ] || [ "$DEPLOYMENT_GROUP_NAME" == "CryptoArbitrageAll" ]
     then
         # Set the mongodb uri config to 'localhost' for local deployment
-        sed -i "s#mongodb_uri = .*#mongodb_uri = 'mongodb://localhost';#" cryptomarket/accountloader/ConfigData.php
+        sed -i "s#mongodb_uri = .*#mongodb_uri = 'mongodb://localhost';#" ConfigData.php
         # Omit bound ip so mongodb is accessible from the outside
         sudo sed -i "s/^  bindIp/#  bindIp/" /etc/mongod.conf
     fi
