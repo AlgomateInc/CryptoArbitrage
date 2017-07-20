@@ -21,11 +21,6 @@ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14
  && ln -s -T /etc/php/7.0/mods-available/mongodb.ini /etc/php/7.0/cli/conf.d/99-mongodb.ini \
 # Install Composer for mongodb lib
  && php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
- && php composer-setup.php --quiet --install-dir=/usr/bin --filename=composer \
-# Install log4php, pear reports error on install if package already exists
- && apt-get install -y php-pear \
- && pear channel-discover pear.apache.org/log4php \
- && pear install log4php/Apache_log4php \
- && apt-get install -y phpunit
+ && php composer-setup.php --quiet --install-dir=/usr/bin --filename=composer
 RUN mkdir -p /data/db
 ENTRYPOINT ["/CryptoArbitrage/deploy/docker_start.sh"]

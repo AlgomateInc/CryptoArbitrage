@@ -1,14 +1,13 @@
 <?php
 
-use CryptoMarket\AccountLoader\ConfigData;
 use CryptoMarket\AccountLoader\ConfigAccountLoader;
 use CryptoMarket\AccountLoader\IAccountLoader;
 use CryptoMarket\AccountLoader\MongoAccountLoader;
 
 use CryptoMarket\Exchange\ILifecycleHandler;
 
-include_once('log4php/Logger.php');
-Logger::configure(ConfigData::log4phpConfig);
+require_once('ConfigData.php');
+Logger::configure(ConfigData::LOG4PHP_CONFIG);
 
 require_once('legacy/TestAccountLoader.php');
 require_once('reporting/MultiReporter.php');
@@ -68,7 +67,7 @@ abstract class ActionProcess {
             if(isset($options['mongodb']) && $options['mongodb'] !== false)
                 $fullUri = $options['mongodb'];
             else{
-                $fullUri = ConfigData::mongodb_uri . '/' . ConfigData::mongodb_db;
+                $fullUri = ConfigData::MONGODB_URI . '/' . ConfigData::MONGODB_DBNAME;
             }
 
             $this->reporter->add(new MongoReporter($fullUri));
@@ -100,13 +99,22 @@ abstract class ActionProcess {
             $this->accountLoader = new TestAccountLoader($this->requiresListener);
         } else {
             if(array_key_exists("mongodb", $options)) {
-                if(array_key_exists('servername', $options) && isset($options['servername']))
-                    $this->accountLoader = new MongoAccountLoader($options['servername']);
-                else
-                    $this->accountLoader = new MongoAccountLoader();
+                if(array_key_exists('servername', $options) && isset($options['servername'])) {
+                    $this->accountLoader = new MongoAccountLoader(
+                        ConfigData::MONGODB_URI,
+                        ConfigData::MONGODB_DBNAME,
+                        ConfigData::ACCOUNTS_CONFIG,
+                        $options['servername']);
+                }
+                else {
+                    $this->accountLoader = new MongoAccountLoader(
+                        ConfigData::MONGODB_URI,
+                        ConfigData::MONGODB_DBNAME,
+                        ConfigData::ACCOUNTS_CONFIG);
+                }
             }
             else
-                $this->accountLoader = new ConfigAccountLoader();
+                $this->accountLoader = new ConfigAccountLoader(ConfigData::ACCOUNTS_CONFIG);
         }
 
         $this->checkConfiguration($this->accountLoader);

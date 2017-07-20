@@ -10,7 +10,6 @@ require_once(__DIR__ . '/../vendor/autoload.php');
 
 use CryptoMarket\Record\CurrencyPair;
 
-include_once('log4php/Logger.php');
 Logger::configure($log4phpConfig);
 
 require_once('TestMarket.php');

@@ -30,7 +30,7 @@ git clone https://github.com/Cuantile/CryptoArbitrage.git
 cd CryptoArbitrage
 
 # Prepare configuration file for run:
-cp cryptomarket/accountloader/ConfigData.example.php cryptomarket/accountloader/ConfigData.php
+cp ConfigDataExample.php ConfigData.php
 
 # Install the supervisor configuration files
 cd deploy
