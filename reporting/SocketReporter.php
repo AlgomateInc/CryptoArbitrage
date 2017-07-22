@@ -278,4 +278,15 @@ class SocketReporter implements IReporter, IListener {
 
         $this->send($data);
     }
+
+    public function publicKey($serverName, $publicKey)
+    {
+        $data = array(
+            'MessageType' => 'PublicKey',
+            'ServerName' => $serverName,
+            'PublicKey' => $publicKey,
+        );
+        $this->send($data);
+    }
 }
+

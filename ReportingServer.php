@@ -2,6 +2,8 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+use CryptoArbitrage\Helper\CommandLineProcessor;
+
 use CryptoMarket\Record\OrderBook;
 
 require_once('ActionProcess.php');
@@ -83,5 +85,9 @@ class ReportingServer extends ActionProcess
     }
 }
 
-$rs = new ReportingServer();
-$rs->start();
+if (!count(debug_backtrace()))
+{
+    $rs = new ReportingServer();
+    $options = CommandLineProcessor::processCommandLine($rs);
+    $rs->start($options);
+}

@@ -3,11 +3,10 @@
 use CryptoMarket\AccountLoader\ConfigAccountLoader;
 use CryptoMarket\AccountLoader\IAccountLoader;
 use CryptoMarket\AccountLoader\MongoAccountLoader;
-
 use CryptoMarket\Exchange\ILifecycleHandler;
 
 require_once('ConfigData.php');
-Logger::configure(ConfigData::LOG4PHP_CONFIG);
+\Logger::configure(\ConfigData::LOG4PHP_CONFIG);
 
 require_once('legacy/TestAccountLoader.php');
 require_once('reporting/MultiReporter.php');
@@ -24,6 +23,8 @@ abstract class ActionProcess {
     private $monitor = false;
     private $monitor_timeout = 20;
     private $fork = false;
+    private $publicKey;
+    private $privateKey;
 
     abstract public function getProgramOptions();
     abstract public function processOptions($options);
@@ -37,7 +38,7 @@ abstract class ActionProcess {
     protected $configuredExchanges;
     protected $retryInitExchanges;
 
-    private function processCommandLine()
+    public function getAllProgramOptions()
     {
         $objOptions = $this->getProgramOptions();
 
@@ -50,16 +51,18 @@ abstract class ActionProcess {
             "fork",
             'socket:',
             'testmarket',
-            'servername:'
+            'servername:',
+            'keypair::'
         );
+
         if(is_array($objOptions))
             $longopts = array_merge($longopts, $objOptions);
 
-        /////////////////////////////////
+        return $longopts;
+    }
 
-        $options = getopt($shortopts, $longopts);
-
-        /////////////////////////////////
+    private function processCommandLine($options)
+    {
         // Configure reporters
         $this->reporter = new MultiReporter();
 
@@ -102,26 +105,25 @@ abstract class ActionProcess {
 
         ////////////////////////////////
         // Load all the accounts data
+        if(array_key_exists('servername', $options) && isset($options['servername'])) {
+            $this->serverName = $options['servername'];
+        } else {
+            $this->serverName = gethostname();
+        }
+
         if(array_key_exists('testmarket', $options)) {
             $this->accountLoader = new TestAccountLoader($this->requiresListener);
         } else {
             if(array_key_exists("mongodb", $options)) {
-                if(array_key_exists('servername', $options) && isset($options['servername'])) {
-                    $this->accountLoader = new MongoAccountLoader(
-                        ConfigData::MONGODB_URI,
-                        ConfigData::MONGODB_DBNAME,
-                        ConfigData::ACCOUNTS_CONFIG,
-                        $options['servername']);
-                }
-                else {
-                    $this->accountLoader = new MongoAccountLoader(
-                        ConfigData::MONGODB_URI,
-                        ConfigData::MONGODB_DBNAME,
-                        ConfigData::ACCOUNTS_CONFIG);
-                }
+                $this->accountLoader = new MongoAccountLoader(
+                    \ConfigData::MONGODB_URI,
+                    \ConfigData::MONGODB_DBNAME,
+                    \ConfigData::ACCOUNTS_CONFIG,
+                    $this->serverName);
             }
-            else
-                $this->accountLoader = new ConfigAccountLoader(ConfigData::ACCOUNTS_CONFIG);
+            else {
+                $this->accountLoader = new ConfigAccountLoader(\ConfigData::ACCOUNTS_CONFIG);
+            }
         }
 
         $this->checkConfiguration($this->accountLoader);
@@ -136,6 +138,33 @@ abstract class ActionProcess {
 
         if(array_key_exists("fork", $options))
             $this->fork = true;
+
+        if(array_key_exists('keypair', $options)) {
+            if(isset($options['keypair']) && $options['keypair'] !== false) {
+                $this->privateKey = file_get_contents($options['keypair']);
+                $keyPair = openssl_pkey_get_private($this->privateKey);
+            } else {
+                
+                $keyPair = openssl_pkey_new([
+                    "digest_alg" => "sha512",
+                    "private_key_bits" => 2048,
+                    "private_key_type" => OPENSSL_KEYTYPE_RSA,
+                ]);
+                openssl_pkey_export($keyPair, $this->privateKey);
+            }
+
+            // Extract the public key to $publicKey
+            $this->publicKey = openssl_pkey_get_details($keyPair)['key'];
+
+            // Encrypt the data to $encrypted using the public key
+            //$data = 'plaintext data goes here';
+            //openssl_public_encrypt($data, $encrypted, $this->publicKey);
+            // Decrypt the data using the private key and store the results in $decrypted
+            //openssl_private_decrypt($encrypted, $decrypted, $this->privateKey);
+            //echo $decrypted;
+
+            $this->reporter->publicKey($this->serverName, $this->publicKey);
+        }
 
         ////////////////////////////////////
 
@@ -162,7 +191,7 @@ abstract class ActionProcess {
 
     private function initializeMarkets(array $marketList)
     {
-        $logger = Logger::getLogger(get_class($this));
+        $logger = \Logger::getLogger(get_class($this));
 
         $failedInitExchanges = array();
 
@@ -187,16 +216,16 @@ abstract class ActionProcess {
         return $failedInitExchanges;
     }
 
-    public function start()
+    public function start($options)
     {
         date_default_timezone_set('UTC');
         error_reporting(E_ALL);
 
-        $logger = Logger::getLogger(get_class($this));
+        $logger = \Logger::getLogger(get_class($this));
         $logger->info(get_class($this) . ' is starting');
 
         try{
-            $this->processCommandLine();
+            $this->processCommandLine($options);
         }catch(\Exception $e){
             $logger->error('Preparation error: ' . $e->getMessage());
             exit(1);
@@ -245,3 +274,4 @@ abstract class ActionProcess {
 
     }
 } 
+

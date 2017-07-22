@@ -2,6 +2,8 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+use CryptoArbitrage\Helper\CommandLineProcessor;
+
 use CryptoMarket\Account\IAccount;
 use CryptoMarket\Exchange\IExchange;
 use CryptoMarket\Exchange\IMarginExchange;
@@ -46,9 +48,9 @@ class StrategyProcessor extends ActionProcess {
             $this->liveTrade = true;
 
         if(array_key_exists("mongodb", $options))
-            $this->instructionLoader = new MongoStrategyLoader(ConfigData::MONGODB_URI, ConfigData::MONGODB_DBNAME);
+            $this->instructionLoader = new MongoStrategyLoader(\ConfigData::MONGODB_URI, \ConfigData::MONGODB_DBNAME);
         else{
-            $this->instructionLoader = new ConfigStrategyLoader(ConfigData::STRATEGY_INSTRUCTIONS);
+            $this->instructionLoader = new ConfigStrategyLoader(\ConfigData::STRATEGY_INSTRUCTIONS);
         }
     }
 
@@ -64,7 +66,7 @@ class StrategyProcessor extends ActionProcess {
 
     public function run()
     {
-        $logger = Logger::getLogger(get_class($this));
+        $logger = \Logger::getLogger(get_class($this));
 
         if(!$this->activeOrderManager instanceof ActiveOrderManager)
             throw new \Exception();
@@ -222,5 +224,9 @@ class StrategyProcessor extends ActionProcess {
     }
 }
 
-$strPrc = new StrategyProcessor();
-$strPrc->start();
+if (!count(debug_backtrace()))
+{
+    $strPrc = new StrategyProcessor();
+    $options = CommandLineProcessor::processCommandLine($strPrc);
+    $strPrc->start($options);
+}
