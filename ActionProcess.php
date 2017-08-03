@@ -64,13 +64,20 @@ abstract class ActionProcess {
         $this->reporter = new MultiReporter();
 
         if(array_key_exists("mongodb", $options)) {
-            if(isset($options['mongodb']) && $options['mongodb'] !== false)
-                $fullUri = $options['mongodb'];
-            else{
-                $fullUri = ConfigData::MONGODB_URI . '/' . ConfigData::MONGODB_DBNAME;
+            if (isset($options['mongodb']) && $options['mongodb'] !== false) {
+                //expect 'servername/databasename' url format
+                $mongodb_uri = $options['mongodb'];
+                $pos = mb_strrpos($mongodb_uri,'/');
+                if ($pos === false) {
+                    throw new \Exception('MongoDB database name not specified');
+                }
+                $mongodb_dbname = mb_substr($mongodb_uri, $pos + 1);
+            } else {
+                $mongodb_uri = \ConfigData::MONGODB_URI;
+                $mongodb_dbname = \ConfigData::MONGODB_DBNAME;
             }
 
-            $this->reporter->add(new MongoReporter($fullUri));
+            $this->reporter->add(new MongoReporter($mongodb_uri, $mongodb_dbname));
         }
 
         if(array_key_exists("file", $options) && isset($options['file']))
