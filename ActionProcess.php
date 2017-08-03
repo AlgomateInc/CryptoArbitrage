@@ -69,7 +69,7 @@ abstract class ActionProcess {
                 $mongodb_uri = $options['mongodb'];
                 $pos = mb_strrpos($mongodb_uri,'/');
                 if ($pos === false) {
-                    $logger->warn('MongoDB database name not specified');
+                    throw new \Exception('MongoDB database name not specified');
                 }
                 $mongodb_dbname = mb_substr($mongodb_uri, $pos + 1);
             } else {
