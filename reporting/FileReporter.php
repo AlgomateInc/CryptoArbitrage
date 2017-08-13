@@ -92,4 +92,9 @@ class FileReporter implements IReporter {
         // TODO: Implement position() method.
     }
 
+    public function publicKey($serverName, $publicKey)
+    {
+        fwrite($this->file, "$serverName, $publicKey\n");
+    }
 }
+

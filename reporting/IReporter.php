@@ -20,6 +20,7 @@ interface IReporter
     public function orderMessage($strategyId, $orderId, $messageCode, $messageText);
 
     public function position($exchange_name, $currencyPair, $orderType, $price, $quantity, $timestamp);
+    public function publicKey($serverName, $publicKey);
 }
 
 ?>

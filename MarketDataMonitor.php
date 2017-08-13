@@ -7,6 +7,8 @@ require_once('trading/ActiveOrderManager.php');
 require_once('trading/BalanceManager.php');
 require_once('trading/ExchangeManager.php');
 
+use CryptoArbitrage\Helper\CommandLineProcessor;
+
 use CryptoMarket\Exchange\IExchange;
 use CryptoMarket\Record\Ticker;
 use CryptoMarket\Record\Trade;
@@ -60,7 +62,7 @@ class MarketDataMonitor extends ActionProcess {
             if(!$mkt instanceof IExchange)
                 continue;
 
-            $logger = Logger::getLogger(get_class($this));
+            $logger = \Logger::getLogger(get_class($this));
 
             try {
 
@@ -121,5 +123,9 @@ class MarketDataMonitor extends ActionProcess {
     }
 }
 
-$txMon = new MarketDataMonitor();
-$txMon->start();
+if (!count(debug_backtrace()))
+{
+    $txMon = new MarketDataMonitor();
+    $options = CommandLineProcessor::processCommandLine($txMon);
+    $txMon->start($options);
+}

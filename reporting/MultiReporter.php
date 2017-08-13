@@ -202,5 +202,14 @@ class MultiReporter implements IReporter, IStatisticsGenerator {
         return $ret;
     }
 
+    public function publicKey($serverName, $publicKey)
+    {
+        foreach($this->rptList as $rpt){
+            if(!$rpt instanceof IReporter)
+                throw new \Exception('Invalid reporter in multi-reporter');
 
+            $rpt->publicKey($serverName, $publicKey);
+        }
+    }
 }
+

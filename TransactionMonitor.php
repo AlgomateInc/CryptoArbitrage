@@ -2,6 +2,8 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+use CryptoArbitrage\Helper\CommandLineProcessor;
+
 use CryptoMarket\Account\IAccount;
 use CryptoMarket\Record\Transaction;
 
@@ -55,5 +57,9 @@ class TransactionMonitor extends ActionProcess{
     }
 }
 
-$txMon = new TransactionMonitor();
-$txMon->start();
+if (!count(debug_backtrace()))
+{
+    $txMon = new TransactionMonitor();
+    $options = CommandLineProcessor::processCommandLine($txMon);
+    $txMon->start($options);
+}

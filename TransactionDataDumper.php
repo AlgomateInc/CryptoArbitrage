@@ -2,6 +2,8 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+use CryptoArbitrage\Helper\CommandLineProcessor;
+
 use CryptoMarket\Exchange\Btce;
 use CryptoMarket\Record\Transaction;
 
@@ -55,5 +57,9 @@ class TransactionDataDumper extends ActionProcess {
     }
 }
 
-$tdDumper = new TransactionDataDumper();
-$tdDumper->start();
+if (!count(debug_backtrace()))
+{
+    $tdDumper = new TransactionDataDumper();
+    $options = CommandLineProcessor::processCommandLine($tdDumper);
+    $tdDumper->start($options);
+}

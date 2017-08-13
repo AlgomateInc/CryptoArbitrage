@@ -7,6 +7,8 @@ require_once('strategy/MarketCommandStrategy.php');
 require_once('trading/ActiveOrderManager.php');
 require_once('trading/ExecutionManager.php');
 
+use CryptoArbitrage\Helper\CommandLineProcessor;
+
 class MarketCommandDispatcher extends ActionProcess {
 
     private $liveTrade = false;
@@ -80,5 +82,9 @@ class MarketCommandDispatcher extends ActionProcess {
     }
 }
 
-$txMon = new MarketCommandDispatcher();
-$txMon->start();
+if (!count(debug_backtrace()))
+{
+    $txMon = new MarketCommandDispatcher();
+    $options = CommandLineProcessor::processCommandLine($txMon);
+    $txMon->start($options);
+}

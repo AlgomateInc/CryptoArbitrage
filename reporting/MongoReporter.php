@@ -329,6 +329,15 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             array('$set' => array("Orders.$.CancelInfo" => $cancelInfo))
         );
     }
+
+    public function publicKey($serverName, $publicKey)
+    {
+        $servers = $this->mdb->servers;
+        $servers->updateOne(
+            ['ServerName' => "$serverName"],
+            ['$set' => ['ServerName' => "$serverName", 'PublicKey' => "$publicKey"]],
+            ['upsert'=>true]
+        );
+    }
 }
 
-?>

@@ -32,7 +32,7 @@ then
     sudo systemctl start supervisor
 
     # Install PHP and dependencies:
-    sudo apt-get install -y php7.0-cli php7.0-dev php7.0-curl php7.0-xml php7.0-bcmath php7.0-mbstring pkg-config
+    sudo apt-get install -y php7.0-cli php7.0-dev php7.0-curl php7.0-xml php7.0-bcmath php7.0-mbstring pkg-config openssl
 
     # Setup mbstring function overload for all str functions to use mb_ variants
     add_line_to_file "mbstring.func_overload 7" /etc/php/7.0/cli/php.ini

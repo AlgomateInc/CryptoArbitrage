@@ -3,11 +3,10 @@
 use CryptoMarket\AccountLoader\ConfigAccountLoader;
 use CryptoMarket\AccountLoader\IAccountLoader;
 use CryptoMarket\AccountLoader\MongoAccountLoader;
-
 use CryptoMarket\Exchange\ILifecycleHandler;
 
 require_once('ConfigData.php');
-Logger::configure(ConfigData::LOG4PHP_CONFIG);
+\Logger::configure(\ConfigData::LOG4PHP_CONFIG);
 
 require_once('legacy/TestAccountLoader.php');
 require_once('reporting/MultiReporter.php');
@@ -24,6 +23,8 @@ abstract class ActionProcess {
     private $monitor = false;
     private $monitor_timeout = 20;
     private $fork = false;
+    private $publicKey;
+    private $privateKey;
 
     abstract public function getProgramOptions();
     abstract public function processOptions($options);
@@ -37,7 +38,7 @@ abstract class ActionProcess {
     protected $configuredExchanges;
     protected $retryInitExchanges;
 
-    private function processCommandLine()
+    public function getAllProgramOptions()
     {
         $objOptions = $this->getProgramOptions();
 
@@ -50,16 +51,18 @@ abstract class ActionProcess {
             "fork",
             'socket:',
             'testmarket',
-            'servername:'
+            'servername:',
+            'keypair::'
         );
+
         if(is_array($objOptions))
             $longopts = array_merge($longopts, $objOptions);
 
-        /////////////////////////////////
+        return $longopts;
+    }
 
-        $options = getopt($shortopts, $longopts);
-
-        /////////////////////////////////
+    private function processCommandLine($options)
+    {
         // Configure reporters
         $this->reporter = new MultiReporter();
 
@@ -102,29 +105,29 @@ abstract class ActionProcess {
 
         ////////////////////////////////
         // Load all the accounts data
+        if(array_key_exists('servername', $options) && isset($options['servername'])) {
+            $this->serverName = $options['servername'];
+        } else {
+            $this->serverName = gethostname();
+        }
+
         if(array_key_exists('testmarket', $options)) {
             $this->accountLoader = new TestAccountLoader($this->requiresListener);
         } else {
             if(array_key_exists("mongodb", $options)) {
-                if(array_key_exists('servername', $options) && isset($options['servername'])) {
-                    $this->accountLoader = new MongoAccountLoader(
-                        ConfigData::MONGODB_URI,
-                        ConfigData::MONGODB_DBNAME,
-                        ConfigData::ACCOUNTS_CONFIG,
-                        $options['servername']);
-                }
-                else {
-                    $this->accountLoader = new MongoAccountLoader(
-                        ConfigData::MONGODB_URI,
-                        ConfigData::MONGODB_DBNAME,
-                        ConfigData::ACCOUNTS_CONFIG);
-                }
+                $this->accountLoader = new MongoAccountLoader(
+                    \ConfigData::MONGODB_URI,
+                    \ConfigData::MONGODB_DBNAME,
+                    \ConfigData::ACCOUNTS_CONFIG,
+                    $this->serverName);
             }
-            else
-                $this->accountLoader = new ConfigAccountLoader(ConfigData::ACCOUNTS_CONFIG);
+            else {
+                $this->accountLoader = new ConfigAccountLoader(\ConfigData::ACCOUNTS_CONFIG);
+            }
         }
 
-        $this->checkConfiguration($this->accountLoader);
+        // Set configured exchanges
+        $this->configuredExchanges = $this->accountLoader->getConfig($this->privateKey);
 
         ////////////////////////////////
         if(array_key_exists("monitor", $options)){
@@ -137,32 +140,33 @@ abstract class ActionProcess {
         if(array_key_exists("fork", $options))
             $this->fork = true;
 
+        if(array_key_exists('keypair', $options)) {
+            if(isset($options['keypair']) && $options['keypair'] !== false) {
+                $this->privateKey = file_get_contents($options['keypair']);
+                $keyPair = openssl_pkey_get_private($this->privateKey);
+            } else {
+                
+                $keyPair = openssl_pkey_new([
+                    "digest_alg" => "sha512",
+                    "private_key_bits" => 2048,
+                    "private_key_type" => OPENSSL_KEYTYPE_RSA,
+                ]);
+                openssl_pkey_export($keyPair, $this->privateKey);
+            }
+
+            // Extract the public key and report it
+            $this->publicKey = openssl_pkey_get_details($keyPair)['key'];
+            $this->reporter->publicKey($this->serverName, $this->publicKey);
+        }
+
         ////////////////////////////////////
 
         $this->processOptions($options);
     }
 
-    private function checkConfiguration(IAccountLoader $loader)
-    {
-        $config = $loader->getConfig();
-
-        if($this->configuredExchanges == null){
-            $this->configuredExchanges = $config;
-            return;
-        }
-
-        if($this->configuredExchanges != $config)
-            throw new \Exception('Configuration changed');
-    }
-
-    private function prepareMarkets(IAccountLoader $loader)
-    {
-        $this->retryInitExchanges = $this->initializeMarkets($loader->getAccounts());
-    }
-
     private function initializeMarkets(array $marketList)
     {
-        $logger = Logger::getLogger(get_class($this));
+        $logger = \Logger::getLogger(get_class($this));
 
         $failedInitExchanges = array();
 
@@ -187,16 +191,16 @@ abstract class ActionProcess {
         return $failedInitExchanges;
     }
 
-    public function start()
+    public function configure($options)
     {
         date_default_timezone_set('UTC');
         error_reporting(E_ALL);
 
-        $logger = Logger::getLogger(get_class($this));
+        $logger = \Logger::getLogger(get_class($this));
         $logger->info(get_class($this) . ' is starting');
 
         try{
-            $this->processCommandLine();
+            $this->processCommandLine($options);
         }catch(\Exception $e){
             $logger->error('Preparation error: ' . $e->getMessage());
             exit(1);
@@ -214,18 +218,45 @@ abstract class ActionProcess {
                 exit;
             }
         }
+    }
+
+    public function initializeAll()
+    {
+        $this->retryInitExchanges = $this->initializeMarkets(
+            $this->accountLoader->getAccounts(null, $this->privateKey));
+        $this->init();
+    }
+
+    public function runLoop()
+    {
+        $config = $this->accountLoader->getConfig($this->privateKey);
+        if ($this->configuredExchanges != $config) {
+            // Reset all markets
+            $this->configuredExchanges = $config;
+            $this->exchanges = array();
+            $this->retryInitExchanges = $this->initializeMarkets(
+                $this->accountLoader->getAccounts(null, $this->privateKey));
+        } else {
+            // Only try to initialize failed markets
+            $this->retryInitExchanges = $this->initializeMarkets(
+                $this->retryInitExchanges);
+        }
+        $this->run();
+    }
+
+    public function start($options)
+    {
+        $logger = \Logger::getLogger(get_class($this));
+        $this->configure($options);
 
         //perform the monitoring loop
         try{
             $logger->info(get_class($this) . ' - starting');
-            $this->prepareMarkets($this->accountLoader);
-            $this->init();
+            $this->initializeAll();
 
             try{
                 do {
-                    $this->checkConfiguration($this->accountLoader);
-                    $this->retryInitExchanges = $this->initializeMarkets($this->retryInitExchanges);
-                    $this->run();
+                    $this->runLoop();
                     if($this->monitor)
                         sleep($this->monitor_timeout);
                 }while($this->monitor);
@@ -242,6 +273,11 @@ abstract class ActionProcess {
             $logger->error('ActionProcess runtime error: ' . $e->getMessage());
             exit(1);
         }
+    }
 
+    public function getConfiguredExchanges()
+    {
+        return $this->configuredExchanges;
     }
 } 
+

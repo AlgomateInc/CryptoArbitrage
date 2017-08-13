@@ -99,6 +99,10 @@ class ConsoleReporter implements IReporter
     {
         print "Transaction $exchange_name: $id, $type, $currency, $amount, $timestamp\n";
     }
+
+    public function publicKey($serverName, $publicKey)
+    {
+        print "Server Name; [$serverName], Public Key: [$publicKey]";
+    }
 }
 
-?>

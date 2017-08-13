@@ -2,6 +2,8 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+use CryptoArbitrage\Helper\CommandLineProcessor;
+
 use CryptoMarket\Exchange\ExchangeName;
 use CryptoMarket\Exchange\IExchange;
 use CryptoMarket\Record\Currency;
@@ -137,5 +139,9 @@ class BulkPriceQuoter extends ActionProcess
     }
 }
 
-$b = new BulkPriceQuoter();
-$b->start();
+if (!count(debug_backtrace()))
+{
+    $b = new BulkPriceQuoter();
+    $options = CommandLineProcessor::processCommandLine($b);
+    $b->start($options);
+}
