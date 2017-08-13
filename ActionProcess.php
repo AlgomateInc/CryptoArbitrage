@@ -126,7 +126,8 @@ abstract class ActionProcess {
             }
         }
 
-        $this->checkConfiguration($this->accountLoader);
+        // Set configured exchanges
+        $this->configuredExchanges = $this->accountLoader->getConfig($this->privateKey);
 
         ////////////////////////////////
         if(array_key_exists("monitor", $options)){
@@ -153,40 +154,14 @@ abstract class ActionProcess {
                 openssl_pkey_export($keyPair, $this->privateKey);
             }
 
-            // Extract the public key to $publicKey
+            // Extract the public key and report it
             $this->publicKey = openssl_pkey_get_details($keyPair)['key'];
-
-            // Encrypt the data to $encrypted using the public key
-            //$data = 'plaintext data goes here';
-            //openssl_public_encrypt($data, $encrypted, $this->publicKey);
-            // Decrypt the data using the private key and store the results in $decrypted
-            //openssl_private_decrypt($encrypted, $decrypted, $this->privateKey);
-            //echo $decrypted;
-
             $this->reporter->publicKey($this->serverName, $this->publicKey);
         }
 
         ////////////////////////////////////
 
         $this->processOptions($options);
-    }
-
-    private function checkConfiguration(IAccountLoader $loader)
-    {
-        $config = $loader->getConfig();
-
-        if($this->configuredExchanges == null){
-            $this->configuredExchanges = $config;
-            return;
-        }
-
-        if($this->configuredExchanges != $config)
-            throw new \Exception('Configuration changed');
-    }
-
-    private function prepareMarkets(IAccountLoader $loader)
-    {
-        $this->retryInitExchanges = $this->initializeMarkets($loader->getAccounts());
     }
 
     private function initializeMarkets(array $marketList)
@@ -216,7 +191,7 @@ abstract class ActionProcess {
         return $failedInitExchanges;
     }
 
-    public function start($options)
+    public function configure($options)
     {
         date_default_timezone_set('UTC');
         error_reporting(E_ALL);
@@ -243,18 +218,44 @@ abstract class ActionProcess {
                 exit;
             }
         }
+    }
+
+    public function initializeAll()
+    {
+        $this->retryInitExchanges = $this->initializeMarkets(
+            $this->accountLoader->getAccounts(null, $this->privateKey));
+        $this->init();
+    }
+
+    public function runLoop()
+    {
+        $config = $this->accountLoader->getConfig($this->privateKey);
+        if ($this->configuredExchanges != $config) {
+            // Reset all markets
+            $this->configuredExchanges = $config;
+            $this->exchanges = array();
+            $this->retryInitExchanges = $this->initializeMarkets(
+                $this->accountLoader->getAccounts(null, $this->privateKey));
+        } else {
+            // Only try to initialize failed markets
+            $this->retryInitExchanges = $this->initializeMarkets(
+                $this->retryInitExchanges);
+        }
+        $this->run();
+    }
+
+    public function start($options)
+    {
+        $this->configure($options);
 
         //perform the monitoring loop
         try{
             $logger->info(get_class($this) . ' - starting');
-            $this->prepareMarkets($this->accountLoader);
-            $this->init();
+            $this->initializeAll();
 
             try{
                 do {
-                    $this->checkConfiguration($this->accountLoader);
-                    $this->retryInitExchanges = $this->initializeMarkets($this->retryInitExchanges);
-                    $this->run();
+                    $this->runLoop();
                     if($this->monitor)
                         sleep($this->monitor_timeout);
                 }while($this->monitor);
@@ -271,7 +272,11 @@ abstract class ActionProcess {
             $logger->error('ActionProcess runtime error: ' . $e->getMessage());
             exit(1);
         }
+    }
 
+    public function getConfiguredExchanges()
+    {
+        return $this->configuredExchanges;
     }
 } 
 
