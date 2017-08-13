@@ -246,6 +246,7 @@ abstract class ActionProcess {
 
     public function start($options)
     {
+        $logger = \Logger::getLogger(get_class($this));
         $this->configure($options);
 
         //perform the monitoring loop
