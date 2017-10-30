@@ -18,8 +18,6 @@ class MarketCommandDispatcher extends ActionProcess {
 
     public function getProgramOptions()
     {
-        $this->requiresListener = true;
-
         return array('live');
     }
 

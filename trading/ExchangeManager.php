@@ -4,8 +4,9 @@
  * Date: 4/4/2017
  */
 
-use CryptoMarket\Exchange\IExchange;
+use CryptoArbitrage\Reporting\IReporter;
 
+use CryptoMarket\Exchange\IExchange;
 use CryptoMarket\Record\FeeSchedule;
 use CryptoMarket\Record\TradingRole;
 

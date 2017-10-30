@@ -1,4 +1,5 @@
 <?php
+namespace CryptoArbitrage\Reporting;
 
 use CryptoMarket\Record\OrderBook;
 

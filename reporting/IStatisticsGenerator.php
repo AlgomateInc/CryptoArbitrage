@@ -6,6 +6,8 @@
  * Time: 11:48 PM
  */
 
+namespace CryptoArbitrage\Reporting;
+
 interface IStatisticsGenerator {
     function computeMarketStats();
 }

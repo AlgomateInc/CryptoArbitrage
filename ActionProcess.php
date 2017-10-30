@@ -1,5 +1,11 @@
 <?php
 
+use CryptoArbitrage\Reporting\ConsoleReporter;
+use CryptoArbitrage\Reporting\FileReporter;
+use CryptoArbitrage\Reporting\MongoReporter;
+use CryptoArbitrage\Reporting\MultiReporter;
+use CryptoArbitrage\Reporting\SocketReporter;
+
 use CryptoMarket\AccountLoader\ConfigAccountLoader;
 use CryptoMarket\AccountLoader\IAccountLoader;
 use CryptoMarket\AccountLoader\MongoAccountLoader;
@@ -9,17 +15,11 @@ require_once('ConfigData.php');
 \Logger::configure(\ConfigData::LOG4PHP_CONFIG);
 
 require_once('legacy/TestAccountLoader.php');
-require_once('reporting/MultiReporter.php');
-require_once('reporting/ConsoleReporter.php');
-require_once('reporting/MongoReporter.php');
-require_once('reporting/FileReporter.php');
-require_once('reporting/SocketReporter.php');
 
 abstract class ActionProcess {
 
     protected $reporter;
     protected $listener;
-    protected $requiresListener = false;
     private $monitor = false;
     private $monitor_timeout = 20;
     private $fork = false;
@@ -92,11 +92,9 @@ abstract class ActionProcess {
             $port = parse_url($options['socket'], PHP_URL_PORT);
 
             if($host != null && $port != null) {
-                $sr = new SocketReporter($host, $port, $this->requiresListener);
+                $sr = new SocketReporter($host, $port);
                 $this->reporter->add($sr);
-
-                if($this->requiresListener)
-                    $this->listener = $sr;
+                $this->listener = $sr;
             }
         }
 
@@ -180,7 +178,7 @@ abstract class ActionProcess {
                     $mkt->init();
                 } catch (\Exception $e) {
                     $failedInitExchanges[$name] = $mkt;
-                    $logger->error('Error initializing market: ' . $e->getMessage());
+                    $logger->error('Error initializing market: ' . $e->getMessage(). "\n");
                     continue;
                 }
             }
@@ -197,7 +195,7 @@ abstract class ActionProcess {
         error_reporting(E_ALL);
 
         $logger = \Logger::getLogger(get_class($this));
-        $logger->info(get_class($this) . ' is starting');
+        $logger->info(get_class($this) . " is starting\n");
 
         try{
             $this->processCommandLine($options);
@@ -241,6 +239,9 @@ abstract class ActionProcess {
             $this->retryInitExchanges = $this->initializeMarkets(
                 $this->retryInitExchanges);
         }
+        if ($this->listener) {
+            $this->listener->acceptConnection();
+        }
         $this->run();
     }
 
@@ -251,7 +252,7 @@ abstract class ActionProcess {
 
         //perform the monitoring loop
         try{
-            $logger->info(get_class($this) . ' - starting');
+            $logger->info(get_class($this) . " - starting\n");
             $this->initializeAll();
 
             try{
@@ -262,15 +263,15 @@ abstract class ActionProcess {
                 }while($this->monitor);
 
                 $this->shutdown();
-                $logger->info(get_class($this) . ' - finished');
+                $logger->info(get_class($this) . " - finished\n");
             }catch(\Exception $e){
                 $this->shutdown();
-                $logger->info(get_class($this) . ' - finished');
+                $logger->info(get_class($this) . " - finished\n");
                 throw $e;
             }
 
         }catch(\Exception $e){
-            $logger->error('ActionProcess runtime error: ' . $e->getMessage());
+            $logger->error('ActionProcess runtime error: ' . $e->getMessage() . "\n");
             exit(1);
         }
     }

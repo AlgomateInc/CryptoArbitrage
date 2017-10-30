@@ -1,8 +1,9 @@
 <?php
+namespace CryptoArbitrage\Reporting;
+
+use CryptoArbitrage\Reporting\IReporter;
 
 use CryptoMarket\Record\OrderBook;
-
-require_once('IReporter.php');
 
 class ConsoleReporter implements IReporter
 {

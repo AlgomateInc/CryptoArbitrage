@@ -3,6 +3,7 @@
 require_once __DIR__ . '/vendor/autoload.php';
 
 use CryptoArbitrage\Helper\CommandLineProcessor;
+use CryptoArbitrage\Reporting\IReporter;
 
 use CryptoMarket\Record\OrderBook;
 

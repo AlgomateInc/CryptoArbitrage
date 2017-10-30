@@ -5,137 +5,147 @@
  * Date: 1/22/2015
  * Time: 14:19
  */
+namespace CryptoArbitrage\Reporting;
+
+use CryptoArbitrage\Reporting\IListener;
+use CryptoArbitrage\Reporting\IReporter;
 
 use CryptoMarket\Record\OrderBook;
 
-require_once('IListener.php');
+class SocketReporter implements IReporter, IListener
+{
+    private $logger = null;
 
-class SocketReporter implements IReporter, IListener {
+    private $masterSocket = null;
+    private $clientSockets = [];
 
-    private $socket = null;
     private $host = null;
     private $port = null;
 
-    private $canListen;
-
-    private $lastRetryTime = 0;
-    private $reconnectCount = 0;
-    private $retryBuffer = array();
     const RETRY_TIMEOUT_SECS = 5;
     const RETRY_RECONNECT_COUNT = 2880; //4hrs
 
-    public function __construct($host, $port, $listen = false)
+    public function __construct($host, $port)
     {
-        $this->canListen = $listen;
+        $this->logger = \Logger::getLogger(get_class($this));
 
-        ///////////////////
         $this->host = $host;
         $this->port = $port;
-    }
 
-    function __destruct()
-    {
-        $this->disconnect();
-    }
-
-    private function connect()
-    {
-        $this->disconnect();
-
-        //create new socket
-        $sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-        if($sock === false){
-            $err = socket_last_error();
-            $errStr = socket_strerror($err);
-            throw new \Exception("Socket creation failed with code $err: $errStr");
+        if (($this->masterSocket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === false) {
+            $this->logger->error("socket_create() failed: reason: " . socket_strerror(socket_last_error()) . "\n");
         }
 
-        //connect to the destination server
         $address = gethostbyname($this->host);
-        $result = @socket_connect($sock, $address, $this->port);
-        if($result === false){
-            $err = socket_last_error($sock);
-            socket_close($sock);
-            $errStr = socket_strerror($err);
-            throw new \Exception("Socket connection failed with code $err: $errStr");
+        if (socket_bind($this->masterSocket, $address, $this->port) === false) {
+            $this->logger->error("socket_bind() failed: reason: " . socket_strerror(socket_last_error($this->masterSocket)) . "\n");
         }
 
-        $this->socket = $sock;
-        $this->sendLoginMessage();
+        socket_set_nonblock($this->masterSocket);
+        if (socket_listen($this->masterSocket, 5) === false) {
+            $this->logger->error("socket_listen() failed: reason: " . socket_strerror(socket_last_error($this->masterSocket)) . "\n");
+        }
     }
 
-    private function disconnect()
+    public function __destruct()
     {
-        if($this->socket != null){
-            socket_shutdown($this->socket);
-            socket_close($this->socket);
-            $this->socket = null;
+        $this->destroySocket($this->masterSocket);
+    }
+
+    public function acceptConnection()
+    {
+        // see if anyone has tried to connect on master socket
+        while ($clientSocket = socket_accept($this->masterSocket)) {
+            $client = new SocketClient($clientSocket);
+            socket_getpeername($clientSocket , $address, $port);
+            $this->logger->info("New connection accepted, address [" . $address . "] port [" . $port ."]\n");
+            $this->clientSockets[] = $client;
+            $this->sendLoginMessage($client);
         }
     }
 
-    private function sendLoginMessage()
+    private function destroySocket($socket)
+    {
+        if ($socket != null) {
+            socket_shutdown($socket);
+            socket_close($socket);
+        }
+    }
+
+    private function sendLoginMessage($clientSocket)
     {
         $data = array(
             'MessageType' => 'Login',
             'Identifier' => gethostname(),
-            'Listener' => $this->canListen
         );
-        $this->sendUnbuffered($data);
+        $this->sendUnbuffered($clientSocket, $data);
+    }
+
+    private function sendToClient($client, $data)
+    {
+        if ($client->socket == null) {
+            return false;
+        }
+        $client->retryBuffer[] = json_encode($data) . "\n";
+
+        //send all the data in the buffer, delete if too many failed attempts
+        while (count($client->retryBuffer) > 0) {
+            $msg = array_shift($client->retryBuffer);
+            $res = @socket_write($client->socket, $msg);
+            if ($res === FALSE) {
+                array_unshift($client->retryBuffer, $msg);
+                $client->lastRetryTime = time();
+                $client->reconnectCount++;
+                if ($client->reconnectCount > self::RETRY_RECONNECT_COUNT) {
+                    $this->destroySocket($client->socket);
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private function send($data)
     {
-        $this->retryBuffer[] = json_encode($data) . "\n";
-
-        if(time() < $this->lastRetryTime + self::RETRY_TIMEOUT_SECS)
-            return;
-
-        //connect the socket if needed
-        if($this->socket == null){
-            try{
-                $this->connect();
-            }catch (\Exception $e){
-                $this->lastRetryTime = time();
-                $this->reconnectCount++;
-                if($this->reconnectCount > self::RETRY_RECONNECT_COUNT)
-                    throw $e;
-                return;
-            }
-        }
-
-        //send all the data in the buffer
-        while(count($this->retryBuffer) > 0)
-        {
-            $msg = array_shift($this->retryBuffer);
-
-            $res = @socket_write($this->socket, $msg);
-            if($res === FALSE)            {
-                array_unshift($this->retryBuffer, $msg);
-                $this->disconnect();
+        foreach ($this->clientSockets as $key=>$client) {
+            if (time() > $client->lastRetryTime + self::RETRY_TIMEOUT_SECS) {
+                if (false == $this->sendToClient($client, $data)) {
+                    unset($this->clientSockets[$key]);
+                }
             }
         }
     }
 
-    private function sendUnbuffered($data)
+    private function sendUnbuffered($client, $data)
     {
         $msg = json_encode($data) . "\n";
 
-        $res = @socket_write($this->socket, $msg);
+        $res = @socket_write($client->socket, $msg);
         if($res === FALSE){
-            $err = socket_last_error($this->socket);
+            $err = socket_last_error($client->socket);
             $errStr = socket_strerror($err);
             throw new \Exception("Socket write failed with code $err: $errStr");
         }
     }
 
-    public function receive()
-    {
-        $data = @socket_read($this->socket, 4096, PHP_NORMAL_READ);
 
-        if($data === FALSE){
-            $err = socket_last_error($this->socket);
+    public function receiveFromSocket($socket)
+    {
+        $data = @socket_read($socket, 4096, PHP_NORMAL_READ);
+
+        if ($data === FALSE){
+            $err = socket_last_error($socket);
             $errStr = socket_strerror($err);
             throw new \Exception("Socket read failed with code $err: $errStr");
+        }
+        return $data;
+    }
+
+    public function receive()
+    {
+        $data = "";
+        foreach ($this->clientSockets as $client) {
+            $data .= $this->receiveFromSocket($client->socket) . "\n";
         }
 
         $msg = json_decode($data, true);

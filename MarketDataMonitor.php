@@ -8,6 +8,8 @@ require_once('trading/BalanceManager.php');
 require_once('trading/ExchangeManager.php');
 
 use CryptoArbitrage\Helper\CommandLineProcessor;
+use CryptoArbitrage\Reporting\IReporter;
+use CryptoArbitrage\Reporting\IStatisticsGenerator;
 
 use CryptoMarket\Exchange\IExchange;
 use CryptoMarket\Record\Ticker;
@@ -65,7 +67,6 @@ class MarketDataMonitor extends ActionProcess {
             $logger = \Logger::getLogger(get_class($this));
 
             try {
-
                 $fullTickData = $mkt->tickers();
                 foreach($fullTickData as $tickData)
                     if ($tickData instanceof Ticker)
@@ -107,8 +108,8 @@ class MarketDataMonitor extends ActionProcess {
                 if($this->activeOrderManager instanceof ActiveOrderManager)
                     $this->activeOrderManager->processActiveOrders();
 
-            }catch(\Exception $e){
-                $logger->warn('Could not get market data for: ' . $mkt->Name() . ', ' . $e->getMessage());
+            } catch (\Exception $e) {
+                $logger->warn('Could not get market data for: ' . $mkt->Name() . ', ' . $e->getMessage() . "\n");
             }
         }
 

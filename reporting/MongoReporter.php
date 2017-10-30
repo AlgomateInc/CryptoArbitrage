@@ -1,7 +1,8 @@
 <?php
+namespace CryptoArbitrage\Reporting;
 
-require_once('IReporter.php');
-require_once('IStatisticsGenerator.php');
+use CryptoArbitrage\Reporting\IReporter;
+use CryptoArbitrage\Reporting\IStatisticsGenerator;
 
 use CryptoMarket\Record\OrderBook;
 use CryptoMarket\Record\Trade;
