@@ -204,7 +204,6 @@ abstract class ActionProcess {
             exit(1);
         }
 
-        //if we are here, we are monitoring.
         //fork the process depending on setup and loop
         if($this->fork){
             $pid = pcntl_fork();

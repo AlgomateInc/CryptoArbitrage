@@ -50,7 +50,7 @@ class ExchangeManager {
         try{
             $curFeeSchedule = $mkt->currentFeeSchedule();
         }catch(\Exception $e){
-            $logger->warn('Problem getting fees for market: ' . $mkt->Name() . ', ' . $e->getMessage());
+            $logger->warn("Problem getting fees for market: " . $mkt->Name() . ", " . $e->getMessage() . "\n");
             $removeMarket = true;
         }
 
