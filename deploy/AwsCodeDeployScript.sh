@@ -66,7 +66,7 @@ fi
 if [ "$LIFECYCLE_EVENT" == "AfterInstall" ]
 then
     cd /home/ubuntu/CryptoArbitrage
-    echo $PWD
+    echo "$PWD"
     sudo cp ConfigDataExample.php ConfigData.php
     # Remove "Example" from class name
     sed -i "s#ConfigDataExample#ConfigData#" ConfigData.php

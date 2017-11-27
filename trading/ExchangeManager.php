@@ -4,8 +4,9 @@
  * Date: 4/4/2017
  */
 
-use CryptoMarket\Exchange\IExchange;
+use CryptoArbitrage\Reporting\IReporter;
 
+use CryptoMarket\Exchange\IExchange;
 use CryptoMarket\Record\FeeSchedule;
 use CryptoMarket\Record\TradingRole;
 
@@ -49,7 +50,7 @@ class ExchangeManager {
         try{
             $curFeeSchedule = $mkt->currentFeeSchedule();
         }catch(\Exception $e){
-            $logger->warn('Problem getting fees for market: ' . $mkt->Name() . ', ' . $e->getMessage());
+            $logger->warn("Problem getting fees for market: " . $mkt->Name() . ", " . $e->getMessage() . "\n");
             $removeMarket = true;
         }
 

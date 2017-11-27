@@ -6,6 +6,8 @@
  * Time: 9:57 PM
  */
 
+use CryptoArbitrage\Reporting\IReporter;
+
 use CryptoMarket\Exchange\IExchange;
 use CryptoMarket\Record\ActiveOrder;
 use CryptoMarket\Record\Order;

@@ -8,6 +8,8 @@
 
 use CryptoMarket\Account\IAccount;
 
+use CryptoArbitrage\Reporting\IReporter;
+
 class BalanceManager {
 
     private $reporter;

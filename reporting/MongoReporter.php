@@ -1,13 +1,15 @@
 <?php
+namespace CryptoArbitrage\Reporting;
 
-require_once('IReporter.php');
-require_once('IStatisticsGenerator.php');
+use CryptoArbitrage\Reporting\IReporter;
+use CryptoArbitrage\Reporting\IStatisticsGenerator;
 
 use CryptoMarket\Record\OrderBook;
 use CryptoMarket\Record\Trade;
 use CryptoMarket\Helper\MongoHelper;
 
 use MongoDB\BSON\UTCDateTime;
+use MongoDB\Client;
 
 class MongoReporter implements IReporter, IStatisticsGenerator
 {
@@ -16,7 +18,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
     
     public function __construct($mongodb_uri, $mongodb_dbname)
     {
-        $this->mongo = new MongoDB\Client($mongodb_uri);
+        $this->mongo = new Client($mongodb_uri);
         $this->mdb = $this->mongo->selectDatabase($mongodb_dbname);
     }
 

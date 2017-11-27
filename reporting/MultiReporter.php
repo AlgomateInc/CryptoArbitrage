@@ -5,11 +5,12 @@
  * Date: 11/11/2014
  * Time: 12:03 AM
  */
+namespace CryptoArbitrage\Reporting;
+
+use CryptoArbitrage\Reporting\IReporter;
+use CryptoArbitrage\Reporting\IStatisticsGenerator;
 
 use CryptoMarket\Record\OrderBook;
-
-require_once('IReporter.php');
-require_once('IStatisticsGenerator.php');
 
 class MultiReporter implements IReporter, IStatisticsGenerator {
 
