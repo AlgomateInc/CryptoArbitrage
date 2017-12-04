@@ -178,7 +178,7 @@ abstract class ActionProcess {
                     $mkt->init();
                 } catch (\Exception $e) {
                     $failedInitExchanges[$name] = $mkt;
-                    $logger->error('Error initializing market: ' . $e->getMessage(). "\n");
+                    $logger->error("Error initializing market [$name]: " . $e->getMessage(). "\n");
                     continue;
                 }
             }
