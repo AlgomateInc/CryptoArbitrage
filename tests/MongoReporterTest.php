@@ -6,10 +6,10 @@
  * Time: 1:43 PM
  */
 
-require_once __DIR__ . '/../../vendor/autoload.php';
-require_once __DIR__ . '/../../ConfigData.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../ConfigData.php';
 
-use CryptoMarket\Helper\MongoHelper;
+use CryptoMarket\Helper\DateHelper;
 
 use CryptoMarket\Record\OrderType;
 
@@ -24,10 +24,6 @@ class MongoReporterTest extends \PHPUnit\Framework\TestCase {
         $this->mdb = $this->mongo->selectDatabase(ConfigData::MONGODB_DBNAME);
     }
 
-    public function testFeeReporting()
-    {
-    }
-
     public function testCandleGenerationCorrect()
     {
         $candleCollection = $this->mdb->candles;
@@ -38,7 +34,7 @@ class MongoReporterTest extends \PHPUnit\Framework\TestCase {
         {
             $date = $c['Timestamp'];
             $interval = $c['Interval'];
-            $endDate = new UTCDateTime(MongoHelper::mongoDateOfPHPDate($date->toDateTime()->getTimestamp() + $interval));
+            $endDate = new UTCDateTime(DateHelper::mongoDateOfPHPDate($date->toDateTime()->getTimestamp() + $interval));
             $exchange = $c['Exchange'];
             $currencyPair = $c['CurrencyPair'];
 
