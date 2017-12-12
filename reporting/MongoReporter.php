@@ -6,7 +6,7 @@ use CryptoArbitrage\Reporting\IStatisticsGenerator;
 
 use CryptoMarket\Record\OrderBook;
 use CryptoMarket\Record\Trade;
-use CryptoMarket\Helper\MongoHelper;
+use CryptoMarket\Helper\DateHelper;
 
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Client;
@@ -93,8 +93,8 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             array(
                 '$match' => array(
                     'timestamp' => array(
-                        '$gte' => new UTCDateTime(MongoHelper::mongoDateOfPHPDate(floor($time/$intervalSecs)*$intervalSecs)),
-                        '$lt' => new UTCDateTime(MongoHelper::mongoDateOfPHPDate(floor($time/$intervalSecs)*$intervalSecs + $intervalSecs))
+                        '$gte' => new UTCDateTime(DateHelper::mongoDateOfPHPDate(floor($time/$intervalSecs)*$intervalSecs)),
+                        '$lt' => new UTCDateTime(DateHelper::mongoDateOfPHPDate(floor($time/$intervalSecs)*$intervalSecs + $intervalSecs))
                     )
                 )
             ),
@@ -125,7 +125,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
                     '_id'=>0,
                     'Exchange' => '$_id.market',
                     'CurrencyPair' => '$_id.pair',
-                    'Timestamp' => array('$literal' => new UTCDateTime(MongoHelper::mongoDateOfPHPDate(floor($time/$intervalSecs)*$intervalSecs))),
+                    'Timestamp' => array('$literal' => new UTCDateTime(DateHelper::mongoDateOfPHPDate(floor($time/$intervalSecs)*$intervalSecs))),
                     'Interval' => array('$literal' => $intervalSecs),
                     'Open'=>1, 'High'=>1, 'Low'=>1, 'Close'=>1, 'Volume'=>1,
                     'TradeCount'=>1, 'Buys'=>1, 'Sells'=>1, 'BuyVolume'=>1, 'SellVolume'=>1,
@@ -213,7 +213,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         $t->orderType = $orderType;
         $t->price = $price;
         $t->quantity = $quantity;
-        $t->timestamp = new UTCDateTime(MongoHelper::mongoDateOfPHPDate($timestamp));
+        $t->timestamp = new UTCDateTime(DateHelper::mongoDateOfPHPDate($timestamp));
 
         $this->trades($exchange_name, $currencyPair, array($t));
     }
@@ -322,7 +322,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         $cancelInfo = array(
             'CancelQuantity'=>$cancelQuantity,
             'CancelResponse'=>$cancelResponse,
-            'Timestamp'=>new UTCDateTime(MongoHelper::mongoDateOfPHPDate(time()))
+            'Timestamp'=>new UTCDateTime(DateHelper::mongoDateOfPHPDate(time()))
         );
 
         $strategies = $this->mdb->strategyorder;

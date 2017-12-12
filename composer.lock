@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "2d5e0b9ce0c2fe4abe80943e31a789de",
+    "content-hash": "28bd09d16b46945169314dc0d4c3020b",
     "packages": [
         {
             "name": "algomateinc/cryptomarket",
-            "version": "1.0.11",
+            "version": "1.0.12",
             "source": {
                 "type": "git",
                 "url": "https://github.com/AlgomateInc/CryptoMarket.git",
-                "reference": "a75af1fd7a789c8479a876d3704ae5a622718f45"
+                "reference": "24dd4ddd59e67c30114118b14d8f7d49ce81234f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/AlgomateInc/CryptoMarket/zipball/a75af1fd7a789c8479a876d3704ae5a622718f45",
-                "reference": "a75af1fd7a789c8479a876d3704ae5a622718f45",
+                "url": "https://api.github.com/repos/AlgomateInc/CryptoMarket/zipball/24dd4ddd59e67c30114118b14d8f7d49ce81234f",
+                "reference": "24dd4ddd59e67c30114118b14d8f7d49ce81234f",
                 "shasum": ""
             },
             "require": {
@@ -48,7 +48,7 @@
                 "exchange",
                 "trading"
             ],
-            "time": "2017-12-04T21:35:31+00:00"
+            "time": "2017-12-05T17:27:05+00:00"
         },
         {
             "name": "apache/log4php",
