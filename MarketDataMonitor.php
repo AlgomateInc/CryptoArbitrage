@@ -46,10 +46,6 @@ class MarketDataMonitor extends ActionProcess {
 
     public function init()
     {
-        foreach($this->exchanges as $mkt)
-            if($mkt instanceof IExchange)
-                $this->lastMktTradeDate[$mkt->Name()] = time();
-
         if($this->useActiveOrderManager)
             $this->activeOrderManager = new ActiveOrderManager('activeOrders.json', $this->exchanges, $this->reporter);
     }
@@ -61,15 +57,15 @@ class MarketDataMonitor extends ActionProcess {
 
         foreach($this->exchanges as $mkt)
         {
-            if(!$mkt instanceof IExchange)
+            if (!$mkt instanceof IExchange)
                 continue;
 
             $logger = \Logger::getLogger(get_class($this));
 
             try {
                 $fullTickData = $mkt->tickers();
-                foreach($fullTickData as $tickData)
-                    if ($tickData instanceof Ticker)
+                foreach ($fullTickData as $tickData) {
+                    if ($tickData instanceof Ticker) {
                         $this->reporter->market(
                             $mkt->Name(),
                             $tickData->currencyPair,
@@ -78,6 +74,8 @@ class MarketDataMonitor extends ActionProcess {
                             $tickData->last,
                             $tickData->volume
                         );
+                    }
+                }
 
                 foreach ($mkt->supportedCurrencyPairs() as $pair) {
                     //get the order book data
@@ -87,12 +85,16 @@ class MarketDataMonitor extends ActionProcess {
                     }
 
                     //get recent trade data
-                    $trades = $mkt->trades($pair, $this->lastMktTradeDate[$mkt->Name()]);
-                    if(count($trades) > 0) {
-                        $latestTrade = $trades[0];
-                        if($latestTrade instanceof Trade && $latestTrade->timestamp instanceof MongoDB\BSON\UTCDateTime)
-                            $this->lastMktTradeDate[$mkt->Name()] = $latestTrade->timestamp->toDateTime()->getTimestamp() + 1;
-                        $this->reporter->trades($mkt->Name(), $pair, $trades);
+                    if (array_key_exists($mkt->Name(), $this->lastMktTradeDate)) {
+                        $trades = $mkt->trades($pair, $this->lastMktTradeDate[$mkt->Name()]);
+                        if (count($trades) > 0) {
+                            $latestTrade = $trades[0];
+                            if ($latestTrade instanceof Trade && $latestTrade->timestamp instanceof MongoDB\BSON\UTCDateTime)
+                                $this->lastMktTradeDate[$mkt->Name()] = $latestTrade->timestamp->toDateTime()->getTimestamp() + 1;
+                            $this->reporter->trades($mkt->Name(), $pair, $trades);
+                        }
+                    } else {
+                        $this->lastMktTradeDate[$mkt->Name()] = time();
                     }
                 }
 

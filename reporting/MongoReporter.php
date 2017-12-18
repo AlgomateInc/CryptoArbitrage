@@ -13,13 +13,18 @@ use MongoDB\Client;
 
 class MongoReporter implements IReporter, IStatisticsGenerator
 {
+    private $logger = null;
     private $mongo;
     private $mdb;
+    private $store_depth = true;
     
-    public function __construct($mongodb_uri, $mongodb_dbname)
+    public function __construct($mongodb_uri, $mongodb_dbname, $store_depth)
     {
+        $this->logger = \Logger::getLogger(get_class($this));
+
         $this->mongo = new Client($mongodb_uri);
         $this->mdb = $this->mongo->selectDatabase($mongodb_dbname);
+        $this->store_depth = $store_depth;
     }
 
     public function balance($exchange_name, $currency, $balance){
@@ -165,6 +170,10 @@ class MongoReporter implements IReporter, IStatisticsGenerator
     }
 
     public function depth($exchange_name, $currencyPair, OrderBook $depth){
+        if ($this->store_depth === false) {
+            return;
+        }
+
         $orderbooks = $this->mdb->orderbook;
         $orderbooks->createIndex(array('Timestamp' => -1));
 

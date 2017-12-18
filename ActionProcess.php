@@ -46,6 +46,7 @@ abstract class ActionProcess {
         $longopts = array(
             'console',
             "mongodb::",
+            "discard-mongodb-depth",
             "file:",
             "monitor::",
             "fork",
@@ -80,7 +81,10 @@ abstract class ActionProcess {
                 $mongodb_dbname = \ConfigData::MONGODB_DBNAME;
             }
 
-            $this->reporter->add(new MongoReporter($mongodb_uri, $mongodb_dbname));
+            $store_mongo_depth = true;
+            if (isset($options['discard-mongodb-depth']) && $options['discard-mongodb-depth'] !== false)
+                $store_mongo_depth = false;
+            $this->reporter->add(new MongoReporter($mongodb_uri, $mongodb_dbname, $store_mongo_depth));
         }
 
         if(array_key_exists("file", $options) && isset($options['file']))
@@ -195,7 +199,7 @@ abstract class ActionProcess {
         error_reporting(E_ALL);
 
         $logger = \Logger::getLogger(get_class($this));
-        $logger->info(get_class($this) . " is starting\n");
+        $logger->info(get_class($this) . " - configuring\n");
 
         try{
             $this->processCommandLine($options);
