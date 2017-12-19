@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "d18af95a7a95ca286f2b7b235adfc18b",
+    "content-hash": "89765c6f1ce6e01f34b9957ab647c421",
     "packages": [
         {
             "name": "algomateinc/cryptomarket",
-            "version": "1.0.13",
+            "version": "1.0.14",
             "source": {
                 "type": "git",
                 "url": "https://github.com/AlgomateInc/CryptoMarket.git",
-                "reference": "106201d7696af37ab05d06e2e88264375bdf347c"
+                "reference": "83ee0309ca200f58efd04ca98729dc309008434e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/AlgomateInc/CryptoMarket/zipball/106201d7696af37ab05d06e2e88264375bdf347c",
-                "reference": "106201d7696af37ab05d06e2e88264375bdf347c",
+                "url": "https://api.github.com/repos/AlgomateInc/CryptoMarket/zipball/83ee0309ca200f58efd04ca98729dc309008434e",
+                "reference": "83ee0309ca200f58efd04ca98729dc309008434e",
                 "shasum": ""
             },
             "require": {
@@ -48,7 +48,7 @@
                 "exchange",
                 "trading"
             ],
-            "time": "2017-12-14T21:07:35+00:00"
+            "time": "2017-12-19T02:16:32+00:00"
         },
         {
             "name": "apache/log4php",
@@ -809,16 +809,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "6.5.4",
+            "version": "6.5.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "1b2f933d5775f9237369deaa2d2bfbf9d652be4c"
+                "reference": "83d27937a310f2984fd575686138597147bdc7df"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/1b2f933d5775f9237369deaa2d2bfbf9d652be4c",
-                "reference": "1b2f933d5775f9237369deaa2d2bfbf9d652be4c",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/83d27937a310f2984fd575686138597147bdc7df",
+                "reference": "83d27937a310f2984fd575686138597147bdc7df",
                 "shasum": ""
             },
             "require": {
@@ -889,7 +889,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2017-12-10T08:06:19+00:00"
+            "time": "2017-12-17T06:31:19+00:00"
         },
         {
             "name": "phpunit/phpunit-mock-objects",
