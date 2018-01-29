@@ -7,11 +7,13 @@ require_once('strategy/MarketCommandStrategy.php');
 require_once('trading/ActiveOrderManager.php');
 require_once('trading/ExecutionManager.php');
 
+use CryptoArbitrage\Reporting\IListener;
 use CryptoArbitrage\Helper\CommandLineProcessor;
 
 class MarketCommandDispatcher extends ActionProcess {
 
     private $liveTrade = false;
+    public $requiresListener = false;
 
     private $activeOrderManager;
     private $executionManager;

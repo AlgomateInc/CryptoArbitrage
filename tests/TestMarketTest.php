@@ -6,15 +6,15 @@
  * Time: 3:11 PM
  */
 
+namespace CryptoArbitrage\Tests;
+
 require_once(__DIR__ . '/../vendor/autoload.php');
 
+use CryptoArbitrage\Tests\TestMarket;
 use CryptoMarket\Record\CurrencyPair;
+use PHPUnit\Framework\TestCase;
 
-Logger::configure($log4phpConfig);
-
-require_once('TestMarket.php');
-
-class TestMarketTest extends PHPUnit_Framework_TestCase {
+class TestMarketTest extends TestCase {
 
     protected $mkt;
     public function setUp()

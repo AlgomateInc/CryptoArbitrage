@@ -17,6 +17,8 @@ use CryptoMarket\Record\Trade;
 
 class MarketDataMonitor extends ActionProcess {
 
+    public $requiresListener = false;
+
     private $activeOrderManager;
     private $balanceManager;
     private $exchangeManager;

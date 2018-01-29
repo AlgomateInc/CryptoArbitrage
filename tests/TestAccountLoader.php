@@ -1,8 +1,9 @@
 <?php
 
-use CryptoMarket\AccountLoader\IAccountLoader;
+namespace CryptoArbitrage\Tests;
 
-require_once('TestMarket.php');
+use CryptoMarket\AccountLoader\IAccountLoader;
+use CryptoArbitrage\Tests\TestMarket;
 
 /**
  * Created by PhpStorm.
@@ -10,6 +11,7 @@ require_once('TestMarket.php');
  * Date: 3/7/2016
  * Time: 9:44 PM
  */
+
 class TestAccountLoader implements IAccountLoader
 {
 
@@ -19,9 +21,9 @@ class TestAccountLoader implements IAccountLoader
      * TestAccountLoader constructor.
      * @param $requiresListener
      */
-    public function __construct($requiresListener)
+    public function __construct($clearBook)
     {
-        $this->accounts = array('TestMarket' => new TestMarket($requiresListener));
+        $this->accounts = array('TestMarket' => new TestMarket($clearBook));
     }
 
     function getConfig($privateKey = null)

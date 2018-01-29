@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: marko_000
@@ -6,8 +7,10 @@
  * Time: 10:12 PM
  */
 
+namespace CryptoArbitrage\Tests;
+
 use CryptoMarket\Exchange\BaseExchange;
-use CryptoMarket\Exchange\NonceFactory;
+use CryptoMarket\Helper\NonceFactory;
 use CryptoMarket\Record\CurrencyPair;
 use CryptoMarket\Record\DepthItem;
 use CryptoMarket\Record\FeeSchedule;
@@ -16,6 +19,7 @@ use CryptoMarket\Record\OrderExecution;
 use CryptoMarket\Record\OrderType;
 use CryptoMarket\Record\Ticker;
 use CryptoMarket\Record\Trade;
+use MongoDB\BSON\UTCDateTime;
 
 require_once(__DIR__ . '/../trading/ConcurrentFile.php');
 
@@ -36,11 +40,11 @@ class TestMarket extends BaseExchange
 
     function __construct($clearBook = true)
     {
-        $this->logger = Logger::getLogger(get_class($this));
+        $this->logger = \Logger::getLogger(get_class($this));
         $this->book = new OrderBook();
 
         $sharedFileName = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'TestMarketOrderBook';
-        $this->dataStore = new ConcurrentFile($sharedFileName);
+        $this->dataStore = new \ConcurrentFile($sharedFileName);
 
         //initialize the file or ourselves
         if($clearBook == true)
@@ -162,7 +166,7 @@ class TestMarket extends BaseExchange
             if(!$item instanceof Trade)
                 throw new \Exception();
 
-            if(!$item->timestamp instanceof MongoDB\BSON\UTCDateTime)
+            if(!$item->timestamp instanceof UTCDateTime)
                 throw new \Exception();
 
             if($item->timestamp->toDateTime()->getTimestamp() > $sinceDate)
@@ -233,7 +237,7 @@ class TestMarket extends BaseExchange
             $t->tradeId = $nf->get();
             $t->price = $item->price;
             $t->quantity = $execQty;
-            $t->timestamp = new MongoDB\BSON\UTCDateTime();
+            $t->timestamp = new UTCDateTime();
             $t->orderType = $side;
             $this->tradeList[] = $t;
 

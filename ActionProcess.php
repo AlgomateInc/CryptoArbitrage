@@ -5,6 +5,7 @@ use CryptoArbitrage\Reporting\FileReporter;
 use CryptoArbitrage\Reporting\MongoReporter;
 use CryptoArbitrage\Reporting\MultiReporter;
 use CryptoArbitrage\Reporting\SocketReporter;
+use CryptoArbitrage\Tests\TestAccountLoader;
 
 use CryptoMarket\AccountLoader\ConfigAccountLoader;
 use CryptoMarket\AccountLoader\IAccountLoader;
@@ -13,8 +14,6 @@ use CryptoMarket\Exchange\ILifecycleHandler;
 
 require_once('ConfigData.php');
 \Logger::configure(\ConfigData::LOG4PHP_CONFIG);
-
-require_once('legacy/TestAccountLoader.php');
 
 abstract class ActionProcess {
 
