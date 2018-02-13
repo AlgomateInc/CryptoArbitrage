@@ -46,6 +46,7 @@ abstract class ActionProcess {
             'console',
             "mongodb::",
             "discard-mongodb-depth",
+            "cap-mongodb-collections",
             "file:",
             "monitor::",
             "fork",
@@ -81,9 +82,12 @@ abstract class ActionProcess {
             }
 
             $store_mongo_depth = true;
-            if (isset($options['discard-mongodb-depth']) && $options['discard-mongodb-depth'] !== false)
+            if (isset($options['discard-mongodb-depth']))
                 $store_mongo_depth = false;
-            $this->reporter->add(new MongoReporter($mongodb_uri, $mongodb_dbname, $store_mongo_depth));
+            $cap_collections = false;
+            if (isset($options['cap-mongodb-collections']))
+                $cap_collections = true;
+            $this->reporter->add(new MongoReporter($mongodb_uri, $mongodb_dbname, $store_mongo_depth, $cap_collections));
         }
 
         if(array_key_exists("file", $options) && isset($options['file']))
@@ -274,6 +278,11 @@ abstract class ActionProcess {
 
         }catch(\Exception $e){
             $logger->error('ActionProcess runtime error: ' . $e->getMessage() . "\n");
+            ob_start();                    // start capture
+            var_dump($e->getTrace() );     // dump the values
+            $contents = ob_get_contents(); // put the buffer into a variable
+            ob_end_clean();                // end capture
+            $logger->error( $contents );
             exit(1);
         }
     }

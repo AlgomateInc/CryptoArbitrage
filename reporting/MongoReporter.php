@@ -18,13 +18,21 @@ class MongoReporter implements IReporter, IStatisticsGenerator
     private $mdb;
     private $store_depth = true;
     
-    public function __construct($mongodb_uri, $mongodb_dbname, $store_depth)
+    public function __construct($mongodb_uri, $mongodb_dbname, $store_depth, $cap_collections)
     {
         $this->logger = \Logger::getLogger(get_class($this));
 
         $this->mongo = new Client($mongodb_uri);
         $this->mdb = $this->mongo->selectDatabase($mongodb_dbname);
         $this->store_depth = $store_depth;
+        if ($cap_collections) {
+            foreach ($this->mdb->listCollections() as $coll) {
+                $this->mdb->command([
+                    'convertToCapped' => $coll->getName(),
+                    'size' => 1000000000 // default to 1GB
+                ]);
+            }
+        }
     }
 
     public function balance($exchange_name, $currency, $balance){
@@ -33,8 +41,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
 
         $balance_entry = array(
             'Exchange'=>"$exchange_name",
-            'Currency'=>"$currency",
-            'Balance'=>"$balance",
+            'Currency'=>"$currency", 'Balance'=>"$balance",
             'Timestamp'=>new UTCDateTime());
         
         $res = $balances->insertOne($balance_entry);
@@ -120,8 +127,8 @@ class MongoReporter implements IReporter, IStatisticsGenerator
                     'TradeCount' => array('$sum' => 1),
                     'Buys' => array('$sum' => array('$cond' => array(array('$eq' => array('$orderType', 'BUY')), 1, 0))),
                     'Sells' => array('$sum' => array('$cond' => array(array('$eq' => array('$orderType', 'SELL')), 1, 0))),
-                    'BuyVolume' => array('$sum' => array('$cond' => array(array('$eq' => array('$orderType', 'BUY')), '$quantity', 0))),
-                    'SellVolume' => array('$sum' => array('$cond' => array(array('$eq' => array('$orderType', 'SELL')), '$quantity', 0))),
+                    'BuyVolume' => array('$sum' => array('$cond' => array(array('$eq' => array('$orderType', 'BUY')), '$quantity', 0.0))),
+                    'SellVolume' => array('$sum' => array('$cond' => array(array('$eq' => array('$orderType', 'SELL')), '$quantity', 0.0))),
                     'PxTimesVol' => array('$sum' => array('$multiply' => array('$price', '$quantity')))
                 )
             ),
@@ -237,17 +244,19 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             'Price'=>"$price",
             'Timestamp'=>"$timestamp");
 
+        //NOTE we do not cap this collection by choice
         $positionCollection = $this->mdb->position;
         $positionCollection->updateOne(
-            array('Timestamp' => "$timestamp", 'Exchange' => "$exchange_name",'CurrencyPair'=>"$currencyPair",
-            'Type'=>"$orderType"),
-            $position_entry,
-            array('upsert'=>true)
+            ['Timestamp' => "$timestamp", 'Exchange' => "$exchange_name",'CurrencyPair'=>"$currencyPair",
+            'Type'=>"$orderType"],
+            [ '$set' => $position_entry ],
+            ['upsert' => true]
         );
     }
 
     public function strategyOrder($strategyId, $iso)
     {
+        //NOTE we do not cap this collection by choice
         $strategyOrders = $this->mdb->strategyorder;
         $strategyOrder_entry = array(
             'StrategyID' => $strategyId,
@@ -269,6 +278,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             'ExchangeResponse'=>$orderResponse,
             'Timestamp'=>new UTCDateTime());
 
+        //NOTE we do not cap this collection by choice
         $arborders = $this->mdb->strategyorder;
         $arborders->updateOne(
             array('_id'=>$arbid),
@@ -285,6 +295,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             'Timestamp'=>"$timestamp"
         );
 
+        //NOTE we do not cap this collection by choice
         $arborders = $this->mdb->strategyorder;
         $arborders->updateOne(
             array('_id' => $arbId, "Orders.OrderID" => $orderId),
@@ -300,6 +311,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             'Timestamp'=>microtime(true)
         );
 
+        //NOTE we do not cap this collection by choice
         $strategyOrderDb = $this->mdb->strategyorder;
         $strategyOrderDb->updateOne(
             array('_id' => $strategyId, "Orders.OrderID" => $orderId),
@@ -320,9 +332,9 @@ class MongoReporter implements IReporter, IStatisticsGenerator
 
         $txdb = $this->mdb->transactions;
         $txdb->updateOne(
-            array('TxId' => "$id", 'Exchange' => "$exchange_name"),
-            $tx_entry,
-            array('upsert'=>true)
+            [ 'TxId' => "$id", 'Exchange' => "$exchange_name" ],
+            [ '$set' => $tx_entry ],
+            [ 'upsert'=>true ]
         );
     }
 
@@ -334,6 +346,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             'Timestamp'=>new UTCDateTime(DateHelper::mongoDateOfPHPDate(time()))
         );
 
+        //NOTE we do not cap this collection by choice
         $strategies = $this->mdb->strategyorder;
         $strategies->updateOne(
             array('_id' => $strategyId, "Orders.OrderID" => $orderId),
@@ -343,6 +356,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
 
     public function publicKey($serverName, $publicKey)
     {
+        //NOTE we do not cap this collection by choice
         $servers = $this->mdb->servers;
         $servers->updateOne(
             ['ServerName' => "$serverName"],
