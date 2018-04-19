@@ -39,6 +39,7 @@ class SocketReporter implements IReporter, IListener
         $address = gethostbyname($this->host);
         if (socket_bind($this->masterSocket, $address, $this->port) === false) {
             $this->logger->error("socket_bind() failed: reason: " . socket_strerror(socket_last_error($this->masterSocket)) . "\n");
+            throw new Exception('Binding to socket failed, exiting to try again');
         }
 
         socket_set_nonblock($this->masterSocket);
