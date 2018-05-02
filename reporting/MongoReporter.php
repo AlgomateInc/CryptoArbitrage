@@ -41,10 +41,20 @@ class MongoReporter implements IReporter, IStatisticsGenerator
 
         $balance_entry = array(
             'Exchange'=>"$exchange_name",
-            'Currency'=>"$currency", 'Balance'=>"$balance",
+            'Currency'=>"$currency",
+            'Balance'=>"$balance",
             'Timestamp'=>new UTCDateTime());
         
         $res = $balances->insertOne($balance_entry);
+
+        $balanceSnapshot = $this->mdb->balancesnapshot;
+        $balanceSnapshot->createIndex(array('Exchange' => 1, 'Currency' => 1));
+        $balanceSnapshot->updateOne(
+            ['Exchange' => "$exchange_name",'Currency'=>"$currency"],
+            [ '$set' => $balance_entry ],
+            ['upsert' => true]
+        );
+
         return $res->getInsertedId();
     }
 
