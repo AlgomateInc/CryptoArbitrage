@@ -113,7 +113,7 @@ abstract class ActionProcess {
         if(array_key_exists('servername', $options) && isset($options['servername'])) {
             $this->serverName = $options['servername'];
         } else {
-            $this->serverName = gethostname();
+            $this->serverName = null;
         }
 
         if(array_key_exists('testmarket', $options)) {
