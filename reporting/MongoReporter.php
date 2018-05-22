@@ -26,14 +26,18 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         $this->mdb = $this->mongo->selectDatabase($mongodb_dbname);
         $this->store_depth = $store_depth;
         if ($cap_collections) {
-            $this->mdb->command([
-                'convertToCapped' => 'balance',
-                'size' => 100000000 // default to 100MB
-            ]);
-            $this->mdb->command([
-                'convertToCapped' => 'openbalance',
-                'size' => 1000000000 // default to 1GB
-            ]);
+            try {
+                $this->mdb->createCollection('balance', 
+                    ['capped'=> true, 'size' => 100000000 ]); // default to 100MB 
+            } catch (\Exception $e) {
+                $this->mdb->command(['convertToCapped'=> 'balance', 'size'=> 100000000]);
+            }
+            try {
+                $this->mdb->createCollection('openbalance',
+                    ['capped'=> true, 'size'=>1000000000]);// default to 1GB
+            } catch (\Exception $e) {
+                $this->mdb->command(['convertToCapped'=> 'openbalance', 'size'=> 1000000000]);
+            }
         }
     }
 
