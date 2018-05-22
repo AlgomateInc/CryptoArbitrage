@@ -26,29 +26,48 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         $this->mdb = $this->mongo->selectDatabase($mongodb_dbname);
         $this->store_depth = $store_depth;
         if ($cap_collections) {
-            foreach ($this->mdb->listCollections() as $coll) {
-                $this->mdb->command([
-                    'convertToCapped' => $coll->getName(),
-                    'size' => 1000000000 // default to 1GB
-                ]);
-            }
+            $this->mdb->command([
+                'convertToCapped' => 'balance',
+                'size' => 100000000 // default to 100MB
+            ]);
+            $this->mdb->command([
+                'convertToCapped' => 'openbalance',
+                'size' => 1000000000 // default to 1GB
+            ]);
         }
     }
 
     public function balance($exchange_name, $currency, $balance){
         $balances = $this->mdb->balance;
         $balances->createIndex(array('Timestamp' => -1));
+        $dtnow = new UTCDateTime();
 
         $balance_entry = array(
             'Exchange'=>"$exchange_name",
             'Currency'=>"$currency",
             'Balance'=>"$balance",
-            'Timestamp'=>new UTCDateTime());
+            'Timestamp'=> $dtnow);
         
         $res = $balances->insertOne($balance_entry);
 
+        $start_of_day = $dtnow->toDateTime();
+        $start_of_day->setTime(0, 0, 0, 0);
+        $openbalances = $this->mdb->openbalance;
+        $openbalances->createIndex(['Timestamp' => -1]);
+        $openbalances->updateOne(
+            ['Timestamp' => $start_of_day, 'Exchange' => "$exchange_name",'Currency'=>"$currency"],
+            [ '$setOnInsert' => [
+                'Exchange'=>"$exchange_name",
+                'Currency'=>"$currency",
+                'Balance'=>"$balance",
+                'Timestamp'=>new UTCDateTime($start_of_day)
+                ]
+            ],
+            ['upsert' => true]
+        );
+
         $balanceSnapshot = $this->mdb->balancesnapshot;
-        $balanceSnapshot->createIndex(array('Exchange' => 1, 'Currency' => 1));
+        $balanceSnapshot->createIndex(['Exchange' => 1, 'Currency' => 1]);
         $balanceSnapshot->updateOne(
             ['Exchange' => "$exchange_name",'Currency'=>"$currency"],
             [ '$set' => $balance_entry ],
@@ -60,8 +79,8 @@ class MongoReporter implements IReporter, IStatisticsGenerator
 
     public function fees($exchange_name, $currencyPair, $takerFee, $makerFee)
     {
-        $fees = $this->mdb->fees;
-        $fees->createIndex(array('Timestamp' => -1, 'Exchange' => 1, 'CurrencyPair' => 1));
+        $fees = $this->mdb->feesnapshot;
+        $fees->createIndex(['Exchange' => 1, 'CurrencyPair' => 1]);
 
         $fee_entry = array(
             'Exchange'    => "$exchange_name",
@@ -69,9 +88,12 @@ class MongoReporter implements IReporter, IStatisticsGenerator
             'TakerFee'    => "$takerFee",
             'MakerFee'    => "$makerFee",
             'Timestamp'   => new UTCDateTime());
-        
-        $res = $fees->insertOne($fee_entry);
-        return $res->getInsertedId();
+        $res = $fees->updateOne(
+            ['Exchange' => "$exchange_name", 'CurrencyPair'=> "$currencyPair" ],
+            ['$set' => $fee_entry ],
+            ['upsert' => true]
+        );
+        return $res->getUpsertedId();
     }
 
     public function market($exchange_name, $currencyPair, $bid, $ask, $last, $vol){
@@ -207,8 +229,8 @@ class MongoReporter implements IReporter, IStatisticsGenerator
     
     public function trades($exchange_name, $currencyPair, array $trades){
         $tradeCollection = $this->mdb->trades;
-        $tradeCollection->createIndex(array('timestamp' => -1, 'exchange' => 1,
-            'currencyPair' => 1, 'tradeId' => -1), array('unique' => true));
+        $tradeCollection->createIndex(array('Timestamp' => -1, 'Exchange' => 1,
+            'CurrencyPair' => 1, 'TradeId' => -1), array('unique' => true));
 
         $batch = [];
         foreach($trades as $t){
