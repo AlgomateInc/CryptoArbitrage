@@ -233,8 +233,8 @@ class MongoReporter implements IReporter, IStatisticsGenerator
     
     public function trades($exchange_name, $currencyPair, array $trades){
         $tradeCollection = $this->mdb->trades;
-        $tradeCollection->createIndex(array('Timestamp' => -1, 'Exchange' => 1,
-            'CurrencyPair' => 1, 'TradeId' => -1), array('unique' => true));
+        $tradeCollection->createIndex(array('timestamp' => -1, 'exchange' => 1,
+-            'currencyPair' => 1, 'tradeId' => -1), array('unique' => true));
 
         $batch = [];
         foreach($trades as $t){
