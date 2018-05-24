@@ -46,7 +46,7 @@ abstract class ActionProcess {
             'console',
             "mongodb::",
             "discard-mongodb-depth",
-            "cap-mongodb-collections",
+            "cap-collections",
             "file:",
             "monitor::",
             "fork",
@@ -85,6 +85,8 @@ abstract class ActionProcess {
             if (isset($options['discard-mongodb-depth']))
                 $store_mongo_depth = false;
             $cap_collections = false;
+            if (isset($options['cap-collections']))
+                $cap_collections = true;
             $this->reporter->add(new MongoReporter($mongodb_uri, $mongodb_dbname, $store_mongo_depth, $cap_collections));
         }
 
