@@ -55,7 +55,7 @@ class MongoReporter implements IReporter, IStatisticsGenerator
         $res = $balances->insertOne($balance_entry);
 
         $start_of_day = $dtnow->toDateTime();
-        $start_of_day->setTime(0, 0, 0, 0);
+        $start_of_day->setTime(0, 0, 0);
         $openbalances = $this->mdb->openbalance;
         $openbalances->createIndex(['Timestamp' => -1]);
         $openbalances->updateOne(
